@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FAQ - StanveeProducts</title>
+    <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap)" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* ==========================
+   ABOUT SECTION
+========================== */
+        
+        .about-section {
+            padding: 70px 15px;
+            background: #f6f7f9;
+        }
+        
+        .about-title {
+            text-align: center;
+            color: #42b649;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        
+        .about-card {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .about-card h3 {
+            color: #42b649;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .about-card h4 {
+            color: #42b649;
+            font-size: 26px;
+            font-weight: 700;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        
+        .about-card p {
+            color: #444;
+            font-size: 17px;
+            line-height: 1.9;
+            margin-bottom: 18px;
+        }
+        
+        .about-card strong {
+            font-weight: 700;
+        }
+        /* Responsive */
+        
+        @media (max-width:768px) {
+            .about-section {
+                padding: 50px 15px;
+            }
+            .about-card {
+                padding: 25px;
+            }
+            .about-title {
+                font-size: 32px;
+            }
+            .about-card h3 {
+                font-size: 26px;
+            }
+            .about-card h4 {
+                font-size: 22px;
+            }
+            .about-card p {
+                font-size: 16px;
+                line-height: 1.8;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="topbar-inner">
+            <div class="topbar-left">
+                <span><span class="topbar-contact-icon">✉</span> info@stanvee.com</span>
+                <span><span class="topbar-contact-icon">📞</span> +91 92705 21515</span>
+            </div>
+            <div class="topbar-right">
+                <a href="faq.html">FAQ</a>
+                <a href="about_us.html">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <div class="navbar" id="navbar">
+        <!-- Upper -->
+        <div class="navbar-upper">
+            <a class="logo" href="/">
+                <img src="src/assets/stanveelogoshop.png" alt="Stanvee" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span style="color:#203040">vee</span></span>
+            </a>
+
+            <div class="desktop-search">
+                <input type="text" placeholder="Search products..." id="desktopSearch" />
+                <span style="color:#6b7280;font-size:14px">🔍</span>
+            </div>
+
+            <div class="nav-right">
+                <button class="mobile-search-btn" onclick="toggleMobileSearch()" id="mobileSearchBtn">🔍</button>
+
+                <div class="cart-wrap" onclick="window.location.href='/cart'">
+                    <span class="cart-label">My Cart</span>
+                    <div class="cart-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="[w3.org](http://www.w3.org/2000/svg)">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 01-8 0" />
+                        </svg>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </div>
+                </div>
+
+                <div id="guestNav">
+                    <button class="login-btn" onclick="showLoginModal()">Login</button>
+                </div>
+                <!-- <div id="userNav" style="display:none;align-items:center;gap:8px;display:none">
+                    <span class="wallet-badge">Wallet: ₹<span id="walletAmt">0</span></span>
+                    <div class="profile-wrap">
+                        <img src="src/assets/profile_icon.png" alt="profile" class="profile-icon" onclick="toggleProfile()" onerror="this.src='data:image/svg+xml,<svg xmlns=%22[w3.org](http://www.w3.org/2000/svg%22) viewBox=%220 0 40 40%22><circle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23e5e7eb%22/><text x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2218%22>👤</text></svg>'"
+                        />
+                        <ul class="profile-dropdown" id="profileDropdown">
+                            <li onclick="window.location.href='/my-account'">My Account</li>
+                            <li onclick="window.location.href='/my-orders'">My Orders</li>
+                            <li class="red" onclick="logout()">Logout</li>
+                        </ul>
+                    </div> -->
+
+                    <div id="userNav" style="display:none;align-items:center;gap:8px">
+                    <span class="wallet-badge">Wallet: ₹<span id="walletAmt">0</span></span>
+                    <span id="userGreeting" style="font-size:13px;font-weight:600;color:#374151;display:none"></span>
+                    <div class="profile-wrap">
+                        <ul class="profile-dropdown" id="profileDropdown">
+                            <li onclick="window.location.href='my-account.html'">My Account</li>
+                            <li onclick="window.location.href='my-orders.html'">My Orders</li>
+                            <li class="red" onclick="logout()">Logout</li>
+                        </ul>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile search row -->
+        <div class="mobile-search-row" id="mobileSearchRow">
+            <input type="text" placeholder="Search products..." id="mobileSearch" />
+            <button class="clear-btn" onclick="clearMobileSearch()">✕</button>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="navbar-bottom">
+            <div class="cat-btn-wrap">
+                <button class="cat-trigger" onclick="toggleCat()" id="catTrigger">
+                    <div class="cat-icon-circle">☰</div>
+                    All Categories
+                    <span class="cat-arrow" id="catArrow">▾</span>
+                </button>
+                <!-- <div class="cat-dropdown-menu" id="catDropdown">
+                    <a href="/products/audio">Audio Devices</a>
+                    <a href="/products/dining">Dining</a>
+                    <a href="/products/homeappliances">Home Appliances</a>
+                    <a href="/products/homeessentials">Home Essentials</a>
+                    <a href="/products/kitchenappliances">Kitchen Appliances</a>
+                    <a href="/products/kitchenessentials">Kitchen Essentials</a>
+                    <a href="/products/businessessentials">Business Essentials</a>
+                </div> -->
+            </div>
+
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">☰</button>
+
+            <nav class="desktop-nav-links">
+                <a href="/">Home</a>
+                <a href="/shop.html">Shop</a>
+                <a href="about_us.html" class="active">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </nav>
+        </div>
+
+        <!-- Mobile nav dropdown -->
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <a href="/">Home</a>
+            <a href="/shop.html">Shop</a>
+            <a href="about_us.html">About Us</a>
+            <a href="contact_us.html">Contact Us</a>
+        </div>
+    </div>
+
+    <!-- ABOUT SECTION START -->
+    <section class="about-section">
+        <div class="container">
+            <h2 class="about-title">About Us</h2>
+
+            <div class="about-card">
+                <h3>Stanvee Services</h3>
+
+                <p>
+                    After assisting businesses in gaining profits for the last 15 years in the travel & service sector, Stanvee Services has decided to share its immense experience and unparalleled discounts directly with its end users — you and your loved ones.
+                </p>
+
+                <p>
+                    Our premium services have earned us a wide and loyal clientele across the globe. We aim to provide the highest level of quality along with exemplary customer service.
+                </p>
+
+                <p>
+                    Our company is committed to improving lives by creating happy, successful, and vibrant futures for our customers. We believe our long-term success comes from the enthusiasm and positive mindset of our committed team, which continuously strives to take
+                    Stanvee Services to greater heights in the travel & service sector.
+                </p>
+
+                <p>
+                    We warmly welcome you into our family and wish you happiness as you explore and enjoy our products and services.
+                </p>
+
+                <h4>Our Mission</h4>
+
+                <p>
+                    <strong>"Passion to Deliver Perfection"</strong> — At Stanvee Services, our team is pledged to deliver a perfect amalgamation of exceptional products and unparalleled services to create a lasting impression. Your satisfaction is our
+                    ultimate goal.
+                </p>
+
+                <h4>Our Vision</h4>
+
+                <p>
+                    To create happy employees delivering high-quality services that inspire strong customer loyalty.
+                </p>
+            </div>
+        </div>
+    </section>
+    <!-- ABOUT SECTION END -->
+
+    <!-- FOOTER -->
+<footer>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a href="index.html">
+                    <img src="src/assets/stanvee_logo-Photoroom.png" alt="Stanvee" class="footer-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span style="color:#203040">vee</span></span>
+                </a>
+                <p class="footer-desc">Don't miss out on the chance to indulge in shopping, travel, utility services, and wellness experiences while enjoying attractive discounts and deals. Visit stanvee.com to explore the multitude of offerings and let the celebrations begin
+                    with Stanvee.</p>
+            </div>
+            <div class="footer-links-row">
+                <div class="footer-col">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="products_audio.html">Audio Devices</a></li>
+                        <li><a href="products_homeappliances.html">Home Appliances</a></li>
+                        <li><a href="products_homeessentials.html">Home Essentials</a></li>
+                        <li><a href="products_kitchenappliances.html">Kitchen Appliances</a></li>
+                        <li><a href="products_kitchenessentials.html">Kitchen Essentials</a></li>
+                        <li><a href="products_dining.html">Dining</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Best Sellers</a></li>
+                        <li><a href="products.html">Offers &amp; Deals</a></li>
+                        <li><a href="contact_us.html">Contact Us</a></li>
+                        <li><a href="faq.html">FAQs</a></li>
+                        <li><a href="refund.html">Cancel / Refund</a></li>
+                        <li><a href="terms_and_condition.html">Terms &amp; Conditions</a></li>
+                        <li><a href="privacy_policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Our Trending Packages</h3>
+                    <ul>
+                        <li><a href="https://stanvee.com/index.asp" target="_blank" rel="noopener">Royal Package</a></li>
+                        <li><a href="https://fulltank.stanvee.com/" target="_blank" rel="noopener">Full Tank Card</a></li>
+                        <li><a href="https://wow.stanvee.com/" target="_blank" rel="noopener">Wow Discount</a></li>
+                        <li><a href="#">Stanvee Rento</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Follow Us</h3>
+                    <ul>
+                        <li><a href="https://www.instagram.com/stanvee_india/" target="_blank" rel="noopener">Instagram</a></li>
+                        <li><a href="https://x.com/stanveeservices" target="_blank" rel="noopener">Twitter</a></li>
+                        <li><a href="https://www.facebook.com/StanveeServices" target="_blank" rel="noopener">Facebook</a></li>
+                        <li><a href="https://www.linkedin.com/in/stanvee-services-india-ltd-a5b560390" target="_blank" rel="noopener">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p class="footer-copy">© Stanvee Services India Limited. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        function toggleFaq(element) {
+            const faqItem = element.parentElement;
+            const isActive = faqItem.classList.contains('active');
+
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Open clicked item if it wasn't already open
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        }
+    </script>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
