@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Product Admin — Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sidebar-w:240px;
+  --sidebar-bg:#0F172A;
+  --sidebar-border:#1E293B;
+  --sidebar-text:#94A3B8;
+  --sidebar-hover:#1E293B;
+  --sidebar-active-bg:#3B82F6;
+  --sidebar-active-text:#fff;
+  --header-h:58px;
+  --bg:#F1F5F9;
+  --surface:#FFFFFF;
+  --border:#E2E8F0;
+  --text:#0F172A;
+  --text-2:#64748B;
+  --text-3:#94A3B8;
+  --accent:#3B82F6;
+  --accent-d:#2563EB;
+  --accent-light:#EFF6FF;
+  --green:#059669;
+  --green-bg:#ECFDF5;
+  --red:#DC2626;
+  --red-bg:#FEF2F2;
+  --yellow:#D97706;
+  --yellow-bg:#FFFBEB;
+  --r:8px;
+  --r-sm:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 12px rgba(0,0,0,.09);
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+/* ══ SIDEBAR ══ */
+#sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--sidebar-bg);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;height:100vh;
+  z-index:100;transition:transform .25s;
+}
+.sidebar-logo{
+  padding:18px 20px 16px;
+  border-bottom:1px solid var(--sidebar-border);
+  display:flex;align-items:center;gap:10px;
+}
+.logo-mark{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,#3B82F6,#8B5CF6);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:14px;color:#fff;flex-shrink:0;
+}
+.logo-text{font-size:.9rem;font-weight:700;color:#F1F5F9;letter-spacing:-.2px}
+.logo-sub{font-size:.68rem;color:var(--sidebar-text);margin-top:1px}
+
+.sidebar-section-label{
+  font-size:.65rem;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:#475569;
+  padding:18px 20px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 16px 9px 20px;
+  color:var(--sidebar-text);
+  cursor:pointer;font-size:.825rem;font-weight:500;
+  border-radius:0;transition:background .15s,color .15s;
+  border-left:3px solid transparent;
+  user-select:none;
+}
+.nav-item:hover{background:var(--sidebar-hover);color:#CBD5E1}
+.nav-item.active{
+  background:#1E3A5F;color:#fff;
+  border-left-color:var(--sidebar-active-bg);
+  font-weight:600;
+}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.8}
+.nav-item.active svg{opacity:1}
+.nav-badge{
+  margin-left:auto;background:#3B82F6;color:#fff;
+  font-size:.62rem;font-weight:700;
+  padding:2px 7px;border-radius:20px;
+}
+
+.sidebar-footer{
+  margin-top:auto;padding:14px 20px;
+  border-top:1px solid var(--sidebar-border);
+  font-size:.75rem;color:#475569;
+}
+.sidebar-footer span{color:var(--sidebar-text);}
+
+/* ══ MAIN ══ */
+#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* TOP BAR */
+.topbar{
+  height:var(--header-h);
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 28px;gap:14px;
+  position:sticky;top:0;z-index:50;
+}
+.topbar-breadcrumb{
+  display:flex;align-items:center;gap:6px;
+  font-size:.8rem;color:var(--text-2);
+}
+.topbar-breadcrumb .crumb-sep{color:var(--border);font-size:1rem;}
+.topbar-breadcrumb .crumb-current{color:var(--text);font-weight:600;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.topbar-badge{
+  background:var(--accent-light);color:var(--accent);
+  font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px;
+}
+.base-url-wrap{
+  display:flex;align-items:center;gap:6px;
+  background:#F8FAFC;border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:5px 10px;
+}
+.base-url-wrap label{font-size:.7rem;color:var(--text-3);white-space:nowrap;font-weight:600}
+.base-url-wrap input{
+  border:none;background:transparent;outline:none;
+  font-size:.75rem;color:var(--text);font-family:'Fira Code',monospace;
+  width:220px;
+}
+
+/* PAGE CONTENT */
+#content{padding:26px 28px 60px;flex:1;}
+
+/* ══ VIEWS ══ */
+.view{display:none;animation:fadeUp .2s ease}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ══ PAGE TITLE ══ */
+.page-title-row{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:16px;margin-bottom:24px;flex-wrap:wrap;
+}
+.page-title h2{font-size:1.15rem;font-weight:800;letter-spacing:-.3px;}
+.page-title p{font-size:.8rem;color:var(--text-2);margin-top:3px;}
+.page-actions{display:flex;gap:8px;align-items:center;}
+
+/* ══ BUTTONS ══ */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 18px;border-radius:var(--r-sm);
+  font-size:.82rem;font-weight:700;cursor:pointer;
+  border:none;transition:all .15s;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(59,130,246,.35)}
+.btn-primary:hover{background:var(--accent-d)}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:var(--surface);color:var(--text-2);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost{background:transparent;color:var(--text-2);border:none}
+.btn-ghost:hover{background:var(--bg);color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#B91C1C}
+.btn-green{background:var(--green);color:#fff;box-shadow:0 2px 6px rgba(5,150,105,.3)}
+.btn-green:hover{background:#047857}
+.btn-green:disabled{opacity:.55;cursor:not-allowed}
+.btn svg{width:15px;height:15px;flex-shrink:0}
+.spinner-btn{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
+.btn.loading .spinner-btn{display:block}
+.btn.loading .btn-lbl{opacity:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ CARDS ══ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.card-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-head-title{font-size:.875rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.card-body{padding:20px}
+.tag-pill{
+  font-size:.67rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  padding:2px 8px;border-radius:20px;
+}
+.pill-req{background:#EFF6FF;color:#2563EB}
+.pill-opt{background:#F1F5F9;color:#64748B}
+
+/* ══ FORM GRID ══ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.s2{grid-column:span 2}
+.s3{grid-column:span 3}
+@media(max-width:680px){.g2,.g3{grid-template-columns:1fr}.s2,.s3{grid-column:span 1}}
+
+/* ══ FIELD ══ */
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:.75rem;font-weight:700;color:#374151;letter-spacing:.1px}
+.field label .req{color:var(--red);margin-left:1px}
+.field label .opt{font-weight:400;color:var(--text-3);font-size:.7rem;margin-left:3px}
+.field input,.field select,.field textarea{
+  padding:8px 11px;
+  border:1.5px solid var(--border);
+  border-radius:var(--r-sm);
+  font-size:.825rem;font-family:var(--font);
+  color:var(--text);background:var(--surface);
+  outline:none;transition:border-color .15s,box-shadow .15s;appearance:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1)
+}
+.field input.err,.field select.err,.field textarea.err{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.08)}
+.field textarea{resize:vertical;min-height:80px;line-height:1.55}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%236B7280' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;background-size:17px;padding-right:32px}
+.field-hint{font-size:.7rem;color:var(--text-3)}
+.f-err{font-size:.7rem;color:var(--red);font-weight:600;display:none}
+.f-err.on{display:block}
+
+/* ══ TAG INPUT ══ */
+.tags-wrap{
+  display:flex;flex-wrap:wrap;gap:5px;
+  padding:6px 8px;min-height:38px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  cursor:text;transition:border-color .15s,box-shadow .15s;background:var(--surface);
+}
+.tags-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.tags-wrap.err{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.08)}
+.tag{display:inline-flex;align-items:center;gap:4px;background:var(--accent-light);color:var(--accent);font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:20px}
+.tag-x{background:none;border:none;cursor:pointer;color:var(--accent);font-size:.85rem;padding:0;display:flex;line-height:1}
+.tag-x:hover{color:var(--red)}
+.tag-inp{border:none!important;outline:none!important;box-shadow:none!important;padding:0!important;min-width:120px;flex:1;font-size:.825rem;background:transparent;color:var(--text)}
+
+/* ══ CHIPS ══ */
+.chips-row{display:flex;flex-wrap:wrap;gap:7px}
+.chip input{display:none}
+.chip label{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 11px;border-radius:20px;
+  border:1.5px solid var(--border);
+  font-size:.75rem;font-weight:600;cursor:pointer;
+  color:var(--text-2);transition:all .15s;user-select:none;
+}
+.chip input:checked+label{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.chip label:hover{border-color:var(--accent)}
+.custom-row{display:flex;gap:7px;margin-top:7px}
+.custom-row input{flex:1;padding:6px 9px;border:1.5px dashed var(--border);border-radius:var(--r-sm);font-size:.78rem;background:var(--bg)}
+.btn-chip-add{padding:5px 12px;background:var(--accent-light);color:var(--accent);border:none;border-radius:var(--r-sm);font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-chip-add:hover{background:var(--accent);color:#fff}
+
+/* img preview */
+.img-thumb{width:68px;height:68px;border-radius:var(--r-sm);border:1.5px solid var(--border);overflow:hidden;background:var(--bg);display:none;margin-top:6px}
+.img-thumb.on{display:block}
+.img-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ══ TOAST ══ */
+#toast{
+  position:fixed;top:18px;right:18px;
+  max-width:370px;z-index:9999;
+  display:flex;align-items:flex-start;gap:10px;
+  padding:12px 14px;border-radius:var(--r);
+  box-shadow:0 8px 24px rgba(0,0,0,.14);
+  font-size:.82rem;font-weight:500;
+  opacity:0;transform:translateY(-8px);
+  transition:opacity .22s,transform .22s;
+  pointer-events:none;
+}
+#toast.on{opacity:1;transform:none;pointer-events:auto}
+#toast.success{background:var(--green-bg);color:var(--green);border:1px solid #A7F3D0}
+#toast.error{background:var(--red-bg);color:var(--red);border:1px solid #FECACA}
+#toast.warn{background:var(--yellow-bg);color:var(--yellow);border:1px solid #FDE68A}
+#toast.info{background:var(--accent-light);color:var(--accent);border:1px solid #BFDBFE}
+.t-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
+.t-body{flex:1}
+.t-title{font-weight:800;margin-bottom:1px}
+.t-msg{opacity:.85;font-weight:400}
+.t-close{background:none;border:none;cursor:pointer;opacity:.5;color:inherit;font-size:.9rem;align-self:center}
+.t-close:hover{opacity:1}
+
+/* ══ BULK UPLOAD ══ */
+.drop-zone{
+  border:2px dashed var(--border);border-radius:var(--r);
+  padding:40px 24px;text-align:center;
+  transition:all .2s;cursor:pointer;background:var(--bg);
+  position:relative;
+}
+.drop-zone.drag{border-color:var(--accent);background:var(--accent-light)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:2.2rem;margin-bottom:10px}
+.drop-title{font-size:.9rem;font-weight:700;margin-bottom:4px}
+.drop-sub{font-size:.78rem;color:var(--text-2)}
+.drop-sub span{color:var(--accent);font-weight:600;cursor:pointer}
+
+/* Selected file strip */
+.file-strip{
+  display:none;align-items:center;gap:10px;
+  background:var(--accent-light);border:1.5px solid #BFDBFE;
+  border-radius:var(--r-sm);padding:10px 14px;margin-top:10px;
+}
+.file-strip.on{display:flex}
+.file-strip .f-name{font-size:.82rem;font-weight:700;color:var(--accent);flex:1}
+.file-strip .f-size{font-size:.72rem;color:var(--text-3)}
+.file-strip .f-rm{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:1rem;padding:0}
+.file-strip .f-rm:hover{color:var(--red)}
+
+/* Steps */
+.import-steps{
+  display:flex;align-items:center;gap:0;
+  margin-bottom:20px;
+}
+.step{
+  display:flex;align-items:center;gap:7px;
+  font-size:.78rem;font-weight:600;color:var(--text-3);
+  padding:7px 0;
+  flex:1;
+}
+.step-num{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--border);color:var(--text-3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:800;flex-shrink:0;
+  transition:all .2s;
+}
+.step.done .step-num{background:var(--green);color:#fff}
+.step.active .step-num{background:var(--accent);color:#fff}
+.step.active{color:var(--accent)}
+.step.done{color:var(--green)}
+.step-line{flex:1;height:2px;background:var(--border);margin:0 6px;flex-shrink:0;max-width:40px;transition:background .2s}
+.step-line.done{background:var(--green)}
+
+/* Preview result box */
+.preview-box{
+  border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;margin-top:14px;display:none;
+}
+.preview-box.on{display:block}
+.preview-summary{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;border-bottom:1px solid var(--border);
+}
+.p-stat{padding:14px 16px;text-align:center;border-right:1px solid var(--border)}
+.p-stat:last-child{border-right:none}
+.p-stat .num{font-size:1.4rem;font-weight:900;letter-spacing:-.5px}
+.p-stat .lbl{font-size:.68rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.num.green{color:var(--green)}
+.num.red{color:var(--red)}
+.num.yellow{color:var(--yellow)}
+.num.blue{color:var(--accent)}
+
+/* Error table */
+.err-table-wrap{padding:14px 16px}
+.err-table-title{font-size:.78rem;font-weight:700;margin-bottom:8px;color:var(--red)}
+table.err-table{width:100%;border-collapse:collapse;font-size:.78rem}
+table.err-table th{text-align:left;padding:7px 10px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);background:var(--bg);border-bottom:1px solid var(--border)}
+table.err-table td{padding:8px 10px;border-bottom:1px solid #F8FAFC;vertical-align:top}
+table.err-table tr:last-child td{border-bottom:none}
+.row-badge{display:inline-block;background:#FEF2F2;color:var(--red);border-radius:4px;padding:1px 7px;font-weight:700;font-size:.72rem}
+.row-badge.skip{background:#FFFBEB;color:var(--yellow)}
+
+/* mode tag */
+.mode-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:20px;font-size:.7rem;font-weight:700;
+}
+.mode-badge.preview-mode{background:#FFFBEB;color:var(--yellow);border:1px solid #FDE68A}
+.mode-badge.import-mode{background:var(--green-bg);color:var(--green);border:1px solid #A7F3D0}
+
+/* action bar below preview */
+.import-action-bar{
+  padding:12px 16px;border-top:1px solid var(--border);
+  background:#F8FAFC;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+}
+.import-action-bar p{font-size:.78rem;color:var(--text-2)}
+
+/* Download template card */
+.template-card{
+  background:linear-gradient(135deg,#1E3A5F 0%,#0F172A 100%);
+  border-radius:var(--r);padding:20px 24px;
+  display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;
+}
+.template-card-icon{font-size:2rem;flex-shrink:0}
+.template-card-text h3{font-size:.9rem;font-weight:800;color:#F1F5F9}
+.template-card-text p{font-size:.75rem;color:#94A3B8;margin-top:3px}
+.template-card .btn-download{
+  margin-left:auto;
+  background:rgba(255,255,255,.1);color:#E2E8F0;
+  border:1.5px solid rgba(255,255,255,.15);
+  border-radius:var(--r-sm);padding:8px 18px;
+  font-size:.8rem;font-weight:700;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+  transition:background .15s;white-space:nowrap;
+}
+.template-card .btn-download:hover{background:rgba(255,255,255,.2)}
+.template-card .btn-download svg{width:15px;height:15px}
+
+/* stats strip */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow)}
+.stat-card .s-val{font-size:1.5rem;font-weight:900;letter-spacing:-.5px}
+.stat-card .s-lbl{font-size:.72rem;color:var(--text-3);font-weight:600;margin-top:2px}
+.stat-card .s-icon{font-size:1.3rem;margin-bottom:4px}
+@media(max-width:600px){.stats-strip{grid-template-columns:1fr 1fr}.preview-summary{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- ══ TOAST ══ -->
+<div id="toast" role="alert">
+  <span class="t-icon" id="tIcon"></span>
+  <div class="t-body"><div class="t-title" id="tTitle"></div><div class="t-msg" id="tMsg"></div></div>
+  <button class="t-close" onclick="hideToast()">✕</button>
+</div>
+
+<!-- ══ SIDEBAR ══ -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">P</div>
+    <div>
+      <div class="logo-text">ProductAdmin</div>
+      <div class="logo-sub">Management Console</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section-label">Products</div>
+  <div class="nav-item active" onclick="switchView('add')" id="nav-add">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m-4-4h8"/></svg>
+    Add Product
+  </div>
+  <div class="nav-item" onclick="switchView('bulk')" id="nav-bulk">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 8l-3-3m3 3l3-3"/></svg>
+    Bulk Import
+    <span class="nav-badge">Excel</span>
+  </div>
+
+  <div class="sidebar-section-label" style="margin-top:8px">Reference</div>
+  <div class="nav-item" onclick="switchView('guide')" id="nav-guide">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    API Reference
+  </div>
+
+  <div class="sidebar-footer">
+    <span>API:</span> localhost:8080
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<div id="main">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>Products</span>
+      <span class="crumb-sep">›</span>
+      <span class="crumb-current" id="breadcrumbCurrent">Add Product</span>
+    </div>
+    <div class="topbar-right">
+      <div class="base-url-wrap">
+        <label>Base URL</label>
+        <input id="baseUrl" type="text" value="http://localhost:8080" spellcheck="false" oninput="updateSidebarUrl()"/>
+      </div>
+    </div>
+  </header>
+
+  <div id="content">
+
+    <!-- ══════════════════════════════════════════
+         VIEW: ADD PRODUCT
+    ══════════════════════════════════════════ -->
+    <div class="view active" id="view-add">
+      <div class="page-title-row">
+        <div class="page-title">
+          <h2>Add New Product</h2>
+          <p>Create a single product entry via the POST /api/products endpoint.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" onclick="resetAddForm()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span class="btn-lbl">Reset</span>
+          </button>
+          <button class="btn btn-primary" id="addSubmitBtn" onclick="submitProduct()">
+            <span class="spinner-btn"></span>
+            <svg class="btn-lbl" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span class="btn-lbl">Save Product</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Basic -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--accent)"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+            Basic Information
+            <span class="tag-pill pill-req">Required</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="g2" style="gap:14px">
+            <div class="field s2">
+              <label for="p_name">Product Name <span class="req">*</span></label>
+              <input type="text" id="p_name" placeholder="e.g. Silicone Serving Spoon With Wooden Handle"/>
+              <span class="f-err" id="e_name">Product name is required.</span>
+            </div>
+            <div class="field">
+              <label for="p_id">Product ID <span class="req">*</span></label>
+              <input type="text" id="p_id" placeholder="e.g. 29723"/>
+              <span class="field-hint">Must be unique across all products.</span>
+              <span class="f-err" id="e_id">Product ID is required.</span>
+            </div>
+            <div class="field">
+              <label for="p_status">Stock Status <span class="req">*</span></label>
+              <select id="p_status">
+                <option value="">Select status…</option>
+                <option value="instock">In Stock</option>
+                <option value="outofstock">Out of Stock</option>
+                <option value="onbackorder">On Backorder</option>
+              </select>
+              <span class="f-err" id="e_status">Please select a stock status.</span>
+            </div>
+            <div class="field">
+              <label for="p_mrp">MRP (₹) <span class="req">*</span></label>
+              <input type="number" id="p_mrp" placeholder="499" min="0"/>
+              <span class="f-err" id="e_mrp">MRP is required (must be ≥ 0).</span>
+            </div>
+            <div class="field">
+              <label for="p_offer">Offer Price (₹) <span class="req">*</span></label>
+              <input type="number" id="p_offer" placeholder="300" min="0"/>
+              <span class="f-err" id="e_offer">Offer price is required (must be ≥ 0).</span>
+            </div>
+            <div class="field">
+              <label for="p_qty">Stock Quantity <span class="req">*</span></label>
+              <input type="number" id="p_qty" placeholder="30" min="0"/>
+              <span class="f-err" id="e_qty">Stock quantity is required.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--accent)"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+            Categories
+            <span class="tag-pill pill-req">Required</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="g2" style="gap:14px">
+            <div class="field">
+              <label>Category <span class="req">*</span></label>
+              <div class="chips-row" id="catChips">
+                <div class="chip"><input type="checkbox" id="cat1" value="Kitchen Essentials"><label for="cat1">Kitchen Essentials</label></div>
+                <div class="chip"><input type="checkbox" id="cat2" value="Home & Living"><label for="cat2">Home & Living</label></div>
+                <div class="chip"><input type="checkbox" id="cat3" value="Dining"><label for="cat3">Dining</label></div>
+                <div class="chip"><input type="checkbox" id="cat4" value="Garden & Outdoor"><label for="cat4">Garden & Outdoor</label></div>
+                <div class="chip"><input type="checkbox" id="cat5" value="Bath & Personal Care"><label for="cat5">Bath & Personal Care</label></div>
+              </div>
+              <div class="custom-row">
+                <input type="text" id="newCat" placeholder="Add custom category…"/>
+                <button type="button" class="btn-chip-add" onclick="addChip('catChips','newCat','cc')">+ Add</button>
+              </div>
+              <span class="f-err" id="e_cat">Select at least one category.</span>
+            </div>
+            <div class="field">
+              <label>Sub Category <span class="req">*</span></label>
+              <div class="chips-row" id="subChips">
+                <div class="chip"><input type="checkbox" id="sub1" value="Kitchen Tools"><label for="sub1">Kitchen Tools</label></div>
+                <div class="chip"><input type="checkbox" id="sub2" value="Storage & Organization"><label for="sub2">Storage</label></div>
+                <div class="chip"><input type="checkbox" id="sub3" value="Cookware"><label for="sub3">Cookware</label></div>
+                <div class="chip"><input type="checkbox" id="sub4" value="Decor"><label for="sub4">Decor</label></div>
+                <div class="chip"><input type="checkbox" id="sub5" value="Accessories"><label for="sub5">Accessories</label></div>
+              </div>
+              <div class="custom-row">
+                <input type="text" id="newSub" placeholder="Add custom sub-category…"/>
+                <button type="button" class="btn-chip-add" onclick="addChip('subChips','newSub','sc')">+ Add</button>
+              </div>
+              <span class="f-err" id="e_sub">Select at least one sub-category.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Images -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--accent)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21"/></svg>
+            Images
+            <span class="tag-pill pill-req">Required</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="field">
+              <label for="p_image">Main Image URL <span class="req">*</span></label>
+              <input type="url" id="p_image" placeholder="https://example.com/images/main.png" oninput="previewImg(this.value,'mainThumb','mainThumbWrap')"/>
+              <div class="img-thumb" id="mainThumbWrap"><img id="mainThumb" src="" alt="" onerror="this.parentElement.classList.remove('on')"/></div>
+              <span class="f-err" id="e_image">A valid image URL is required.</span>
+            </div>
+            <div class="field">
+              <label>Gallery Images <span class="req">*</span> <span class="opt">(press Enter or comma after each URL)</span></label>
+              <div class="tags-wrap" id="galleryWrap" onclick="document.getElementById('gallInp').focus()">
+                <input class="tag-inp" id="gallInp" type="url" placeholder="Paste gallery URL and press Enter…"
+                  onkeydown="gallKeyDown(event)" onpaste="gallPaste(event)"/>
+              </div>
+              <span class="f-err" id="e_gallery">Add at least one gallery image URL.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Descriptions -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--accent)"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h10"/></svg>
+            Descriptions
+            <span class="tag-pill pill-req">Required</span>
+          </div>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
+          <div class="field">
+            <label for="p_desc">Full Description <span class="req">*</span></label>
+            <textarea id="p_desc" rows="4" placeholder="<ul><li>Feature one…</li><li>Feature two…</li></ul>&#10;HTML is supported."></textarea>
+            <span class="field-hint">HTML supported: &lt;ul&gt;, &lt;p&gt;, &lt;b&gt;, &lt;br&gt; etc.</span>
+            <span class="f-err" id="e_desc">Full description is required.</span>
+          </div>
+          <div class="field">
+            <label for="p_sdesc">Short Description <span class="req">*</span></label>
+            <textarea id="p_sdesc" rows="2" placeholder="Brief listing summary. HTML supported."></textarea>
+            <span class="f-err" id="e_sdesc">Short description is required.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tax optional -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--text-3)"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+            Tax & Compliance
+            <span class="tag-pill pill-opt">Optional</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="g2" style="gap:14px">
+            <div class="field">
+              <label for="p_tax_s">Tax Status <span class="opt">(optional)</span></label>
+              <select id="p_tax_s">
+                <option value="">None / Skip</option>
+                <option value="taxable">Taxable</option>
+                <option value="shipping">Shipping Only</option>
+                <option value="none">Exempt</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="p_tax_c">Tax Class (%) <span class="opt">(optional)</span></label>
+              <select id="p_tax_c">
+                <option value="">None / Skip</option>
+                <option value="0">0%</option>
+                <option value="5">5%</option>
+                <option value="12">12%</option>
+                <option value="18">18%</option>
+                <option value="28">28%</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="p_hsn">HSN Code <span class="opt">(optional)</span></label>
+              <input type="text" id="p_hsn" placeholder="e.g. 39269099" maxlength="20"/>
+              <span class="field-hint">Harmonized System Nomenclature for GST.</span>
+            </div>
+            <div class="field">
+              <label for="p_ean">EAN / Barcode <span class="opt">(optional)</span></label>
+              <input type="text" id="p_ean" placeholder="e.g. 4901234567890" maxlength="20"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- bottom bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:4px 0">
+        <p style="font-size:.75rem;color:var(--text-3)"><span style="color:var(--red);font-weight:700">*</span> Required fields must be filled before saving.</p>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="resetAddForm()">Reset</button>
+          <button class="btn btn-primary" id="addSubmitBtn2" onclick="submitProduct()">
+            <span class="spinner-btn"></span>
+            <span class="btn-lbl">Save Product</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         VIEW: BULK IMPORT
+    ══════════════════════════════════════════ -->
+    <div class="view" id="view-bulk">
+      <div class="page-title-row">
+        <div class="page-title">
+          <h2>Bulk Import — Excel</h2>
+          <p>Upload an .xlsx file to add multiple products at once. Preview first, then confirm import.</p>
+        </div>
+      </div>
+
+      <!-- Download template -->
+      <div class="template-card">
+        <div class="template-card-icon">📋</div>
+        <div class="template-card-text">
+          <h3>Download the Excel Template</h3>
+          <p>Use the official template to ensure your column headers and order match exactly what the API expects.</p>
+        </div>
+        <button class="btn-download" onclick="downloadTemplate()">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 8l-3-3m3 3l3-3"/></svg>
+          Download Template
+        </button>
+      </div>
+
+      <!-- Steps -->
+      <div class="import-steps">
+        <div class="step active" id="step1">
+          <div class="step-num" id="sn1">1</div>
+          Upload File
+        </div>
+        <div class="step-line" id="sl1"></div>
+        <div class="step" id="step2">
+          <div class="step-num" id="sn2">2</div>
+          Preview &amp; Validate
+        </div>
+        <div class="step-line" id="sl2"></div>
+        <div class="step" id="step3">
+          <div class="step-num" id="sn3">3</div>
+          Confirm Import
+        </div>
+      </div>
+
+      <!-- Upload card -->
+      <div class="card" id="uploadCard">
+        <div class="card-head">
+          <div class="card-head-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--accent)"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            Upload Excel File
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="drop-zone" id="dropZone"
+            ondragover="dzDrag(event,true)" ondragleave="dzDrag(event,false)" ondrop="dzDrop(event)">
+            <input type="file" id="xlFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              onchange="onFileSelect(this.files[0])"/>
+            <div class="drop-icon">📊</div>
+            <div class="drop-title">Drag &amp; drop your .xlsx file here</div>
+            <div class="drop-sub">or <span>browse to choose a file</span> — only .xlsx accepted</div>
+          </div>
+          <div class="file-strip" id="fileStrip">
+            <span>📄</span>
+            <span class="f-name" id="fName">—</span>
+            <span class="f-size" id="fSize"></span>
+            <button class="f-rm" onclick="clearFile()" title="Remove file">✕</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+            <button class="btn btn-outline" id="btnPreview" onclick="runImport(true)" disabled>
+              <span class="spinner-btn"></span>
+              <svg class="btn-lbl" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              <span class="btn-lbl">Preview Only (Validate)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview result -->
+      <div class="preview-box" id="previewBox">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:.875rem;font-weight:800">Validation Result</span>
+            <span class="mode-badge" id="modeBadge"></span>
+          </div>
+          <button class="btn btn-ghost" style="font-size:.75rem" onclick="resetBulk()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Upload different file
+          </button>
+        </div>
+        <div class="preview-summary" id="previewSummary"></div>
+        <div class="err-table-wrap" id="errTableWrap" style="display:none"></div>
+        <div class="import-action-bar" id="importActionBar">
+          <p id="importHint"></p>
+          <button class="btn btn-green" id="btnImport" onclick="runImport(false)">
+            <span class="spinner-btn"></span>
+            <svg class="btn-lbl" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 8l-3-3m3 3l3-3"/></svg>
+            <span class="btn-lbl">Confirm &amp; Import Now</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         VIEW: API GUIDE
+    ══════════════════════════════════════════ -->
+    <div class="view" id="view-guide">
+      <div class="page-title-row">
+        <div class="page-title">
+          <h2>API Reference</h2>
+          <p>Quick reference for the Product API endpoints used by this panel.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="display:flex;flex-direction:column;gap:0">
+          <div id="guideContent"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<style>
+.ep-block{padding:14px 0;border-bottom:1px solid var(--border)}
+.ep-block:last-child{border-bottom:none}
+.ep-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.method{display:inline-block;padding:2px 9px;border-radius:4px;font-size:.68rem;font-weight:900;letter-spacing:.5px;font-family:monospace}
+.m-get{background:#DBEAFE;color:#1D4ED8}
+.m-post{background:#D1FAE5;color:#065F46}
+.m-put{background:#FEF3C7;color:#92400E}
+.m-del{background:#FEE2E2;color:#991B1B}
+.ep-path{font-family:'Fira Code',monospace;font-size:.82rem;color:var(--text)}
+.ep-desc{font-size:.78rem;color:var(--text-2);line-height:1.6}
+.ep-notes{margin-top:6px;font-size:.75rem;color:var(--text-3)}
+</style>
+
+<script>
+/* ═══════════════════════════════════════════
+   GLOBALS
+═══════════════════════════════════════════ */
+const galleryUrls = [];
+let selectedFile = null;
+let chipIdx = 0;
+
+const api = path => {
+  const base = document.getElementById('baseUrl').value.replace(/\/+$/,'');
+  return base + path;
+};
+
+function updateSidebarUrl(){
+  document.querySelector('.sidebar-footer').innerHTML =
+    `<span>API:</span> ${document.getElementById('baseUrl').value}`;
+}
+
+/* ═══════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════ */
+function switchView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('nav-'+v).classList.add('active');
+  const labels={add:'Add Product',bulk:'Bulk Import',guide:'API Reference'};
+  document.getElementById('breadcrumbCurrent').textContent=labels[v]||v;
+  if(v==='guide') buildGuide();
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+let toastTimer;
+function toast(type,title,msg,dur=5000){
+  const icons={success:'✅',error:'❌',warn:'⚠️',info:'ℹ️'};
+  document.getElementById('tIcon').textContent=icons[type]||'ℹ️';
+  document.getElementById('tTitle').textContent=title;
+  document.getElementById('tMsg').textContent=msg;
+  const el=document.getElementById('toast');
+  el.className='on '+type;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(hideToast,dur);
+}
+function hideToast(){document.getElementById('toast').classList.remove('on')}
+
+/* ═══════════════════════════════════════════
+   VALIDATION HELPERS
+═══════════════════════════════════════════ */
+function isUrl(s){try{const u=new URL(s);return u.protocol==='http:'||u.protocol==='https:'}catch{return false}}
+
+function setErr(id,msg,inputEl,show){
+  const e=document.getElementById(id);
+  if(e){if(show){e.textContent=msg;e.classList.add('on')}else e.classList.remove('on')}
+  if(inputEl){if(show)inputEl.classList.add('err');else inputEl.classList.remove('err')}
+}
+
+const fields=[
+  {id:'p_name', errId:'e_name', check:v=>v.trim().length>0, msg:'Product name is required.'},
+  {id:'p_id',   errId:'e_id',   check:v=>v.trim().length>0, msg:'Product ID is required.'},
+  {id:'p_mrp',  errId:'e_mrp',  check:v=>v!==''&&Number(v)>=0, msg:'MRP is required (≥ 0).'},
+  {id:'p_offer',errId:'e_offer',check:v=>v!==''&&Number(v)>=0, msg:'Offer price is required (≥ 0).'},
+  {id:'p_qty',  errId:'e_qty',  check:v=>v!==''&&Number(v)>=0, msg:'Stock quantity is required.'},
+  {id:'p_status',errId:'e_status',check:v=>v!=='', msg:'Select a stock status.'},
+  {id:'p_image',errId:'e_image',check:v=>isUrl(v), msg:'A valid image URL is required.'},
+  {id:'p_desc', errId:'e_desc', check:v=>v.trim().length>0, msg:'Full description is required.'},
+  {id:'p_sdesc',errId:'e_sdesc',check:v=>v.trim().length>0, msg:'Short description is required.'},
+];
+
+// Live inline validation
+fields.forEach(f=>{
+  const el=document.getElementById(f.id);
+  if(!el)return;
+  el.addEventListener('blur',()=>{ if(!f.check(el.value)) setErr(f.errId,f.msg,el,true); else setErr(f.errId,'',el,false); });
+  el.addEventListener('input',()=>{ if(f.check(el.value)) setErr(f.errId,'',el,false); });
+});
+
+/* ═══════════════════════════════════════════
+   GALLERY TAGS
+═══════════════════════════════════════════ */
+function renderGallery(){
+  const wrap=document.getElementById('galleryWrap');
+  wrap.querySelectorAll('.tag').forEach(t=>t.remove());
+  const inp=document.getElementById('gallInp');
+  galleryUrls.forEach((url,i)=>{
+    const t=document.createElement('span');
+    t.className='tag';
+    const short=url.length>45?url.slice(0,42)+'…':url;
+    t.innerHTML=`<span title="${url}">${short}</span><button type="button" class="tag-x" onclick="removeGallery(${i})">✕</button>`;
+    wrap.insertBefore(t,inp);
+  });
+}
+function addGalleryUrl(raw){
+  const url=raw.trim();
+  if(!url)return;
+  if(!isUrl(url)){toast('warn','Invalid URL',`"${url.slice(0,50)}" is not a valid http/https URL.`,4000);return}
+  if(galleryUrls.includes(url)){toast('warn','Duplicate','This URL is already in the gallery.',2500);return}
+  galleryUrls.push(url);
+  renderGallery();
+  document.getElementById('gallInp').value='';
+  setErr('e_gallery','',document.getElementById('galleryWrap'),false);
+}
+function removeGallery(i){galleryUrls.splice(i,1);renderGallery()}
+function gallKeyDown(e){if(e.key==='Enter'||e.key===','){e.preventDefault();addGalleryUrl(e.target.value)}}
+function gallPaste(e){e.preventDefault();(e.clipboardData||window.clipboardData).getData('text').split(/[\n,]+/).forEach(u=>addGalleryUrl(u))}
+
+/* ═══════════════════════════════════════════
+   IMAGE PREVIEW
+═══════════════════════════════════════════ */
+function previewImg(url,imgId,wrapId){
+  const wrap=document.getElementById(wrapId);
+  if(isUrl(url)){document.getElementById(imgId).src=url;wrap.classList.add('on')}
+  else wrap.classList.remove('on');
+}
+
+/* ═══════════════════════════════════════════
+   CHIPS
+═══════════════════════════════════════════ */
+function addChip(groupId,inputId,prefix){
+  const inp=document.getElementById(inputId);
+  const val=inp.value.trim();
+  if(!val)return;
+  const group=document.getElementById(groupId);
+  const id=prefix+(++chipIdx);
+  const d=document.createElement('div');
+  d.className='chip';
+  d.innerHTML=`<input type="checkbox" id="${id}" value="${val}" checked><label for="${id}">${val}</label>`;
+  group.appendChild(d);
+  inp.value='';
+}
+function getChecked(groupId){
+  return[...document.getElementById(groupId).querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value);
+}
+
+/* ═══════════════════════════════════════════
+   SUBMIT ADD PRODUCT
+═══════════════════════════════════════════ */
+async function submitProduct(){
+  let valid=true;
+
+  fields.forEach(f=>{
+    const el=document.getElementById(f.id);
+    if(!f.check(el.value)){setErr(f.errId,f.msg,el,true);valid=false}
+    else setErr(f.errId,'',el,false);
+  });
+
+  const cats=getChecked('catChips');
+  const subs=getChecked('subChips');
+  if(!cats.length){document.getElementById('e_cat').classList.add('on');valid=false}
+  else document.getElementById('e_cat').classList.remove('on');
+  if(!subs.length){document.getElementById('e_sub').classList.add('on');valid=false}
+  else document.getElementById('e_sub').classList.remove('on');
+  if(!galleryUrls.length){
+    setErr('e_gallery','Add at least one gallery image URL.',document.getElementById('galleryWrap'),true);
+    valid=false;
+  }else setErr('e_gallery','',document.getElementById('galleryWrap'),false);
+
+  if(!valid){
+    toast('error','Fix the errors','Some required fields are missing or invalid. Check the highlighted fields.', 5000);
+    document.querySelector('.err,.f-err.on')?.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+
+  const payload={
+    product_name:document.getElementById('p_name').value.trim(),
+    product_id:document.getElementById('p_id').value.trim(),
+    mrp:document.getElementById('p_mrp').value,
+    offer_price:document.getElementById('p_offer').value,
+    stock_quantity:document.getElementById('p_qty').value,
+    stock_status:document.getElementById('p_status').value,
+    image:document.getElementById('p_image').value.trim(),
+    gallery_images:[...galleryUrls],
+    category:cats,sub_category:subs,
+    product_desc:document.getElementById('p_desc').value,
+    product_short_desc:document.getElementById('p_sdesc').value,
+  };
+  ['p_tax_s','p_tax_c','p_hsn','p_ean'].forEach((id,i)=>{
+    const keys=['tax_status','tax_class','product_hsn','product_ean'];
+    const v=document.getElementById(id).value.trim();
+    if(v) payload[keys[i]]=v;
+  });
+
+  [document.getElementById('addSubmitBtn'),document.getElementById('addSubmitBtn2')].forEach(b=>{
+    b.disabled=true;b.classList.add('loading');
+  });
+
+  try{
+    const res=await fetch(api('/api/products'),{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+    });
+    const json=await res.json().catch(()=>null);
+
+    if(res.status===201&&json?.status==='success'){
+      toast('success','Product saved!',`"${payload.product_name}" added (ID: ${payload.product_id}).`,6000);
+      resetAddForm();
+    }else if(res.status===409){
+      const msg=json?.data||`Product ID "${payload.product_id}" already exists.`;
+      setErr('e_id',msg,document.getElementById('p_id'),true);
+      document.getElementById('p_id').scrollIntoView({behavior:'smooth',block:'center'});
+      toast('error','Duplicate ID',msg,6000);
+    }else if(res.status===400){
+      toast('error','Missing Fields',json?.data||'Some required fields are invalid.',6000);
+    }else{
+      toast('error','Server Error',json?.data||`Server returned ${res.status}. Try again.`,6000);
+    }
+  }catch(err){
+    if(err instanceof TypeError)
+      toast('error','Cannot reach server',`Could not connect to ${api('')}. Is your backend running?`,7000);
+    else toast('error','Network Error',err.message||'Unexpected error.',6000);
+  }finally{
+    [document.getElementById('addSubmitBtn'),document.getElementById('addSubmitBtn2')].forEach(b=>{
+      b.disabled=false;b.classList.remove('loading');
+    });
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RESET ADD FORM
+═══════════════════════════════════════════ */
+function resetAddForm(){
+  fields.forEach(f=>{const el=document.getElementById(f.id);el.value='';setErr(f.errId,'',el,false)});
+  galleryUrls.length=0;renderGallery();
+  document.getElementById('mainThumbWrap').classList.remove('on');
+  document.querySelectorAll('#view-add .f-err').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('#view-add .err').forEach(e=>e.classList.remove('err'));
+  document.querySelectorAll('#catChips input,#subChips input').forEach(c=>c.checked=false);
+  document.querySelectorAll('#catChips .chip,#subChips .chip').forEach(c=>{
+    if(c.querySelector('input')?.id?.startsWith('cc')||c.querySelector('input')?.id?.startsWith('sc')) c.remove();
+  });
+  ['p_tax_s','p_tax_c','p_hsn','p_ean'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+}
+
+/* ═══════════════════════════════════════════
+   BULK IMPORT — FILE HANDLING
+═══════════════════════════════════════════ */
+function dzDrag(e,on){e.preventDefault();document.getElementById('dropZone').classList.toggle('drag',on)}
+function dzDrop(e){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f) onFileSelect(f);
+}
+function onFileSelect(f){
+  if(!f)return;
+  if(!f.name.endsWith('.xlsx')){toast('warn','Wrong file type','Only .xlsx files are accepted.',4000);return}
+  selectedFile=f;
+  document.getElementById('fName').textContent=f.name;
+  document.getElementById('fSize').textContent=formatSize(f.size);
+  document.getElementById('fileStrip').classList.add('on');
+  document.getElementById('btnPreview').disabled=false;
+  // reset preview box
+  document.getElementById('previewBox').classList.remove('on');
+  setImportStep(1);
+}
+function clearFile(){
+  selectedFile=null;
+  document.getElementById('xlFile').value='';
+  document.getElementById('fileStrip').classList.remove('on');
+  document.getElementById('btnPreview').disabled=true;
+  document.getElementById('previewBox').classList.remove('on');
+  setImportStep(1);
+}
+function formatSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB'}
+
+/* ═══════════════════════════════════════════
+   BULK IMPORT — STEPS UI
+═══════════════════════════════════════════ */
+function setImportStep(n){
+  for(let i=1;i<=3;i++){
+    const step=document.getElementById('step'+i);
+    step.classList.remove('active','done');
+    document.getElementById('sn'+i).textContent=i;
+  }
+  for(let i=1;i<n;i++){
+    document.getElementById('step'+i).classList.add('done');
+    document.getElementById('sn'+i).textContent='✓';
+    if(i<3) document.getElementById('sl'+i).classList.add('done');
+  }
+  if(n<=3){
+    document.getElementById('step'+n).classList.add('active');
+    if(n>1) document.getElementById('sl'+(n-1)).classList.add('done');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   BULK IMPORT — API CALLS
+═══════════════════════════════════════════ */
+async function runImport(previewOnly){
+  if(!selectedFile){toast('warn','No file','Please select an .xlsx file first.',3000);return}
+
+  const btn=previewOnly?document.getElementById('btnPreview'):document.getElementById('btnImport');
+  btn.disabled=true;btn.classList.add('loading');
+
+  const fd=new FormData();
+  fd.append('file',selectedFile);
+  const url=api('/api/products/excel/import')+(previewOnly?'?preview=true':'');
+
+  try{
+    const res=await fetch(url,{method:'POST',body:fd});
+    const json=await res.json().catch(()=>null);
+
+    if(res.ok&&json?.status==='success'){
+      renderPreviewResult(json.data, previewOnly);
+      setImportStep(previewOnly?2:3);
+      if(!previewOnly){
+        toast('success','Import complete!',`${json.data.success_count} products imported successfully.`,6000);
+      }
+    }else{
+      const msg=json?.data||`Server returned ${res.status}.`;
+      toast('error','Import failed',msg,6000);
+    }
+  }catch(err){
+    if(err instanceof TypeError)
+      toast('error','Cannot reach server',`Could not connect to ${api('')}. Is your backend running?`,7000);
+    else toast('error','Error',err.message,6000);
+  }finally{
+    btn.disabled=false;btn.classList.remove('loading');
+  }
+}
+
+function renderPreviewResult(data, previewOnly){
+  const box=document.getElementById('previewBox');
+  box.classList.add('on');
+
+  // mode badge
+  const badge=document.getElementById('modeBadge');
+  if(previewOnly){
+    badge.className='mode-badge preview-mode';
+    badge.textContent='🔍 Preview Mode — nothing saved';
+  }else{
+    badge.className='mode-badge import-mode';
+    badge.textContent='✅ Import Complete';
+  }
+
+  // summary
+  document.getElementById('previewSummary').innerHTML=`
+    <div class="p-stat"><div class="num blue">${data.total_rows||0}</div><div class="lbl">Total Rows</div></div>
+    <div class="p-stat"><div class="num green">${data.success_count||0}</div><div class="lbl">Will Import</div></div>
+    <div class="p-stat"><div class="num red">${data.failed_count||0}</div><div class="lbl">Failed</div></div>
+    <div class="p-stat"><div class="num yellow">${data.skipped_duplicates||0}</div><div class="lbl">Skipped (Dupe)</div></div>
+  `;
+
+  // errors table
+  const errWrap=document.getElementById('errTableWrap');
+  if(data.errors&&data.errors.length){
+    errWrap.style.display='block';
+    const rows=data.errors.map(e=>{
+      const isDupe=e.reason.toLowerCase().includes('skip')||e.reason.toLowerCase().includes('duplicate');
+      return`<tr>
+        <td><span class="row-badge ${isDupe?'skip':''}">${isDupe?'SKIP':'ERR'}</span></td>
+        <td style="font-weight:700">Row ${e.row_number}</td>
+        <td>${e.reason}</td>
+      </tr>`;
+    }).join('');
+    errWrap.innerHTML=`
+      <div class="err-table-title">⚠️ ${data.errors.length} row(s) have issues</div>
+      <table class="err-table">
+        <thead><tr><th>Type</th><th>Row</th><th>Reason</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }else{
+    errWrap.style.display='none';
+    errWrap.innerHTML='';
+  }
+
+  // action bar
+  const hint=document.getElementById('importHint');
+  const importBtn=document.getElementById('btnImport');
+  if(previewOnly){
+    if(data.success_count>0){
+      hint.innerHTML=`<strong>${data.success_count}</strong> product(s) are ready to import. ${data.failed_count?`<span style="color:var(--red)">${data.failed_count} will be skipped.</span>`:''}`;
+      importBtn.disabled=false;
+    }else{
+      hint.innerHTML=`<span style="color:var(--red)">No valid rows found. Fix the errors and re-upload.</span>`;
+      importBtn.disabled=true;
+    }
+  }else{
+    hint.innerHTML=`<span style="color:var(--green);font-weight:700">Import finished. ${data.success_count} product(s) added to the database.</span>`;
+    importBtn.disabled=true;
+  }
+}
+
+function resetBulk(){
+  clearFile();
+  document.getElementById('previewBox').classList.remove('on');
+  setImportStep(1);
+}
+
+/* ═══════════════════════════════════════════
+   DOWNLOAD TEMPLATE
+═══════════════════════════════════════════ */
+async function downloadTemplate(){
+  const url=api('/api/products/excel/template');
+  try{
+    toast('info','Downloading…','Fetching template from server.',3000);
+    const res=await fetch(url);
+    if(!res.ok){toast('error','Download failed',`Server returned ${res.status}.`,5000);return}
+    const blob=await res.blob();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='product_import_template.xlsx';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('success','Downloaded!','Template saved to your downloads folder.',4000);
+  }catch(err){
+    toast('error','Cannot reach server',`Make sure your backend is running at ${api('')}.`,6000);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   API GUIDE
+═══════════════════════════════════════════ */
+function buildGuide(){
+  const endpoints=[
+    {method:'GET',   cls:'m-get',  path:'/api/products',              desc:'List all products in the database.'},
+    {method:'GET',   cls:'m-get',  path:'/api/products/{productId}',  desc:'Fetch a single product by its product_id. Returns 404 if not found.'},
+    {method:'POST',  cls:'m-post', path:'/api/products',              desc:'Create a new product. Send the full product JSON body. Returns 201 on success, 400 if required fields are missing, 409 if product_id already exists.'},
+    {method:'PUT',   cls:'m-put',  path:'/api/products/{productId}',  desc:'Replace all fields of an existing product. Returns 200 on success, 404 if not found, 409 if the new product_id conflicts with another.'},
+    {method:'DELETE',cls:'m-del',  path:'/api/products/{productId}',  desc:'Delete a product by its product_id. Returns 200 with a confirmation message, or 404 if not found.'},
+    {method:'GET',   cls:'m-get',  path:'/api/products/excel/template',desc:'Download the official .xlsx import template (binary response). Contains a Products sheet with headers and a sample row.'},
+    {method:'POST',  cls:'m-post', path:'/api/products/excel/import', desc:'Bulk import products from an .xlsx file. Send as multipart/form-data with field "file". Add ?preview=true to validate without saving. Response includes success_count, failed_count, skipped_duplicates, and per-row errors.'},
+  ];
+  const req=['product_name','product_id','mrp','offer_price','stock_quantity','stock_status','image','gallery_images','category','sub_category','product_desc','product_short_desc'];
+  const opt=['tax_status','tax_class','product_hsn','product_ean'];
+
+  document.getElementById('guideContent').innerHTML=`
+    ${endpoints.map(e=>`
+    <div class="ep-block">
+      <div class="ep-row"><span class="method ${e.cls}">${e.method}</span><code class="ep-path">${e.path}</code></div>
+      <div class="ep-desc">${e.desc}</div>
+    </div>`).join('')}
+    <div style="margin-top:20px">
+      <div style="font-size:.8rem;font-weight:800;margin-bottom:10px">Field Reference</div>
+      <div class="g2" style="gap:8px">
+        <div>
+          <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);margin-bottom:6px">Required Fields</div>
+          ${req.map(f=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:.78rem"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span><code>${f}</code></div>`).join('')}
+        </div>
+        <div>
+          <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);margin-bottom:6px">Optional Fields</div>
+          ${opt.map(f=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:.78rem"><span style="width:8px;height:8px;border-radius:50%;background:var(--text-3);flex-shrink:0"></span><code>${f}</code></div>`).join('')}
+          <div style="margin-top:12px;padding:10px;background:var(--accent-light);border-radius:var(--r-sm);font-size:.75rem;color:var(--accent)">
+            <b>Note:</b> Optional fields are only included in responses when they have a value — they will not appear as <code>null</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

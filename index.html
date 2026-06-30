@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StanveeProducts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="topbar-inner">
+            <div class="topbar-left">
+                <span><span class="topbar-contact-icon">✉</span> info@stanvee.com</span>
+                <span><span class="topbar-contact-icon">📞</span> +91 92705 21515</span>
+            </div>
+            <div class="topbar-right">
+                <a href="faq.html">FAQ</a>
+                <a href="about_us.html">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <div class="navbar" id="navbar">
+        <!-- Upper -->
+        <div class="navbar-upper">
+            <a class="logo" href="index.html">
+                <img src="src/assets/stanveelogoshop.png" alt="Stanvee" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span style="color:#203040">vee</span></span>
+            </a>
+
+            <div class="desktop-search">
+                <input type="text" placeholder="Search products..." id="desktopSearch" />
+                <span style="color:#6b7280;font-size:14px">🔍</span>
+            </div>
+
+            <div class="nav-right">
+                <button class="mobile-search-btn" onclick="toggleMobileSearch()" id="mobileSearchBtn">🔍</button>
+
+                <div class="cart-wrap" onclick="window.location.href='cart.html'">
+                    <span class="cart-label">My Cart</span>
+                    <div class="cart-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 01-8 0" />
+                        </svg>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </div>
+                </div>
+
+               <div id="guestNav">
+                    <a href="login_page.html" class="login-btn">Login</a>
+                </div>
+                <div id="userNav" style="display:none;align-items:center;gap:8px">
+                    <span class="wallet-badge">Wallet: ₹<span id="walletAmt">0</span></span>
+                    <span id="userGreeting" style="font-size:13px;font-weight:600;color:#374151;display:none"></span>
+                    <div class="profile-wrap">
+                        <!-- <img src="src/assets/profile_icon.png" alt="profile" class="profile-icon" onclick="toggleProfile()" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><circle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23e5e7eb%22/><text x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2218%22>👤</text></svg>'" -->
+                        <!-- /> -->
+                        <ul class="profile-dropdown" id="profileDropdown">
+                            <li >My Account</li>
+                            <li >My Orders</li>
+                            <li class="red" onclick="logout()">Logout</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile search row -->
+        <div class="mobile-search-row" id="mobileSearchRow">
+            <input type="text" placeholder="Search products..." id="mobileSearch" />
+            <button class="clear-btn" onclick="clearMobileSearch()">✕</button>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="navbar-bottom">
+            <div class="cat-btn-wrap">
+                <button class="cat-trigger" onclick="toggleCat()" id="catTrigger">
+                    <div class="cat-icon-circle">☰</div>
+                    All Categories
+                    <span class="cat-arrow" id="catArrow">▾</span>
+                </button>
+                <div class="cat-dropdown-menu" id="catDropdown">
+                    <a >Audio Devices</a>
+                    <a >Dining</a>
+                    <a >Home Appliances</a>
+                    <a >Home Essentials</a>
+                    <a >Kitchen Appliances</a>
+                    <a >Kitchen Essentials</a>
+                    <a >Business Essentials</a>
+                </div>
+            </div>
+
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">☰</button>
+
+            <nav class="desktop-nav-links">
+                <a href="index.html" class="active" >Home</a>
+                <a href="shop.html">Shop</a>
+                <a href="about_us.html">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </nav>
+        </div>
+
+        <!-- Mobile nav dropdown -->
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <a href="index.html">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="about_us.html">About Us</a>
+            <a href="contact_us.html">Contact Us</a>
+        </div>
+    </div>
+
+    <!-- MAIN BANNER -->
+    <div class="banner-section">
+        <div class="slider-outer" id="sliderOuter">
+            <div class="slider-desktop">
+                <img src="src/assets/banner_2.jpg" alt="" class="slider-ghost" />
+                <img src="src/assets/banner_2.jpg" alt="banner 1" class="slider-slide active" data-index="0" />
+                <img src="src/assets/banner_1.png" alt="banner 2" class="slider-slide" data-index="1" />
+                <img src="src/assets/banner_5.jpg" alt="banner 3" class="slider-slide" data-index="2" />
+                <img src="src/assets/banner_3.jpg" alt="banner 4" class="slider-slide" data-index="3" />
+                <img src="src/assets/banner_4.jpg" alt="banner 5" class="slider-slide" data-index="4" />
+                <button class="slider-prev" onclick="prevSlide()">&#8249;</button>
+                <button class="slider-next" onclick="nextSlide()">&#8250;</button>
+                <div class="slider-dots" id="sliderDots">
+                    <button class="dot active" onclick="goSlide(0)"></button>
+                    <button class="dot" onclick="goSlide(1)"></button>
+                    <button class="dot" onclick="goSlide(2)"></button>
+                    <button class="dot" onclick="goSlide(3)"></button>
+                    <button class="dot" onclick="goSlide(4)"></button>
+                </div>
+            </div>
+            <div class="slider-mobile">
+                <img src="src/assets/threeAirFryer.jpg" alt="banner" />
+                <p class="slider-mobile-caption">Discover the Benefits of Healthy Cooking with Stanvee Air Fryers Less Oil, More Health:</p>
+            </div>
+        </div>
+
+        <!-- Services bar -->
+        <div class="services-bar">
+            <div class="service-item">
+                <img src="src/assets/warranty.png" alt="Warranty" />
+                <div>
+                    <h3>Warranty</h3>
+                    <p>One Year</p>
+                </div>
+            </div>
+            <div class="service-item">
+                <img src="src/assets/freeshipping.png" alt="Free Shipping" />
+                <div>
+                    <h3>Free Shipping</h3>
+                    <p>Free shipping on all order</p>
+                </div>
+            </div>
+            <div class="service-item">
+                <img src="src/assets/onlinesupport.png" alt="Online Support" />
+                <div>
+                    <h3>Online Support</h3>
+                    <p>10:30 AM to 5:30 PM • Monday to Saturday</p>
+                </div>
+            </div>
+            <div class="service-item">
+                <img src="src/assets/securitypayment.png" alt="Secure Payment" />
+                <div>
+                    <h3>Secure Payment</h3>
+                    <p>We Value Your Security</p>
+                </div>
+            </div>
+            <div class="service-item">
+                <img src="src/assets/newmemberdiscount.png" alt="New Member Discount" />
+                <div>
+                    <h3>New Member Discount</h3>
+                    <p>Get 5000 shopping points</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY BANNERS -->
+    <div class="cat-banners">
+        <a href="products_audio.html" class="cat-banner-card">
+            <img src="src/assets/home-audiodevice.jpg" alt="Audio Device" />
+            <div class="cat-banner-overlay">
+                <h2>Audio Device</h2>
+                <p>Bringing Music to life</p>
+                <span class="cat-banner-btn">Shop now</span>
+            </div>
+        </a>
+        <a href="products_homeappliances.html" class="cat-banner-card">
+            <img src="src/assets/home-homeappliances.jpg" alt="Home Appliances" />
+            <div class="cat-banner-overlay">
+                <h2>Home Appliances</h2>
+                <p>Smart Solutions for Modern Living</p>
+                <span class="cat-banner-btn">Shop now</span>
+            </div>
+        </a>
+        <div class="cat-banner-card" style="cursor:default">
+            <img src="src/assets/home-qualityguarented.jpg" alt="Quality Guaranteed" />
+            <div class="cat-banner-overlay">
+                <h2>Quality Guaranteed</h2>
+                <p>Enjoy One Year of Worry Free Usage</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALL PRODUCTS -->
+    <div class="products-section">
+        <p class="section-heading"><span class="c-primary">All </span>Products</p>
+        <div class="products-grid" id="allProductsGrid">
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-banner">
+            <img src="src/assets/footer_banner.jpg" alt="Home Essentials Banner" />
+        </div>
+
+        <p class="section-heading" style="margin-top:20px"><span class="c-green">Home</span> Essentials</p>
+        <div class="products-grid" id="homeEssGrid">
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+            <div class="skel-card">
+                <div class="skel-img"></div>
+                <div class="skel-body">
+                    <div class="skel-line"></div>
+                    <div class="skel-line short"></div>
+                    <div class="skel-btn"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM BANNER -->
+    <div class="gifting-banner">
+        <img src="src/assets/gifting.jpg" alt="banner" />
+    </div>
+
+    <!-- FOOTER -->
+<footer>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a href="index.html">
+                    <img src="src/assets/stanvee_logo-Photoroom.png" alt="Stanvee" class="footer-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span style="color:#203040">vee</span></span>
+                </a>
+                <p class="footer-desc">Don't miss out on the chance to indulge in shopping, travel, utility services, and wellness experiences while enjoying attractive discounts and deals. Visit stanvee.com to explore the multitude of offerings and let the celebrations begin
+                    with Stanvee.</p>
+            </div>
+            <div class="footer-links-row">
+                <div class="footer-col">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="products_audio.html">Audio Devices</a></li>
+                        <li><a href="products_homeappliances.html">Home Appliances</a></li>
+                        <li><a href="products_homeessentials.html">Home Essentials</a></li>
+                        <li><a href="products_kitchenappliances.html">Kitchen Appliances</a></li>
+                        <li><a href="products_kitchenessentials.html">Kitchen Essentials</a></li>
+                        <li><a href="products_dining.html">Dining</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="shop.html">Best Sellers</a></li>
+                        <li><a href="shop.html">Offers &amp; Deals</a></li>
+                        <li><a href="contact_us.html">Contact Us</a></li>
+                        <li><a href="faq.html">FAQs</a></li>
+                        <li><a href="refund.html">Cancel / Refund</a></li>
+                        <li><a href="terms_and_condition.html">Terms &amp; Conditions</a></li>
+                        <li><a href="privacy_policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Our Trending Packages</h3>
+                    <ul>
+                        <li><a href="https://stanvee.com/index.asp" target="_blank" rel="noopener">Royal Package</a></li>
+                        <li><a href="https://fulltank.stanvee.com/" target="_blank" rel="noopener">Full Tank Card</a></li>
+                        <li><a href="https://wow.stanvee.com/" target="_blank" rel="noopener">Wow Discount</a></li>
+                        <li><a href="#">Stanvee Rento</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Follow Us</h3>
+                    <ul>
+                        <li><a href="https://www.instagram.com/stanvee_india/" target="_blank" rel="noopener">Instagram</a></li>
+                        <li><a href="https://x.com/stanveeservices" target="_blank" rel="noopener">Twitter</a></li>
+                        <li><a href="https://www.facebook.com/StanveeServices" target="_blank" rel="noopener">Facebook</a></li>
+                        <li><a href="https://www.linkedin.com/in/stanvee-services-india-ltd-a5b560390" target="_blank" rel="noopener">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p class="footer-copy">© Stanvee Services India Limited. All Rights Reserved.</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+
+</html>

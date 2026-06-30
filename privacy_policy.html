@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy - StanveeProducts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* ==========================
+   ABOUT / POLICY SECTION
+========================== */
+        
+        .about-section {
+            padding: 70px 15px;
+            background: #f6f7f9;
+        }
+        
+        .about-title {
+            text-align: center;
+            color: #42b649;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        
+        .about-card {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .about-card h3 {
+            color: #42b649;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .about-card h4 {
+            color: #42b649;
+            font-size: 26px;
+            font-weight: 700;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        
+        .about-card p {
+            color: #444;
+            font-size: 17px;
+            line-height: 1.9;
+            margin-bottom: 18px;
+        }
+        
+        .about-card ul {
+            margin: 0 0 18px 22px;
+            color: #444;
+            font-size: 17px;
+            line-height: 1.9;
+        }
+        
+        .about-card ul li {
+            margin-bottom: 8px;
+        }
+        
+        .about-card strong {
+            font-weight: 700;
+        }
+        
+        .about-card .updated-note {
+            font-size: 15px;
+            color: #777;
+            margin-bottom: 30px;
+        }
+        /* Responsive */
+        
+        @media (max-width:768px) {
+            .about-section {
+                padding: 50px 15px;
+            }
+            .about-card {
+                padding: 25px;
+            }
+            .about-title {
+                font-size: 32px;
+            }
+            .about-card h3 {
+                font-size: 26px;
+            }
+            .about-card h4 {
+                font-size: 22px;
+            }
+            .about-card p,
+            .about-card ul {
+                font-size: 16px;
+                line-height: 1.8;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="topbar-inner">
+            <div class="topbar-left">
+                <span><span class="topbar-contact-icon">✉</span> info@stanvee.com</span>
+                <span><span class="topbar-contact-icon">📞</span> +91 92705 21515</span>
+            </div>
+            <div class="topbar-right">
+                <a href="faq.html">FAQ</a>
+                <a href="about_us.html">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <div class="navbar" id="navbar">
+        <!-- Upper -->
+        <div class="navbar-upper">
+            <a class="logo" href="/">
+                <img src="src/assets/stanveelogoshop.png" alt="Stanvee" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span style="color:#203040">vee</span></span>
+            </a>
+
+            <div class="desktop-search">
+                <input type="text" placeholder="Search products..." id="desktopSearch" />
+                <span style="color:#6b7280;font-size:14px">🔍</span>
+            </div>
+
+            <div class="nav-right">
+                <button class="mobile-search-btn" onclick="toggleMobileSearch()" id="mobileSearchBtn">🔍</button>
+
+                <div class="cart-wrap" onclick="window.location.href='/cart'">
+                    <span class="cart-label">My Cart</span>
+                    <div class="cart-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 01-8 0" />
+                        </svg>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </div>
+                </div>
+
+                <div id="guestNav">
+                    <button class="login-btn" onclick="showLoginModal()">Login</button>
+                </div>
+                <div id="userNav" style="display:none;align-items:center;gap:8px;display:none">
+                    <span class="wallet-badge">Wallet: ₹<span id="walletAmt">0</span></span>
+                    <div class="profile-wrap">
+                        <img src="src/assets/profile_icon.png" alt="profile" class="profile-icon" onclick="toggleProfile()" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><circle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23e5e7eb%22/><text x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2218%22>👤</text></svg>'"
+                        />
+                        <ul class="profile-dropdown" id="profileDropdown">
+                            <li onclick="window.location.href='/my-account'">My Account</li>
+                            <li onclick="window.location.href='/my-orders'">My Orders</li>
+                            <li class="red" onclick="logout()">Logout</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile search row -->
+        <div class="mobile-search-row" id="mobileSearchRow">
+            <input type="text" placeholder="Search products..." id="mobileSearch" />
+            <button class="clear-btn" onclick="clearMobileSearch()">✕</button>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="navbar-bottom">
+            <div class="cat-btn-wrap">
+                <button class="cat-trigger" onclick="toggleCat()" id="catTrigger">
+                    <div class="cat-icon-circle">☰</div>
+                    All Categories
+                    <span class="cat-arrow" id="catArrow">▾</span>
+                </button>
+                <!-- <div class="cat-dropdown-menu" id="catDropdown">
+                    <a href="/products/audio">Audio Devices</a>
+                    <a href="/products/dining">Dining</a>
+                    <a href="/products/homeappliances">Home Appliances</a>
+                    <a href="/products/homeessentials">Home Essentials</a>
+                    <a href="/products/kitchenappliances">Kitchen Appliances</a>
+                    <a href="/products/kitchenessentials">Kitchen Essentials</a>
+                    <a href="/products/businessessentials">Business Essentials</a>
+                </div> -->
+            </div>
+
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">☰</button>
+
+            <nav class="desktop-nav-links">
+                <a href="/">Home</a>
+                <a href="/shop.html">Shop</a>
+                <a href="about_us.html">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </nav>
+        </div>
+
+        <!-- Mobile nav dropdown -->
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <a href="/">Home</a>
+            <a href="/shop.html">Shop</a>
+            <a href="about_us.html">About Us</a>
+            <a href="contact_us.html">Contact Us</a>
+        </div>
+    </div>
+
+    <!-- PRIVACY POLICY SECTION START -->
+    <section class="about-section">
+        <div class="container">
+            <h2 class="about-title">Privacy Policy</h2>
+
+            <div class="about-card">
+                <h3>Stanvee Services</h3>
+
+                <p>
+                    The terms "We" / "Us" / "Our" / "Company" individually and collectively refer to M/s Stanvee Services India Limited, and the terms "You" / "Your" / "Yourself" refer to the users.
+                </p>
+
+                <p>
+                    This Privacy Policy is an electronic record in the form of an electronic contract formed under the Information Technology Act, 2000 and the rules made thereunder, and the amended provisions pertaining to electronic documents / records
+                    in various statutes as amended by the Information Technology Act, 2000. This Privacy Policy does not require any physical, electronic or digital signature.
+                </p>
+
+                <p>
+                    This Privacy Policy is a legally binding document between you and M/s Stanvee Services India Limited (both terms defined above). The terms of this Privacy Policy will be effective upon your acceptance of the same (directly or
+                    indirectly in electronic form, by clicking on the "I accept" tab, or by use of the website, or by other means) and will govern the relationship between you and M/s Stanvee Services India Limited for your use of the website ("Website").
+                </p>
+
+                <p>
+                    This document is published and shall be construed in accordance with the provisions of the Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules, 2011 under the
+                    Information Technology Act, 2000, which require the publishing of the Privacy Policy for collection, use, storage and transfer of sensitive personal data or information.
+                </p>
+
+                <p>
+                    Please read this Privacy Policy carefully. By using the Website, you indicate that you understand, agree and consent to this Privacy Policy. If you do not agree with the terms of this Privacy Policy, please do not use this Website.
+                </p>
+
+                <p>
+                    By providing us your information, or by making use of the facilities provided by the Website, you hereby consent to the collection, storage, processing and transfer of any or all of your Personal Information and Non-Personal
+                    Information by us as specified under this Privacy Policy. You further agree that such collection, use, storage and transfer of your information shall not cause any loss or wrongful gain to you or any other person.
+                </p>
+
+                <h4>User Information</h4>
+
+                <p>
+                    To avail certain services on our Website, users are required to provide certain information for the registration process, namely: your name, email address, sex, age, PIN code, credit card or debit card details, medical records
+                    and history, sexual orientation, biometric information, password, etc., and/or your occupation, interests, and the like. The information as supplied by users enables us to improve our sites and provide you the most user-friendly
+                    experience.
+                </p>
+
+                <p>
+                    All required information is service-dependent, and we may use the above-said user information to maintain, protect and improve our services (including advertising services), and for developing new services.
+                </p>
+
+                <p>
+                    Such information will not be considered as sensitive if it is freely available and accessible in the public domain, or is furnished under the Right to Information Act, 2005, or any other law for the time being in force.
+                </p>
+
+                <h4>Cookies</h4>
+
+                <p>
+                    To improve the responsiveness of the site for our users, we may use "cookies", or similar electronic tools, to collect information and assign each visitor a unique, random number as a User Identification (User ID), to understand
+                    the user's individual interests using the identified computer. Unless you voluntarily identify yourself (through registration, for example), we will have no way of knowing who you are, even if we assign a cookie to your computer.
+                    The only personal information a cookie can contain is information you supply yourself. A cookie cannot read data off your hard drive. Our advertisers may also assign their own cookies to your browser (if you click on their ads),
+                    a process that we do not control.
+                </p>
+
+                <p>
+                    Our web servers automatically collect limited information about your computer's connection to the internet, including your IP address, when you visit our site. (Your IP address is a number that lets computers attached to the
+                    internet know where to send you data, such as the web pages you view.) Your IP address does not identify you personally. We use this information to deliver our web pages to you upon request, to tailor our site to the interests
+                    of our users, to measure traffic within our site, and to let advertisers know the geographic locations from where our visitors come.
+                </p>
+
+                <h4>Links to Other Sites</h4>
+
+                <p>
+                    Our policy discloses the privacy practices for our own website only. Our site provides links to other websites that are beyond our control. We shall in no way be responsible for your use of such sites.
+                </p>
+
+                <h4>Information Sharing</h4>
+
+                <p>
+                    We may share sensitive personal information with third parties, without obtaining the prior consent of the user, only in the following limited circumstances:
+                </p>
+                <ul>
+                    <li>
+                        When it is requested or required by law, or by any court or governmental agency or authority, to disclose such information for the purpose of verification of identity, or for the prevention, detection, investigation
+                        (including of cyber incidents), or for the prosecution and punishment of offences. These disclosures are made in good faith and in the belief that such disclosure is reasonably necessary for enforcing these Terms, or for
+                        complying with applicable laws and regulations.
+                    </li>
+                    <li>
+                        We may share such information within our group companies, and with officers and employees of such group companies, for the purpose of processing personal information on our behalf. We ensure that these recipients of such
+                        information agree to process it based on our instructions and in compliance with this Privacy Policy, and with appropriate confidentiality and security measures.
+                    </li>
+                </ul>
+
+                <h4>Information Security</h4>
+
+                <p>
+                    We take appropriate security measures to protect against unauthorized access to, or unauthorized alteration, disclosure or destruction of, data. These include internal reviews of our data collection, storage and processing
+                    practices and security measures, including appropriate encryption and physical security measures, to guard against unauthorized access to systems where we store personal data.
+                </p>
+
+                <p>
+                    All information gathered on our Website is securely stored within our controlled database. The database is stored on servers secured behind a firewall; access to the servers is password-protected and strictly limited. However,
+                    as effective as our security measures are, no security system is impenetrable. We cannot guarantee the security of our database, nor can we guarantee that information you supply will not be intercepted while being transmitted
+                    to us over the internet. Any information you include in a posting to the discussion areas is available to anyone with internet access.
+                </p>
+
+                <p>
+                    The internet is an ever-evolving medium. We may change our Privacy Policy from time to time to incorporate necessary future changes. Our use of any information we gather will always be consistent with the policy under which the
+                    information was collected, regardless of what the new policy may be.
+                </p>
+
+                <h4>Grievance Redressal</h4>
+
+                <p>
+                    Any complaints, abuse, or concerns with regard to content, comments, or breach of these terms shall be immediately informed to the designated Grievance Officer in writing, or through an email signed with the electronic signature
+                    of the complainant, addressed to:
+                </p>
+                <p>
+                    <strong>Grievance Officer:</strong> ………………………………<br />
+                    <strong>Email:</strong> info@stanvee.com<br />
+                    <strong>Phone:</strong> +91 92705 21515
+                </p>
+            </div>
+        </div>
+    </section>
+    <!-- PRIVACY POLICY SECTION END -->
+
+    <!-- FOOTER -->
+<footer>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a href="index.html">
+                    <img src="src/assets/stanvee_logo-Photoroom.png" alt="Stanvee" class="footer-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span style="color:#203040">vee</span></span>
+                </a>
+                <p class="footer-desc">Don't miss out on the chance to indulge in shopping, travel, utility services, and wellness experiences while enjoying attractive discounts and deals. Visit stanvee.com to explore the multitude of offerings and let the celebrations begin
+                    with Stanvee.</p>
+            </div>
+            <div class="footer-links-row">
+                <div class="footer-col">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="products_audio.html">Audio Devices</a></li>
+                        <li><a href="products_homeappliances.html">Home Appliances</a></li>
+                        <li><a href="products_homeessentials.html">Home Essentials</a></li>
+                        <li><a href="products_kitchenappliances.html">Kitchen Appliances</a></li>
+                        <li><a href="products_kitchenessentials.html">Kitchen Essentials</a></li>
+                        <li><a href="products_dining.html">Dining</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Best Sellers</a></li>
+                        <li><a href="products.html">Offers &amp; Deals</a></li>
+                        <li><a href="contact_us.html">Contact Us</a></li>
+                        <li><a href="faq.html">FAQs</a></li>
+                        <li><a href="refund.html">Cancel / Refund</a></li>
+                        <li><a href="terms_and_condition.html">Terms &amp; Conditions</a></li>
+                        <li><a href="privacy_policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Our Trending Packages</h3>
+                    <ul>
+                        <li><a href="https://stanvee.com/index.asp" target="_blank" rel="noopener">Royal Package</a></li>
+                        <li><a href="https://fulltank.stanvee.com/" target="_blank" rel="noopener">Full Tank Card</a></li>
+                        <li><a href="https://wow.stanvee.com/" target="_blank" rel="noopener">Wow Discount</a></li>
+                        <li><a href="#">Stanvee Rento</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Follow Us</h3>
+                    <ul>
+                        <li><a href="https://www.instagram.com/stanvee_india/" target="_blank" rel="noopener">Instagram</a></li>
+                        <li><a href="https://x.com/stanveeservices" target="_blank" rel="noopener">Twitter</a></li>
+                        <li><a href="https://www.facebook.com/StanveeServices" target="_blank" rel="noopener">Facebook</a></li>
+                        <li><a href="https://www.linkedin.com/in/stanvee-services-india-ltd-a5b560390" target="_blank" rel="noopener">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p class="footer-copy">© Stanvee Services India Limited. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        function toggleFaq(element) {
+            const faqItem = element.parentElement;
+            const isActive = faqItem.classList.contains('active');
+
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Open clicked item if it wasn't already open
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        }
+    </script>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

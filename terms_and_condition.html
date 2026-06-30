@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terms & Conditions - StanveeProducts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* ==========================
+   ABOUT / POLICY SECTION
+========================== */
+        
+        .about-section {
+            padding: 70px 15px;
+            background: #f6f7f9;
+        }
+        
+        .about-title {
+            text-align: center;
+            color: #42b649;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        
+        .about-card {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .about-card h3 {
+            color: #42b649;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .about-card h4 {
+            color: #42b649;
+            font-size: 26px;
+            font-weight: 700;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        
+        .about-card p {
+            color: #444;
+            font-size: 17px;
+            line-height: 1.9;
+            margin-bottom: 18px;
+        }
+        
+        .about-card strong {
+            font-weight: 700;
+        }
+        
+        .about-card .updated-note {
+            font-size: 15px;
+            color: #777;
+            margin-bottom: 30px;
+        }
+        /* Responsive */
+        
+        @media (max-width:768px) {
+            .about-section {
+                padding: 50px 15px;
+            }
+            .about-card {
+                padding: 25px;
+            }
+            .about-title {
+                font-size: 32px;
+            }
+            .about-card h3 {
+                font-size: 26px;
+            }
+            .about-card h4 {
+                font-size: 22px;
+            }
+            .about-card p {
+                font-size: 16px;
+                line-height: 1.8;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="topbar-inner">
+            <div class="topbar-left">
+                <span><span class="topbar-contact-icon">✉</span> info@stanvee.com</span>
+                <span><span class="topbar-contact-icon">📞</span> +91 92705 21515</span>
+            </div>
+            <div class="topbar-right">
+                <a href="faq.html">FAQ</a>
+                <a href="about_us.html">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <div class="navbar" id="navbar">
+        <!-- Upper -->
+        <div class="navbar-upper">
+            <a class="logo" href="/">
+                <img src="src/assets/stanveelogoshop.png" alt="Stanvee" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span style="color:#203040">vee</span></span>
+            </a>
+
+            <div class="desktop-search">
+                <input type="text" placeholder="Search products..." id="desktopSearch" />
+                <span style="color:#6b7280;font-size:14px">🔍</span>
+            </div>
+
+            <div class="nav-right">
+                <button class="mobile-search-btn" onclick="toggleMobileSearch()" id="mobileSearchBtn">🔍</button>
+
+                <div class="cart-wrap" onclick="window.location.href='/cart'">
+                    <span class="cart-label">My Cart</span>
+                    <div class="cart-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 01-8 0" />
+                        </svg>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </div>
+                </div>
+
+                <div id="guestNav">
+                    <button class="login-btn" onclick="showLoginModal()">Login</button>
+                </div>
+                <div id="userNav" style="display:none;align-items:center;gap:8px;display:none">
+                    <span class="wallet-badge">Wallet: ₹<span id="walletAmt">0</span></span>
+                    <div class="profile-wrap">
+                        <img src="src/assets/profile_icon.png" alt="profile" class="profile-icon" onclick="toggleProfile()" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><circle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23e5e7eb%22/><text x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2218%22>👤</text></svg>'"
+                        />
+                        <ul class="profile-dropdown" id="profileDropdown">
+                            <li onclick="window.location.href='/my-account'">My Account</li>
+                            <li onclick="window.location.href='/my-orders'">My Orders</li>
+                            <li class="red" onclick="logout()">Logout</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile search row -->
+        <div class="mobile-search-row" id="mobileSearchRow">
+            <input type="text" placeholder="Search products..." id="mobileSearch" />
+            <button class="clear-btn" onclick="clearMobileSearch()">✕</button>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="navbar-bottom">
+            <div class="cat-btn-wrap">
+                <button class="cat-trigger" onclick="toggleCat()" id="catTrigger">
+                    <div class="cat-icon-circle">☰</div>
+                    All Categories
+                    <span class="cat-arrow" id="catArrow">▾</span>
+                </button>
+                <!-- <div class="cat-dropdown-menu" id="catDropdown">
+                    <a href="/products/audio">Audio Devices</a>
+                    <a href="/products/dining">Dining</a>
+                    <a href="/products/homeappliances">Home Appliances</a>
+                    <a href="/products/homeessentials">Home Essentials</a>
+                    <a href="/products/kitchenappliances">Kitchen Appliances</a>
+                    <a href="/products/kitchenessentials">Kitchen Essentials</a>
+                    <a href="/products/businessessentials">Business Essentials</a>
+                </div> -->
+            </div>
+
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">☰</button>
+
+            <nav class="desktop-nav-links">
+                <a href="/">Home</a>
+                <a href="/shop.html">Shop</a>
+                <a href="about_us.html">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </nav>
+        </div>
+
+        <!-- Mobile nav dropdown -->
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <a href="/">Home</a>
+            <a href="/shop.html">Shop</a>
+            <a href="about_us.html">About Us</a>
+            <a href="contact_us.html">Contact Us</a>
+        </div>
+    </div>
+
+    <!-- TERMS & CONDITIONS SECTION START -->
+    <section class="about-section">
+        <div class="container">
+            <h2 class="about-title">Terms &amp; Conditions</h2>
+
+            <div class="about-card">
+                <h3>Terms of Service</h3>
+
+                <p>
+                    By using this website and its offered services, you are supposed to have read and agreed to the following terms and conditions.
+                </p>
+
+                <p>
+                    This website, stanveeservices.com, is operated by Stanvee Services India Limited. Throughout the site, the terms "we", "us" and "our" refer to Stanvee Services India Limited. The Company offers this website, including all information,
+                    tools and services available from this site, to you, the user, conditioned upon your acceptance of all terms, conditions, policies and notices stated here.
+                </p>
+
+                <h4>Acceptance of Terms</h4>
+
+                <p>
+                    By visiting our site and/or purchasing something from us, you engage in our "Service" and agree to be bound by the following terms and conditions ("Terms of Service", "Terms"), including those additional terms and conditions and
+                    policies referenced herein and/or available by hyperlink. These Terms of Service apply to all users of the site, including without limitation users who are browsers, vendors, customers, merchants, and/or contributors of content.
+                </p>
+
+                <h4>Modifications to Terms of Service</h4>
+
+                <p>
+                    Any new features or tools which are added to the current store shall also be subject to the Terms of Service. You can review the most current version of the Terms of Service at any time on this page. We reserve the right to update,
+                    change or replace any part of these Terms of Service by posting updates and/or changes to our website. It is your responsibility to check this page periodically for changes. Your continued use of or access to the website following
+                    the posting of any changes constitutes acceptance of those changes.
+                </p>
+
+                <h4>User Registration</h4>
+
+                <p>
+                    A user account is available only through the registration process, once you submit the requested information while registering. Before registration we ask whether or not you agree to the current Terms of Service. If you don't agree
+                    to our Terms of Service, you will not be permitted to use the services.
+                </p>
+
+                <h4>Payments</h4>
+
+                <p>
+                    We accept Visa and Mastercard credit cards, debit cards, and net banking as modes of payment, which are processed through our payment gateway provider. No information pertaining to payment is shared with us, as you fill in all
+                    payment-related information on your bank's site.
+                </p>
+
+                <p>
+                    Service providers may consider the amount of a bill paid at their own discretion. We are not responsible for any non-consideration of a bill paid from an operator's end.
+                </p>
+
+                <h4>Right to Refuse Service</h4>
+
+                <p>
+                    We reserve the right to refuse service to anyone for any reason at any time.
+                </p>
+
+                <h4>Proprietary Rights and Restricted Use</h4>
+
+                <p>
+                    You agree not to reproduce, duplicate, copy, sell, resell or exploit any portion of the Service, use of the Service, or access to the Service or any contact on the website through which the service is provided, without express
+                    written permission from us.
+                </p>
+
+                <h4>General Provisions</h4>
+
+                <p>
+                    The headings used in this agreement are included for convenience only and will not limit or otherwise affect these Terms.
+                </p>
+
+                <p>
+                    Our failure to exercise or enforce any right or provision of these Terms of Service shall not constitute a waiver of such right or provision.
+                </p>
+
+                <p>
+                    These Terms of Service and any policies or operating rules posted by us on this site, or in respect to the Service, constitute the entire agreement and understanding between you and us, and govern your use of the Service, superseding
+                    any prior or contemporaneous agreements, communications and proposals, whether oral or written, between you and us (including, but not limited to, any prior versions of the Terms of Service).
+                </p>
+
+                <p>
+                    Any ambiguities in the interpretation of these Terms of Service shall not be construed against the drafting party.
+                </p>
+
+                <h4>Governing Law &amp; Jurisdiction</h4>
+
+                <p>
+                    These Terms of Service, and any separate agreements whereby we provide you services, are governed by the laws of India and are subject to the jurisdiction of Mumbai only.
+                </p>
+            </div>
+        </div>
+    </section>
+    <!-- TERMS & CONDITIONS SECTION END -->
+
+    <!-- FOOTER -->
+<footer>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a href="index.html">
+                    <img src="src/assets/stanvee_logo-Photoroom.png" alt="Stanvee" class="footer-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span style="color:#203040">vee</span></span>
+                </a>
+                <p class="footer-desc">Don't miss out on the chance to indulge in shopping, travel, utility services, and wellness experiences while enjoying attractive discounts and deals. Visit stanvee.com to explore the multitude of offerings and let the celebrations begin
+                    with Stanvee.</p>
+            </div>
+            <div class="footer-links-row">
+                <div class="footer-col">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="products_audio.html">Audio Devices</a></li>
+                        <li><a href="products_homeappliances.html">Home Appliances</a></li>
+                        <li><a href="products_homeessentials.html">Home Essentials</a></li>
+                        <li><a href="products_kitchenappliances.html">Kitchen Appliances</a></li>
+                        <li><a href="products_kitchenessentials.html">Kitchen Essentials</a></li>
+                        <li><a href="products_dining.html">Dining</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Best Sellers</a></li>
+                        <li><a href="products.html">Offers &amp; Deals</a></li>
+                        <li><a href="contact_us.html">Contact Us</a></li>
+                        <li><a href="faq.html">FAQs</a></li>
+                        <li><a href="refund.html">Cancel / Refund</a></li>
+                        <li><a href="terms_and_condition.html">Terms &amp; Conditions</a></li>
+                        <li><a href="privacy_policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Our Trending Packages</h3>
+                    <ul>
+                        <li><a href="https://stanvee.com/index.asp" target="_blank" rel="noopener">Royal Package</a></li>
+                        <li><a href="https://fulltank.stanvee.com/" target="_blank" rel="noopener">Full Tank Card</a></li>
+                        <li><a href="https://wow.stanvee.com/" target="_blank" rel="noopener">Wow Discount</a></li>
+                        <li><a href="#">Stanvee Rento</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Follow Us</h3>
+                    <ul>
+                        <li><a href="https://www.instagram.com/stanvee_india/" target="_blank" rel="noopener">Instagram</a></li>
+                        <li><a href="https://x.com/stanveeservices" target="_blank" rel="noopener">Twitter</a></li>
+                        <li><a href="https://www.facebook.com/StanveeServices" target="_blank" rel="noopener">Facebook</a></li>
+                        <li><a href="https://www.linkedin.com/in/stanvee-services-india-ltd-a5b560390" target="_blank" rel="noopener">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p class="footer-copy">© Stanvee Services India Limited. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        function toggleFaq(element) {
+            const faqItem = element.parentElement;
+            const isActive = faqItem.classList.contains('active');
+
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Open clicked item if it wasn't already open
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        }
+    </script>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

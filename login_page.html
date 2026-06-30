@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login – StanveeProducts</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4fbf8b',
+                        'primary-dull': '#44ab7a'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @keyframes sv-slide-up {
+            from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        #sv-toast { animation: sv-slide-up 0.3s ease forwards; }
+
+        /* Tab styles */
+        .auth-tab {
+            flex: 1;
+            padding: 10px 0;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #6b7280;
+            transition: color .2s, border-color .2s;
+            background: none;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+        }
+        .auth-tab.active {
+            color: #4fbf8b;
+            border-bottom: 2px solid #4fbf8b;
+        }
+        .auth-panel { display: none; }
+        .auth-panel.active { display: flex; flex-direction: column; gap: 14px; }
+
+        /* Input label */
+        .field-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        .field-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .field-input:focus { border-color: #4fbf8b; }
+
+        /* Divider */
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="topbar-inner">
+            <div class="topbar-left">
+                <span><span class="topbar-contact-icon">✉</span> info@stanvee.com</span>
+                <span><span class="topbar-contact-icon">📞</span> +91 92705 21515</span>
+            </div>
+            <div class="topbar-right">
+                <a href="faq.html">FAQ</a>
+                <a href="about_us.html">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <div class="navbar" id="navbar">
+        <div class="navbar-upper">
+            <a class="logo" href="index.html">
+                <img src="src/assets/stanveelogoshop.png" alt="Stanvee"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span
+                        style="color:#203040">vee</span></span>
+            </a>
+            <div class="desktop-search">
+                <input type="text" placeholder="Search products..." id="desktopSearch" />
+                <span style="color:#6b7280;font-size:14px">🔍</span>
+            </div>
+            <div class="nav-right">
+                <button class="mobile-search-btn" onclick="toggleMobileSearch()" id="mobileSearchBtn">🔍</button>
+                <div class="cart-wrap" onclick="window.location.href='cart.html'">
+                    <span class="cart-label">My Cart</span>
+                    <div class="cart-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 01-8 0" />
+                        </svg>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </div>
+                </div>
+                <div id="guestNav">
+                    <button class="login-btn" onclick="document.getElementById('authCard').scrollIntoView({behavior:'smooth'})">Login</button>
+                </div>
+                <div id="userNav" style="display:none;align-items:center;gap:8px">
+                    <span class="wallet-badge">Wallet: ₹<span id="walletAmt">0</span></span>
+                    <div class="profile-wrap">
+                        <img src="src/assets/profile_icon.png" alt="profile" class="profile-icon"
+                            onclick="toggleProfile()"
+                            onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22%3E%3Ccircle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23e5e7eb%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2218%22%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E'" />
+                        <ul class="profile-dropdown" id="profileDropdown">
+                            <li onclick="window.location.href='my-account.html'">My Account</li>
+                            <li onclick="window.location.href='my-orders.html'">My Orders</li>
+                            <li class="red" onclick="logout()">Logout</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mobile-search-row" id="mobileSearchRow">
+            <input type="text" placeholder="Search products..." id="mobileSearch" />
+            <button class="clear-btn" onclick="clearMobileSearch()">✕</button>
+        </div>
+        <div class="navbar-bottom">
+            <div class="cat-btn-wrap">
+                <button class="cat-trigger" onclick="toggleCat()" id="catTrigger">
+                    <div class="cat-icon-circle">☰</div>
+                    All Categories
+                    <span class="cat-arrow" id="catArrow">▾</span>
+                </button>
+                <!-- <div class="cat-dropdown-menu" id="catDropdown">
+                    <a href="products_audio.html">Audio Devices</a>
+                    <a href="products_dining.html">Dining</a>
+                    <a href="products_homeappliances.html">Home Appliances</a>
+                    <a href="products_homeessentials.html">Home Essentials</a>
+                    <a href="products_kitchenappliances.html">Kitchen Appliances</a>
+                    <a href="products_kitchenessentials.html">Kitchen Essentials</a>
+                    <a href="products_businessessentials.html">Business Essentials</a>
+                </div> -->
+            </div>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">☰</button>
+            <nav class="desktop-nav-links">
+                <a href="index.html">Home</a>
+                <a href="products.html">Shop</a>
+                <a href="about_us.html">About Us</a>
+                <a href="contact_us.html">Contact Us</a>
+            </nav>
+        </div>
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <a href="index.html">Home</a>
+            <a href="products.html">Shop</a>
+            <a href="about_us.html">About Us</a>
+            <a href="contact_us.html">Contact Us</a>
+        </div>
+    </div>
+
+    <!-- AUTH CARD -->
+    <main class="bg-gray-50 min-h-[70vh] flex items-center justify-center px-4 py-16">
+        <div id="authCard"
+            class="w-80 sm:w-[380px] bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
+
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 px-6 pt-6">
+                <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Login</button>
+     
+            </div>
+
+            <div class="px-6 pb-8 pt-5">
+
+                <!-- ── LOGIN PANEL ── -->
+                <div id="panel-login" class="auth-panel active">
+         
+
+                    <div>
+                        <p class="field-label">Email</p>
+                        <input type="email" id="login-email" class="field-input"
+                            placeholder="you@example.com" autocomplete="email" />
+                    </div>
+                    <div>
+                        <p class="field-label">Password</p>
+                        <input type="password" id="login-password" class="field-input"
+                            placeholder="Your password" autocomplete="current-password" />
+                    </div>
+
+                    <p id="login-error" class="text-xs text-red-500 hidden"></p>
+
+                    <button id="login-btn" onclick="handleLogin()"
+                        class="bg-primary hover:bg-primary-dull transition-all text-white w-full py-2.5 rounded-lg font-semibold text-sm flex items-center justify-center gap-2">
+                        <svg id="login-spinner" class="hidden animate-spin h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        <span id="login-btn-text">Login</span>
+                    </button>
+
+                  
+                </div>
+
+                
+
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a href="index.html">
+                    <img src="src/assets/stanvee_logo-Photoroom.png" alt="Stanvee" class="footer-logo-img"
+                        onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span
+                            style="color:#203040">vee</span></span>
+                </a>
+                <p class="footer-desc">Don't miss out on the chance to indulge in shopping, travel, utility services,
+                    and wellness experiences while enjoying attractive discounts and deals.</p>
+            </div>
+            <div class="footer-links-row">
+                <div class="footer-col">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="products_audio.html">Audio Devices</a></li>
+                        <li><a href="products_homeappliances.html">Home Appliances</a></li>
+                        <li><a href="products_homeessentials.html">Home Essentials</a></li>
+                        <li><a href="products_kitchenappliances.html">Kitchen Appliances</a></li>
+                        <li><a href="products_kitchenessentials.html">Kitchen Essentials</a></li>
+                        <li><a href="products_dining.html">Dining</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Best Sellers</a></li>
+                        <li><a href="contact_us.html">Contact Us</a></li>
+                        <li><a href="faq.html">FAQs</a></li>
+                        <li><a href="terms_and_condition.html">Terms &amp; Conditions</a></li>
+                        <li><a href="privacy_policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Follow Us</h3>
+                    <ul>
+                        <li><a href="https://www.instagram.com/stanvee_india/" target="_blank" rel="noopener">Instagram</a></li>
+                        <li><a href="https://x.com/stanveeservices" target="_blank" rel="noopener">Twitter</a></li>
+                        <li><a href="https://www.facebook.com/StanveeServices" target="_blank" rel="noopener">Facebook</a></li>
+                        <li><a href="https://www.linkedin.com/in/stanvee-services-india-ltd-a5b560390" target="_blank" rel="noopener">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p class="footer-copy">© Stanvee Services India Limited. All Rights Reserved.</p>
+    </footer>
+
+    <!-- site script (for nav helpers) -->
+    <script src="script.js"></script>
+
+    <script>
+        /* ── Safety-net stubs ── */
+        if (typeof toggleMobileSearch !== "function")
+            window.toggleMobileSearch = () => document.getElementById("mobileSearchRow").classList.toggle("open");
+        if (typeof clearMobileSearch !== "function")
+            window.clearMobileSearch = () => { document.getElementById("mobileSearch").value = ""; };
+        if (typeof toggleCat !== "function")
+            window.toggleCat = () => document.getElementById("catDropdown").classList.toggle("open");
+        if (typeof toggleMobileMenu !== "function")
+            window.toggleMobileMenu = () => document.getElementById("mobileNavMenu").classList.toggle("open");
+        if (typeof toggleProfile !== "function")
+            window.toggleProfile = () => document.getElementById("profileDropdown").classList.toggle("open");
+
+        /* ── API base URL ── */
+        const API_BASE = "https://airpaypaymentgateway.onrender.com";
+
+        /* ── If already logged in, skip to home ── */
+        (function checkAlreadyLoggedIn() {
+            const raw = localStorage.getItem("sv_user");
+            if (raw) {
+                try {
+                    const u = JSON.parse(raw);
+                    if (u && u.id) window.location.replace("index.html");
+                } catch (_) {}
+            }
+        })();
+
+        /* ── Reflect nav state ── */
+        function refreshNavUser() {
+            const raw = localStorage.getItem("sv_user");
+            const guestNav = document.getElementById("guestNav");
+            const userNav  = document.getElementById("userNav");
+            if (raw) {
+                try {
+                    const user = JSON.parse(raw);
+                    if (guestNav) guestNav.style.display = "none";
+                    if (userNav)  userNav.style.display  = "flex";
+                    const walletEl = document.getElementById("walletAmt");
+                    if (walletEl) walletEl.textContent = user.walletBalance ?? 0;
+                } catch (_) {
+                    if (guestNav) guestNav.style.display = "block";
+                    if (userNav)  userNav.style.display  = "none";
+                }
+            } else {
+                if (guestNav) guestNav.style.display = "block";
+                if (userNav)  userNav.style.display  = "none";
+            }
+        }
+        refreshNavUser();
+
+        function logout() {
+            localStorage.removeItem("sv_user");
+            window.location.href = "index.html";
+        }
+        window.logout = logout;
+
+     
+
+        /* ── Toast ── */
+        function showToast(msg, type) {
+            const old = document.getElementById("sv-toast");
+            if (old) old.remove();
+            const t = document.createElement("div");
+            t.id = "sv-toast";
+            t.textContent = msg;
+            Object.assign(t.style, {
+                position: "fixed", bottom: "28px", left: "50%",
+                transform: "translateX(-50%)",
+                background: type === "error" ? "#ef4444" : "#4fbf8b",
+                color: "#fff", padding: "13px 28px", borderRadius: "8px",
+                fontSize: "15px", fontFamily: "'Outfit', sans-serif", fontWeight: "500",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.18)", zIndex: "99999",
+                whiteSpace: "nowrap", pointerEvents: "none"
+            });
+            document.body.appendChild(t);
+            setTimeout(() => {
+                t.style.transition = "opacity 0.35s ease";
+                t.style.opacity = "0";
+            }, 2500);
+            return t;
+        }
+
+        /* ── Save user to localStorage ── */
+        function saveUser(user) {
+            localStorage.setItem("sv_user", JSON.stringify(user));
+        }
+
+        /* ── Redirect after success ── */
+        function redirectHome(user) {
+            const firstName = (user.name || "there").split(" ")[0];
+            const toast = showToast(`Welcome, ${firstName}! Redirecting…`);
+            setTimeout(() => { window.location.href = "index.html"; }, 1800);
+        }
+
+        /* ────────────────────────────────────
+           LOGIN HANDLER
+        ──────────────────────────────────── */
+        async function handleLogin() {
+            const email    = document.getElementById("login-email").value.trim();
+            const password = document.getElementById("login-password").value.trim();
+            const errorEl  = document.getElementById("login-error");
+            const btn      = document.getElementById("login-btn");
+            const btnText  = document.getElementById("login-btn-text");
+            const spinner  = document.getElementById("login-spinner");
+
+            errorEl.classList.add("hidden");
+
+            if (!email || !password) {
+                errorEl.textContent = "Please enter your email and password.";
+                errorEl.classList.remove("hidden");
+                return;
+            }
+
+            // Loading state
+            btn.disabled = true;
+            btn.classList.add("opacity-70");
+            btnText.textContent = "Logging in…";
+            spinner.classList.remove("hidden");
+
+            try {
+                const res  = await fetch(`${API_BASE}/api/user/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    errorEl.textContent = data.message || "Invalid email or password.";
+                    errorEl.classList.remove("hidden");
+                    return;
+                }
+
+                saveUser(data.user);
+                redirectHome(data.user);
+
+            } catch (err) {
+                console.error("Login error:", err);
+                errorEl.textContent = "Could not reach the server. Please try again.";
+                errorEl.classList.remove("hidden");
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove("opacity-70");
+                btnText.textContent = "Login";
+                spinner.classList.add("hidden");
+            }
+        }
+
+        
+
+  /* ── Allow Enter key to submit ── */
+        document.addEventListener("keydown", function(e) {
+            if (e.key !== "Enter") return;
+            handleLogin();
+        });
+    </script>
+</body>
+</html>
