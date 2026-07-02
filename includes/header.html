@@ -1,0 +1,106 @@
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="topbar-inner">
+        <div class="topbar-left">
+            <span><span class="topbar-contact-icon">✉</span> info@stanvee.com</span>
+            <span><span class="topbar-contact-icon">📞</span> +91 92705 21515</span>
+        </div>
+        <div class="topbar-right">
+            <a href="faq.html">FAQ</a>
+            <a href="about_us.html">About Us</a>
+            <a href="contact_us.html">Contact Us</a>
+        </div>
+    </div>
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar" id="navbar">
+    <!-- Upper -->
+    <div class="navbar-upper">
+        <a class="logo" href="index.html">
+            <img src="src/assets/stanveelogoshop (1).png" alt="Stanvee" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+            <span style="display:none;font-size:22px;font-weight:800;color:var(--primary)">stan<span
+                    style="color:#203040">vee</span></span>
+        </a>
+
+        <div class="desktop-search">
+            <input type="text" placeholder="Search products..." id="desktopSearch" />
+            <span style="color:#6b7280;font-size:14px">🔍</span>
+        </div>
+
+        <div class="nav-right">
+            <button class="mobile-search-btn" onclick="toggleMobileSearch()" id="mobileSearchBtn">🔍</button>
+
+            <div class="cart-wrap" onclick="window.location.href='cart.html'">
+                <span class="cart-label">My Cart</span>
+                <div class="cart-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <path d="M16 10a4 4 0 01-8 0" />
+                    </svg>
+                    <span class="cart-badge" id="cartCount">0</span>
+                </div>
+            </div>
+
+            <div id="guestNav">
+                <a href="login_page.html" class="login-btn">Login</a>
+            </div>
+            <div id="userNav" style="display:none;align-items:center;gap:8px">
+                <span class="wallet-badge">Wallet: ₹<span id="walletAmt">0</span></span>
+                <span id="userGreeting" style="font-size:13px;font-weight:600;color:#374151;display:none"></span>
+                <div class="profile-wrap">
+                    <ul class="profile-dropdown" id="profileDropdown">
+                        <li>My Account</li>
+                        <li>My Orders</li>
+                        <li class="red" onclick="logout()">Logout</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Mobile search row -->
+    <div class="mobile-search-row" id="mobileSearchRow">
+        <input type="text" placeholder="Search products..." id="mobileSearch" />
+        <button class="clear-btn" onclick="clearMobileSearch()">✕</button>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="navbar-bottom">
+        <div class="cat-btn-wrap">
+            <button class="cat-trigger" onclick="toggleCat()" id="catTrigger">
+            <div class="cat-icon-circle">☰</div>
+            All Categories
+            <span class="cat-arrow" id="catArrow">▾</span>
+        </button>
+            <div class="cat-dropdown-menu" id="catDropdown">
+                <a>Audio Devices</a>
+                <a>Dining</a>
+                <a>Home Appliances</a>
+                <a>Home Essentials</a>
+                <a>Kitchen Appliances</a>
+                <a>Kitchen Essentials</a>
+                <a>Business Essentials</a>
+            </div>
+        </div>
+
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">☰</button>
+
+        <nav class="desktop-nav-links">
+            <a href="index.html" class="active">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="about_us.html">About Us</a>
+            <a href="contact_us.html">Contact Us</a>
+        </nav>
+    </div>
+
+    <!-- Mobile nav dropdown -->
+    <div class="mobile-nav-menu" id="mobileNavMenu">
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="about_us.html">About Us</a>
+        <a href="contact_us.html">Contact Us</a>
+    </div>
+</div>
