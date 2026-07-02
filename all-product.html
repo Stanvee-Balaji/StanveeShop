@@ -1,82 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>All Products</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: { extend: { colors: { primary: '#4fbf8b', 'primary-dull': '#44ab7a' } } }
-  }
-</script>
-<link rel="stylesheet" href="assets/app.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Products</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4fbf8b',
+                        'primary-dull': '#44ab7a'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/app.css" />
 </head>
+
 <body class="bg-white">
+    <div id="header"></div>
 
-<!-- ===== converted from AllProducts.jsx ===== -->
-<div class="px-4 mt-16">
+    <!-- ===== converted from AllProducts.jsx ===== -->
+    <div class="px-4 mt-16">
 
-  <!-- Header -->
-  <div class="flex flex-col px-4">
-    <p class="text-2xl font-medium uppercase">All Products</p>
-    <div class="w-16 h-0.5 bg-primary rounded-full mt-1"></div>
-  </div>
+        <!-- Header -->
+        <div class="flex flex-col px-4">
+            <p class="text-2xl font-medium uppercase">All Products</p>
+            <div class="w-16 h-0.5 bg-primary rounded-full mt-1"></div>
+        </div>
 
-  <!-- Search (stands in for Navbar's searchQuery, which AllProducts.jsx reads
+        <!-- Search (stands in for Navbar's searchQuery, which AllProducts.jsx reads
        from context but doesn't render itself) -->
-  <div class="px-4 mt-4 max-w-sm">
-    <input id="search-input" type="text" placeholder="Search products..."
-      class="w-full border border-gray-300 rounded px-3 py-2 outline-primary text-sm" />
-  </div>
+        <div class="px-4 mt-4 max-w-sm">
+            <input id="search-input" type="text" placeholder="Search products..." class="w-full border border-gray-300 rounded px-3 py-2 outline-primary text-sm" />
+        </div>
 
-  <!-- Products Grid -->
-  <div id="product-grid"
-       class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6 mt-6">
-    <!-- skeletons / cards injected by JS -->
-  </div>
-</div>
+        <!-- Products Grid -->
+        <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6 mt-6">
+            <!-- skeletons / cards injected by JS -->
+        </div>
+    </div>
 
-<script src="assets/app-data.js"></script>
-<script>
-  const grid = document.getElementById("product-grid");
-  const searchInput = document.getElementById("search-input");
+    <script src="js/script.js"></script>
+    <script src="js/app-data.js"></script>
+    <script>
+        const grid = document.getElementById("product-grid");
+        const searchInput = document.getElementById("search-input");
 
-  let products = [];          // mirrors: const { products } = useAppContext()
-  let searchQuery = "";       // mirrors: const { searchQuery } = useAppContext()
+        let products = []; // mirrors: const { products } = useAppContext()
+        let searchQuery = ""; // mirrors: const { searchQuery } = useAppContext()
 
-  function renderSkeletons() {
-    grid.innerHTML = "";
-    for (let i = 0; i < 15; i++) grid.appendChild(App.createProductSkeleton());
-  }
+        function renderSkeletons() {
+            grid.innerHTML = "";
+            for (let i = 0; i < 15; i++) grid.appendChild(App.createProductSkeleton());
+        }
 
-  function renderProducts() {
-    grid.innerHTML = "";
+        function renderProducts() {
+            grid.innerHTML = "";
 
-    const query = searchQuery.toLowerCase().replace(/\s+/g, "");
-    const filtered = (query.length > 0
-      ? products.filter(p => p.name.toLowerCase().replace(/\s+/g, "").includes(query))
-      : products
-    ).filter(p => p.inStock);
+            const query = searchQuery.toLowerCase().replace(/\s+/g, "");
+            const filtered = (query.length > 0 ?
+                products.filter(p => p.name.toLowerCase().replace(/\s+/g, "").includes(query)) :
+                products
+            ).filter(p => p.inStock);
 
-    if (filtered.length === 0) {
-      grid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-10">No products found.</p>`;
-      return;
-    }
-    filtered.forEach(p => grid.appendChild(App.createProductCard(p)));
-  }
+            if (filtered.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-10">No products found.</p>`;
+                return;
+            }
+            filtered.forEach(p => grid.appendChild(App.createProductCard(p)));
+        }
 
-  searchInput.addEventListener("input", (e) => {
-    searchQuery = e.target.value;
-    renderProducts();
-  });
+        searchInput.addEventListener("input", (e) => {
+            searchQuery = e.target.value;
+            renderProducts();
+        });
 
-  // simulate the async product fetch your context normally does
-  renderSkeletons();
-  setTimeout(() => {
-    products = App.PRODUCTS;
-    renderProducts();
-  }, 500);
-</script>
+        // simulate the async product fetch your context normally does
+        renderSkeletons();
+        setTimeout(() => {
+            products = App.PRODUCTS;
+            renderProducts();
+        }, 500);
+    </script>
+    <div id="footer"></div>
+    <script src="js/include.js"></script>
+
 </body>
+
 </html>

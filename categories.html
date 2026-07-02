@@ -1,56 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Categories</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: { extend: { colors: { primary: '#4fbf8b', 'primary-dull': '#44ab7a' } } }
-  }
-</script>
-<link rel="stylesheet" href="assets/app.css" />
-</head>
-<body class="bg-white">
 
-<!--
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Categories</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4fbf8b',
+                        'primary-dull': '#44ab7a'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/app.css" />
+
+</head>
+
+<body class="bg-white">
+    <div id="header"></div>
+
+    <!--
   ===== converted from Categories.jsx =====
   Note: the Categories.jsx you sent was entirely commented out, so this is
   built from that commented logic (categories.map -> grid of clickable
   category cards that route to /products/<category>).
 -->
-<div class="mt-16 px-4">
-  <p class="text-2xl md:text-3xl font-medium">Categories</p>
+    <div class="mt-16 px-4">
+        <p class="text-2xl md:text-3xl font-medium">Categories</p>
 
-  <div id="category-grid"
-       class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 mt-6 gap-6">
-    <!-- category cards injected by JS -->
-  </div>
-</div>
+        <div id="category-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 mt-6 gap-6">
+            <!-- category cards injected by JS -->
+        </div>
+    </div>
 
-<script src="assets/app-data.js"></script>
-<script>
-  const grid = document.getElementById("category-grid");
+    <script src="assets/app-data.js"></script>
+    <script>
+        const grid = document.getElementById("category-grid");
 
-  App.CATEGORIES.forEach((category) => {
-    const card = document.createElement("div");
-    card.className =
-      "group cursor-pointer py-5 px-3 gap-2 rounded-lg flex flex-col justify-center items-center";
-    card.style.backgroundColor = category.bgColor;
+        App.CATEGORIES.forEach((category) => {
+            const card = document.createElement("div");
+            card.className =
+                "group cursor-pointer py-5 px-3 gap-2 rounded-lg flex flex-col justify-center items-center";
+            card.style.backgroundColor = category.bgColor;
 
-    card.innerHTML = `
+            card.innerHTML = `
       <span class="text-6xl group-hover:scale-105 transition select-none">${category.icon}</span>
       <p class="text-sm font-medium">${category.text}</p>
     `;
 
-    card.addEventListener("click", () => {
-      App.navigate(`/products/${category.path.toLowerCase()}`);
-      window.scrollTo(0, 0);
-    });
+            card.addEventListener("click", () => {
+                App.navigate(`/products/${category.path.toLowerCase()}`);
+                window.scrollTo(0, 0);
+            });
 
-    grid.appendChild(card);
-  });
-</script>
+            grid.appendChild(card);
+        });
+    </script>
+    <div id="footer"></div>
+    <script src="js/script.js"></script>
+    <script src="js/app-data.js"></script>
+    <script src="js/include.js"></script>
 </body>
+
 </html>
