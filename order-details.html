@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Details – Stanvee</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/app.css" />
+
+    <style>
+        /* ── ORDER DETAILS PAGE STYLES ── */
+
+        .od-wrapper {
+            max-width: 760px;
+            margin: 48px auto 80px;
+            padding: 0 16px;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .breadcrumb a { color: var(--primary); }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        /* State containers */
+        .od-state { display: none; }
+        .od-state.active { display: block; }
+
+        /* ── LOADING STATE ── */
+        .od-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 100px 0;
+        }
+
+        .od-spinner {
+            width: 42px;
+            height: 42px;
+            border: 3px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: odSpin 0.8s linear infinite;
+        }
+
+        @keyframes odSpin { to { transform: rotate(360deg); } }
+
+        .od-loading p { font-size: 14px; color: #6b7280; }
+
+        /* ── ERROR STATE ── */
+        .od-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 80px 16px;
+            gap: 14px;
+        }
+
+        .od-error-icon { font-size: 52px; }
+        .od-error h2 { font-size: 20px; font-weight: 600; color: #1f2937; }
+        .od-error p { font-size: 14px; color: #9ca3af; max-width: 380px; }
+
+        /* ── HEADER ── */
+        .od-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .od-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .od-order-number {
+            font-size: 13.5px;
+            color: #6b7280;
+        }
+
+        .od-status-pill {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            white-space: nowrap;
+        }
+
+        .od-status-placed { background: #eff6ff; color: #2563eb; }
+        .od-status-cancelled { background: #fef2f2; color: #dc2626; }
+        .od-status-delivered { background: #ecfdf5; color: #16a34a; }
+        .od-status-confirmed { background: #fefce8; color: #ca8a04; }
+        .od-status-shipped { background: #f5f3ff; color: #7c3aed; }
+
+        /* ── CARDS ── */
+        .od-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .od-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        /* Item rows */
+        .od-item-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .od-item-row:last-child { border-bottom: none; }
+
+        .od-item-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f9fafb;
+        }
+
+        .od-item-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .od-item-meta { flex: 1; min-width: 0; }
+
+        .od-item-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .od-item-qty {
+            font-size: 12.5px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+
+        .od-item-price {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            flex-shrink: 0;
+        }
+
+        /* Address + payment */
+        .od-info-text {
+            font-size: 13.5px;
+            color: #374151;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        .od-info-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #9ca3af;
+            margin-bottom: 6px;
+        }
+
+        .od-two-col {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 640px) {
+            .od-two-col { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Timeline (created / cancelled) */
+        .od-timeline-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #6b7280;
+            padding: 4px 0;
+        }
+
+        /* Totals */
+        .od-totals {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .od-total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .od-total-row.grand {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            padding-top: 6px;
+            border-top: 1px solid #f3f4f6;
+            margin-top: 4px;
+        }
+
+        /* Cancel section */
+        .od-cancel-note {
+            font-size: 12.5px;
+            color: #9ca3af;
+            margin-top: 6px;
+        }
+
+        .od-cancel-reason-text {
+            font-size: 13.5px;
+            color: #dc2626;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-top: 8px;
+        }
+
+        /* Actions */
+        .od-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .od-btn {
+            flex: 1;
+            min-width: 160px;
+            padding: 13px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            border-radius: 9999px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s, transform 0.1s, color 0.2s, opacity 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .od-btn:active { transform: scale(0.98); }
+
+        .od-btn-secondary {
+            background: #fff;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+
+        .od-btn-secondary:hover { background: #f9fafb; }
+
+        .od-btn-danger {
+            background: #fff;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .od-btn-danger:hover { background: #fef2f2; }
+
+        .od-btn-danger:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .od-btn-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(220, 38, 38, 0.3);
+            border-top-color: #dc2626;
+            border-radius: 50%;
+            animation: odSpin 0.7s linear infinite;
+            display: none;
+        }
+
+        .od-btn-danger.loading .od-btn-spinner { display: inline-block; }
+
+        /* ── CANCEL CONFIRM MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            padding: 26px;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: modalPop 0.2s ease;
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .modal-desc {
+            font-size: 13.5px;
+            color: #6b7280;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .modal-form-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .modal-form-field textarea {
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+            color: #374151;
+            outline: none;
+            resize: vertical;
+            min-height: 64px;
+            box-sizing: border-box;
+        }
+
+        .modal-form-field textarea:focus { border-color: var(--primary); }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .modal-cancel-back-btn {
+            flex: 1;
+            padding: 11px;
+            background: #fff;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            border: 1px solid #e5e7eb;
+            border-radius: 9999px;
+            cursor: pointer;
+        }
+
+        .modal-cancel-back-btn:hover { background: #f9fafb; }
+
+        .modal-cancel-confirm-btn {
+            flex: 1.4;
+            padding: 11px;
+            background: #dc2626;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modal-cancel-confirm-btn:hover { background: #b91c1c; }
+
+        .modal-cancel-confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .modal-btn-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: odSpin 0.7s linear infinite;
+            display: none;
+        }
+
+        .modal-cancel-confirm-btn.loading .modal-btn-spinner { display: inline-block; }
+
+        /* Toast (reused pattern) */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { background: #16a34a; }
+        .toast.error { background: #dc2626; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header"></div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="od-wrapper">
+
+        <div class="breadcrumb">
+            <a href="index.html">Home</a>
+            <span>›</span>
+            <a href="my-orders.html">My Orders</a>
+            <span>›</span>
+            <span>Order Details</span>
+        </div>
+
+        <!-- ══════ LOADING STATE ══════ -->
+        <div class="od-state active" id="odLoadingState">
+            <div class="od-loading">
+                <div class="od-spinner"></div>
+                <p>Loading order details…</p>
+            </div>
+        </div>
+
+        <!-- ══════ ERROR STATE ══════ -->
+        <div class="od-state" id="odErrorState">
+            <div class="od-error">
+                <span class="od-error-icon">⚠️</span>
+                <h2>We couldn't find this order</h2>
+                <p id="odErrorMessage">The order may not exist, or it doesn't belong to your account.</p>
+                <div class="od-actions" style="margin-top:10px">
+                    <a href="my-orders.html" class="od-btn od-btn-secondary">Back to My Orders</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════ DETAILS STATE ══════ -->
+        <div class="od-state" id="odDetailsState">
+
+            <div class="od-header">
+                <div>
+                    <h1>Order Details</h1>
+                    <p class="od-order-number" id="odOrderNumber">ORD—</p>
+                </div>
+                <span class="od-status-pill" id="odStatusPill">PLACED</span>
+            </div>
+
+            <!-- Items -->
+            <div class="od-card">
+                <p class="od-card-title">Items</p>
+                <div id="odItemsList"><!-- populated by JS --></div>
+            </div>
+
+            <!-- Address + Payment -->
+            <div class="od-card">
+                <div class="od-two-col">
+                    <div>
+                        <p class="od-info-label">Delivery Address</p>
+                        <p class="od-info-text" id="odAddressText">—</p>
+                    </div>
+                    <div>
+                        <p class="od-info-label">Payment Method</p>
+                        <p class="od-info-text" id="odPaymentText">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="od-card">
+                <p class="od-card-title">Order Timeline</p>
+                <div class="od-timeline-row">
+                    <span>Order Placed</span>
+                    <span id="odCreatedAt">—</span>
+                </div>
+                <div class="od-timeline-row" id="odUpdatedRow">
+                    <span>Last Updated</span>
+                    <span id="odUpdatedAt">—</span>
+                </div>
+                <div class="od-timeline-row" id="odCancelledRow" style="display:none">
+                    <span>Cancelled On</span>
+                    <span id="odCancelledAt">—</span>
+                </div>
+                <div id="odCancelReasonBox" style="display:none">
+                    <p class="od-cancel-reason-text" id="odCancelReasonText"></p>
+                </div>
+            </div>
+
+            <!-- Amount details -->
+            <div class="od-card">
+                <p class="od-card-title">Amount Details</p>
+                <div class="od-totals">
+                    <div class="od-total-row">
+                        <span>Total Items</span>
+                        <span id="odTotalItems">0</span>
+                    </div>
+                    <div class="od-total-row">
+                        <span>Shipping Fee</span>
+                        <span style="color:#16a34a">Free</span>
+                    </div>
+                    <div class="od-total-row grand">
+                        <span>Total Amount</span>
+                        <span id="odTotalAmount">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="od-actions">
+                <a href="my-orders.html" class="od-btn od-btn-secondary">Back to My Orders</a>
+                <button class="od-btn od-btn-danger" id="odCancelBtn" style="display:none" onclick="openCancelModal()">
+                    Cancel Order
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════ CANCEL ORDER MODAL ══════ -->
+    <div class="modal-overlay" id="cancelOrderModal">
+        <div class="modal-box">
+            <h2 class="modal-title">Cancel this order?</h2>
+            <p class="modal-desc">This action can't be undone. Let us know why you're cancelling (optional).</p>
+
+            <div class="modal-form-field">
+                <label for="cancelReasonInput">Reason</label>
+                <textarea id="cancelReasonInput" placeholder="e.g. Ordered by mistake"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-cancel-back-btn" id="modalCancelBackBtn" onclick="closeCancelModal()">Keep Order</button>
+                <button class="modal-cancel-confirm-btn" id="modalCancelConfirmBtn" onclick="submitCancelOrder()">
+                    <span class="modal-btn-spinner"></span>
+                    <span class="modal-btn-label">Yes, Cancel Order</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer"></div>
+
+    <script>
+        const BASE_URL = 'https://stanveeshopbackend.onrender.com';
+        const currency = '₹';
+
+        let currentUser = null;
+        let currentOrderId = null;
+        let currentOrderStatus = null;
+        let isCancelling = false;
+
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function showState(id) {
+            document.querySelectorAll('.od-state').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '—';
+            try {
+                return new Date(iso).toLocaleString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (e) {
+                return iso;
+            }
+        }
+
+        function statusPillClass(status) {
+            switch (status) {
+                case 'CANCELLED': return 'od-status-cancelled';
+                case 'DELIVERED': return 'od-status-delivered';
+                case 'CONFIRMED': return 'od-status-confirmed';
+                case 'SHIPPED': return 'od-status-shipped';
+                default: return 'od-status-placed'; // PLACED / anything else
+            }
+        }
+
+        // Cancel is only offered while the order hasn't reached a terminal
+        // state — mirrors the 409 the API returns for DELIVERED/CANCELLED.
+        function canCancel(status) {
+            return status !== 'DELIVERED' && status !== 'CANCELLED';
+        }
+
+        async function tryResolveAddress(userId, addressId) {
+            // Order details only carry addressId, so look it up via the
+            // Address API. Best-effort — falls back to raw ID on failure.
+            try {
+                const res = await fetch(`${BASE_URL}/api/address/${userId}/${addressId}`);
+                const data = await res.json();
+                if (data.success && data.address) {
+                    const a = data.address;
+                    const parts = [a.addressLine1, a.addressLine2, a.city, a.state].filter(Boolean);
+                    return `${a.fullName} · ${a.phone}\n${parts.join(', ')}, ${a.pincode}, ${a.country || 'India'}`;
+                }
+            } catch (e) {
+                console.error('Address lookup failed:', e);
+            }
+            return null;
+        }
+
+        function renderOrder(order) {
+            currentOrderStatus = order.orderStatus;
+
+            document.getElementById('odOrderNumber').textContent = order.orderNumber || order.orderId;
+
+            const pill = document.getElementById('odStatusPill');
+            pill.textContent = order.orderStatus || 'PLACED';
+            pill.className = `od-status-pill ${statusPillClass(order.orderStatus)}`;
+
+            const items = order.items || [];
+            document.getElementById('odItemsList').innerHTML = items.map(item => `
+                <div class="od-item-row">
+                    <div class="od-item-thumb">
+                        <img src="${item.productImage || ''}" alt="${item.productName || 'Product'}"
+                             onerror="this.src='https://via.placeholder.com/60x60?text=IMG'"/>
+                    </div>
+                    <div class="od-item-meta">
+                        <p class="od-item-name">${item.productName || 'Product'}</p>
+                        <p class="od-item-qty">Qty: ${item.quantity}</p>
+                    </div>
+                    <p class="od-item-price">${currency}${(item.finalPrice ?? item.unitPrice ?? 0).toFixed(2)}</p>
+                </div>
+            `).join('') || `<p style="font-size:13px;color:#9ca3af;padding:8px 0">No items found for this order.</p>`;
+
+            document.getElementById('odAddressText').textContent =
+                order.resolvedAddressText || `Address ID: ${order.addressId}`;
+
+            document.getElementById('odPaymentText').textContent =
+                (order.paymentMethod === 'COD' ? 'Cash On Delivery' : (order.paymentMethod || '—'))
+                + ` · ${order.paymentStatus || 'PENDING'}`;
+
+            document.getElementById('odCreatedAt').textContent = formatDate(order.createdAt);
+            document.getElementById('odUpdatedAt').textContent = formatDate(order.updatedAt);
+
+            if (order.cancelledAt) {
+                document.getElementById('odCancelledRow').style.display = 'flex';
+                document.getElementById('odCancelledAt').textContent = formatDate(order.cancelledAt);
+                document.getElementById('odUpdatedRow').style.display = 'none';
+            }
+
+            if (order.cancelReason) {
+                document.getElementById('odCancelReasonBox').style.display = 'block';
+                document.getElementById('odCancelReasonText').textContent = `Cancellation reason: ${order.cancelReason}`;
+            }
+
+            document.getElementById('odTotalItems').textContent = order.totalItems ?? items.length;
+            document.getElementById('odTotalAmount').textContent = `${currency}${(order.totalAmount ?? 0).toFixed(2)}`;
+
+            document.getElementById('odCancelBtn').style.display = canCancel(order.orderStatus) ? 'inline-flex' : 'none';
+
+            showState('odDetailsState');
+        }
+
+        async function loadOrderDetails() {
+            try {
+                const res = await fetch(`${BASE_URL}/api/orders/${currentUser.loginid}/${currentOrderId}`);
+                const data = await res.json();
+
+                if (res.ok && data.success && data.order) {
+                    const order = data.order;
+                    order.resolvedAddressText = await tryResolveAddress(currentUser.loginid, order.addressId);
+                    renderOrder(order);
+                } else {
+                    document.getElementById('odErrorMessage').textContent =
+                        data.message || 'This order could not be found for your account.';
+                    showState('odErrorState');
+                }
+            } catch (err) {
+                console.error('Failed to fetch order:', err);
+                document.getElementById('odErrorMessage').textContent =
+                    'Could not connect to the order server. Please check your connection and try again.';
+                showState('odErrorState');
+            }
+        }
+
+        /* ── CANCEL ORDER FLOW ── */
+        function openCancelModal() {
+            document.getElementById('cancelReasonInput').value = '';
+            document.getElementById('cancelOrderModal').classList.add('open');
+        }
+
+        function closeCancelModal() {
+            if (isCancelling) return; // don't allow dismiss mid-request
+            document.getElementById('cancelOrderModal').classList.remove('open');
+        }
+
+        document.addEventListener('click', e => {
+            const overlay = document.getElementById('cancelOrderModal');
+            if (overlay && overlay.classList.contains('open') && e.target === overlay) {
+                closeCancelModal();
+            }
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('cancelOrderModal');
+                if (overlay && overlay.classList.contains('open')) closeCancelModal();
+            }
+        });
+
+        async function submitCancelOrder() {
+            if (isCancelling) return;
+            isCancelling = true;
+
+            const confirmBtn = document.getElementById('modalCancelConfirmBtn');
+            const backBtn = document.getElementById('modalCancelBackBtn');
+            confirmBtn.disabled = true;
+            backBtn.disabled = true;
+            confirmBtn.classList.add('loading');
+            confirmBtn.querySelector('.modal-btn-label').textContent = 'Cancelling...';
+
+            const reason = document.getElementById('cancelReasonInput').value.trim();
+
+            try {
+                const res = await fetch(`${BASE_URL}/api/orders/cancel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUser.loginid,
+                        orderId: currentOrderId,
+                        ...(reason ? { cancelReason: reason } : {}) // omit → backend default "Cancelled by user"
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    document.getElementById('cancelOrderModal').classList.remove('open');
+                    showToast(data.message || 'Order cancelled successfully');
+                    renderOrder(data.order); // re-render in place, no reload needed
+                } else {
+                    // Covers documented 409 (already delivered/cancelled) and 400 (not found)
+                    showToast(data.message || 'Could not cancel this order', 'error');
+                }
+            } catch (err) {
+                console.error('Cancel order failed:', err);
+                showToast('Could not connect to order server', 'error');
+            } finally {
+                isCancelling = false;
+                confirmBtn.disabled = false;
+                backBtn.disabled = false;
+                confirmBtn.classList.remove('loading');
+                confirmBtn.querySelector('.modal-btn-label').textContent = 'Yes, Cancel Order';
+            }
+        }
+
+        async function init() {
+            // ── Auth check (same pattern as cart.html / my-orders.html) ──
+            const raw = localStorage.getItem('stanveeUser');
+            if (!raw) {
+                showToast('Please login to view order details', 'error');
+                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                return;
+            }
+            let user;
+            try { user = JSON.parse(raw); } catch (e) {
+                showToast('Session expired, please login again', 'error');
+                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                return;
+            }
+            if (!user || !user.loginid) {
+                showToast('Session expired, please login again', 'error');
+                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                return;
+            }
+
+            currentUser = { loginid: user.loginid, name: user.name };
+
+            const params = new URLSearchParams(window.location.search);
+            currentOrderId = params.get('orderId');
+
+            if (!currentOrderId) {
+                document.getElementById('odErrorMessage').textContent = 'No order ID was provided in the link.';
+                showState('odErrorState');
+                return;
+            }
+
+            loadOrderDetails();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+    <script src="js/script.js"></script>
+    <script src="js/app-data.js"></script>
+    <script src="js/include.js"></script>
+</body>
+
+</html>

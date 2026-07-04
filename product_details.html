@@ -1348,7 +1348,7 @@
     <!-- ══════════════════ JAVASCRIPT ══════════════════ -->
     <script>
         /* ── STATE ── */
-        const BASE_URL = 'https://airpaypaymentgateway.onrender.com';
+        const BASE_URL = 'https://stanveeshopbackend.onrender.com';
 
         const PD = {
             product: null, // current product detail object (normalized)
@@ -1482,7 +1482,7 @@
 
         /* ── AUTH ── */
         async function checkAuth() {
-            const raw = localStorage.getItem('sv_user');
+            const raw = localStorage.getItem('stanveeUser');
             if (!raw) return;
             let user;
             try {
@@ -1490,7 +1490,7 @@
             } catch (e) {
                 return;
             }
-            if (!user || !user.id) return;
+            if (!user || !user.loginid) return;
 
             PD.user = user;
 
@@ -1509,7 +1509,7 @@
             }
 
             try {
-                const res = await fetch(BASE_URL + '/api/cart/' + user.id);
+                const res = await fetch(BASE_URL + '/api/cart/' + user.loginid);
                 const d = await res.json();
                 if (d.success && Array.isArray(d.cartItems)) {
                     document.getElementById('cartCount').textContent = d.cartItems.length;
@@ -1534,7 +1534,8 @@
         }
 
         function logout() {
-            localStorage.removeItem('sv_user');
+            localStorage.removeItem('stanveeUser');
+            localStorage.removeItem('stanveeLoggedIn');
             window.location.href = 'index.html';
         }
 
@@ -1619,7 +1620,7 @@
             const cached = readCartCache();
             if (PD.user) {
                 try {
-                    const res2 = await fetch(BASE_URL + '/api/cart/' + PD.user.id);
+                    const res2 = await fetch(BASE_URL + '/api/cart/' + PD.user.loginid);
                     const d2 = await res2.json();
                     if (d2.success && Array.isArray(d2.cartItems)) checkIfInCart(d2.cartItems);
                 } catch (e) {}
@@ -1784,14 +1785,14 @@
 
     /* ── ADD TO CART / BUY NOW ── */
     function addToCartFromPd() {
-      const raw = localStorage.getItem('sv_user');
+      const raw = localStorage.getItem('stanveeUser');
       if (!raw) {
         toast('Please login to add to cart', 'error');
         setTimeout(() => window.location.href = 'login_page.html', 800);
         return;
       }
       let userId;
-      try { userId = JSON.parse(raw).id; } catch (e) {
+      try { userId = JSON.parse(raw).loginid; } catch (e) {
         toast('Please login to add to cart', 'error');
         return;
       }
@@ -1918,7 +1919,7 @@
 
     /* quick add-to-cart straight from a related card, without leaving the page */
     function quickAddRelated(productId, btnEl) {
-      const raw = localStorage.getItem('sv_user');
+      const raw = localStorage.getItem('stanveeUser');
       if (!raw) {
         toast('Please login to add to cart', 'error');
         setTimeout(() => window.location.href = 'login_page.html', 800);
