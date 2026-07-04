@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/app.css" />
+ 
 
 
     <style>
@@ -977,14 +977,33 @@
         
         .sort-select,
         .perpage-select {
-            padding: 7px 12px;
+            padding: 7px 32px 7px 12px;
             border: 1px solid #e5e7eb;
             border-radius: 6px;
             font-size: 13px;
+            font-weight: 500;
+            color: #374151;
             outline: none;
             font-family: 'Outfit', sans-serif;
             background: #fff;
-            cursor: pointer
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            transition: border-color .15s
+        }
+
+        .sort-select:hover,
+        .perpage-select:hover {
+            border-color: var(--primary)
+        }
+
+        .sort-select:focus,
+        .perpage-select:focus {
+            border-color: var(--primary)
         }
         /* ── PRODUCTS GRID ── */
         
@@ -1144,7 +1163,7 @@
             width: 100%;
             margin-top: 10px;
             padding: 7px 12px;
-            background: #009483;
+            background: #1a3c5e;
             color: #fff;
             border: none;
             border-radius: 6px;
@@ -1152,6 +1171,10 @@
             font-weight: 500;
             transition: background .2s;
             cursor: pointer
+        }
+
+        .product-add-btn:hover {
+            background: #163452
         }
         
         .product-add-btn.go-to-cart-btn {
@@ -1164,7 +1187,7 @@
         }
         
         .product-add-btn.added {
-            background: #16a34a
+            background: #1a3c5e
         }
         /* List view overrides */
         
@@ -1457,7 +1480,7 @@
                 </div>
             </div>
 
-            <!-- <div class="sidebar-section">
+            <div class="sidebar-section">
       <div class="sidebar-title">Product Categories</div>
       <ul class="cat-list">
         <li class="active" onclick="filterByCategory('all')"             id="catAll">All Products <span class="cat-count" id="sCountAll">0</span></li>
@@ -1469,7 +1492,7 @@
         <li onclick="filterByCategory('kitchenappliances')"              id="catKA">Kitchen Appliances <span class="cat-count" id="sCountKA">0</span></li>
         <li onclick="filterByCategory('kitchenessentials')"              id="catKE">Kitchen Essentials <span class="cat-count" id="sCountKE">0</span></li>
       </ul>
-    </div> -->
+    </div>
 
             <div class="sidebar-section">
                 <div class="sidebar-title">Sort By</div>
@@ -1508,18 +1531,18 @@
               <i class="fa fa-list"></i>
             </button>
                     </div>
-                    <!-- <select class="sort-select" id="desktopSort" onchange="applySort(this.value)"> -->
-                    <option value="default">Default sorting</option>
-                    <option value="price-asc">Price: Low to High</option>
-                    <option value="price-desc">Price: High to Low</option>
-                    <option value="name-asc">Name: A–Z</option>
-                    <option value="discount">Highest Discount</option>
+                    <select class="sort-select" id="desktopSort" onchange="applySort(this.value)">
+                        <option value="default">Default sorting</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="name-asc">Name: A–Z</option>
+                        <option value="discount">Highest Discount</option>
                     </select>
-                    <!-- <select class="perpage-select" id="perPageSelect" onchange="setPerPage(Number(this.value))"> -->
-                    <option value="20">Show 20</option>
-                    <option value="40">Show 40</option>
-                    <option value="60">Show 60</option>
-                    <option value="0">Show All</option>
+                    <select class="perpage-select" id="perPageSelect" onchange="setPerPage(Number(this.value))">
+                        <option value="20">Show 20</option>
+                        <option value="40">Show 40</option>
+                        <option value="60">Show 60</option>
+                        <option value="0">Show All</option>
                     </select>
                 </div>
             </div>
@@ -1561,7 +1584,7 @@
             serverTotalPages: 0,
         };
 
-        const BASE_URL = 'https://airpaypaymentgateway.onrender.com';
+        const BASE_URL = 'https://stanveeshopbackend.onrender.com';
 
         // ── CART CACHE (shared key with script.js / cart.html) ──
         const CART_CACHE_KEY = 'sv_cart_cache';
@@ -1665,7 +1688,7 @@
 
         /* ── AUTH ── */
         async function checkAuth() {
-            const raw = localStorage.getItem('sv_user');
+            const raw = localStorage.getItem('stanveeUser');
             if (!raw) return;
             let user;
             try {
@@ -1673,7 +1696,7 @@
             } catch (e) {
                 return;
             }
-            if (!user || !user.id) return;
+            if (!user || !user.loginid) return;
 
             S.user = user;
 
@@ -1694,7 +1717,7 @@
 
             // Correct in background with live data, then refresh cache
             try {
-                const res = await fetch(BASE_URL + '/api/cart/' + user.id);
+                const res = await fetch(BASE_URL + '/api/cart/' + user.loginid);
                 const d = await res.json();
                 if (d.success && Array.isArray(d.cartItems)) {
                     document.getElementById('cartCount').textContent = d.cartItems.length;
@@ -1731,7 +1754,8 @@
         }
 
         function logout() {
-            localStorage.removeItem('sv_user');
+            localStorage.removeItem('stanveeUser');
+            localStorage.removeItem('stanveeLoggedIn');
             window.location.href = 'index.html';
         }
 
@@ -1786,10 +1810,6 @@
             showSkeletons(10);
             S.loading = true;
 
-            // const slowHintTimer = setTimeout(() => {
-            //   toast('Server is waking up, this can take up to a minute…', 'info');
-            // }, 6000);
-
             try {
                 const qs = buildAPIParams();
                 const res = await fetch(`${BASE_URL}/api/products?${qs}`, {
@@ -1798,7 +1818,6 @@
                         'Content-Type': 'application/json'
                     }
                 });
-                clearTimeout(slowHintTimer);
 
                 if (!res.ok) {
                     toast(`Server error (${res.status}) loading products`, 'error');
@@ -1823,9 +1842,16 @@
                         inStock: p.stock_status === 'instock'
                     }));
 
-                    // build productId map for cart
-                    (data.data || []).forEach((p, index) => {
-                        // productIdMap[p.product_id] = p.id ? ? (index + 1);
+                    // build productId map for cart: string product_id -> real DB primary key.
+                    // The cart API (/api/cart/add) does productRepository.findById(productId),
+                    // which looks up Product.id (Long, auto-generated) — NOT product_id
+                    // (the SKU-style string like "802494"). Once the backend includes
+                    // `id` in the product list response, this maps correctly and stays
+                    // stable across filtering/sorting/pagination.
+                    (data.data || []).forEach((p) => {
+                        if (p.id != null) {
+                            productIdMap[p.product_id] = p.id;
+                        }
                     });
 
                     S.displayProducts = mapped;
@@ -1837,7 +1863,6 @@
                     toast('Failed to load products', 'error');
                 }
             } catch (e) {
-                clearTimeout(slowHintTimer);
                 toast('Could not connect to server', 'error');
                 S.displayProducts = [];
                 S.filteredProducts = [];
@@ -2131,14 +2156,14 @@
 
     /* ── ADD TO CART ── */
     function addToCart(productId) {
-      const raw = localStorage.getItem('sv_user');
+      const raw = localStorage.getItem('stanveeUser');
       if (!raw) {
         toast('Please login to add to cart', 'error');
         setTimeout(() => window.location.href = 'login_page.html', 800);
         return;
       }
       let userId;
-      try { userId = JSON.parse(raw).id; } catch (e) {
+      try { userId = JSON.parse(raw).loginid; } catch (e) {
         toast('Please login to add to cart', 'error');
         return;
       }
@@ -2294,8 +2319,7 @@
     document.addEventListener('DOMContentLoaded', init);
     </script>
     <div id="footer"></div>
-    <script src="js/script.js"></script>
-    <script src="js/app-data.js"></script>
+
     <script src="js/include.js"></script>
 </body>
 

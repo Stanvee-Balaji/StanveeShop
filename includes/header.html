@@ -43,16 +43,30 @@
                 </div>
             </div>
 
-            <div id="guestNav">
+            <!-- <div id="guestNav">
                 <a href="login_page.html" class="login-btn">Login</a>
-            </div>
+            </div> -->
+            <div id="guestNav">
+    <a href="javascript:void(0)" class="login-btn" onclick="openLoginModal()">Login</a>
+</div>
             <div id="userNav" style="display:none;align-items:center;gap:8px">
-                <span class="wallet-badge">Wallet: ₹<span id="walletAmt">0</span></span>
-                <span id="userGreeting" style="font-size:13px;font-weight:600;color:#374151;display:none"></span>
+                <span class="wallet-badge">Wallet: <span id="walletAmt">0</span></span>
                 <div class="profile-wrap">
+                    <div class="profile-avatar" id="profileAvatar" onclick="toggleProfile()">SV</div>
                     <ul class="profile-dropdown" id="profileDropdown">
-                        <li>My Account</li>
-                        <li>My Orders</li>
+                        <li class="profile-dropdown-header">
+                            <div class="profile-dropdown-name" id="profileDropdownName">—</div>
+                            <div class="profile-dropdown-id" id="profileDropdownId">—</div>
+
+
+                        </li>
+
+                         <li class="profile-dropdown-wallets">
+            <div class="wallet-row">Shopping Wallet <span id="walletR">₹0</span></div>
+            <!-- <div class="wallet-row">E Wallet <span id="walletE">₹0</span></div>
+            <div class="wallet-row">H Wallet <span id="walletH">₹0</span></div> -->
+            <div class="wallet-row">WOW Wallet <span id="walletO">₹0</span></div>
+        </li>
                         <li class="red" onclick="logout()">Logout</li>
                     </ul>
                 </div>
@@ -89,7 +103,7 @@
         <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">☰</button>
 
         <nav class="desktop-nav-links">
-            <a href="index.html" class="active">Home</a>
+            <a href="index.html">Home</a>
             <a href="shop.html">Shop</a>
             <a href="about_us.html">About Us</a>
             <a href="contact_us.html">Contact Us</a>
@@ -102,5 +116,29 @@
         <a href="shop.html">Shop</a>
         <a href="about_us.html">About Us</a>
         <a href="contact_us.html">Contact Us</a>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="login-modal-overlay" id="loginModalOverlay" onclick="closeLoginModalOutside(event)">
+    <div class="login-modal-box">
+        <button class="login-modal-close" onclick="closeLoginModal()">✕</button>
+
+        <h2 class="login-modal-title">Login to Stanvee</h2>
+
+<form id="loginModalForm" class="login-modal-form">
+            <div id="loginModalError" style="display:none;background:#fee2e2;color:#b91c1c;font-size:13px;font-weight:600;padding:8px 12px;border-radius:6px;margin-bottom:10px"></div>
+
+        <label>Login ID</label>
+<input id="loginEmail" placeholder="SV7861823" required />
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" required />
+
+            <button type="submit" class="login-modal-submit">Login</button>
+        </form>
+
+        <p class="login-modal-footer">
+            Don't have an account? <a href="signup_page.html">Sign up</a>
+        </p>
     </div>
 </div>
