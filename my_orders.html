@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Orders – Stanvee</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/app.css" />
+
+    <style>
+        /* ── MY ORDERS PAGE STYLES ── */
+
+        .mo-wrapper {
+            max-width: 900px;
+            margin: 48px auto 80px;
+            padding: 0 16px;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .breadcrumb a { color: var(--primary); }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        .mo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .mo-title {
+            font-size: 26px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* Status filter tabs */
+        .mo-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .mo-filter-btn {
+            padding: 7px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Outfit', sans-serif;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #374151;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .mo-filter-btn:hover {
+            background: #f9fafb;
+        }
+
+        .mo-filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        /* State containers */
+        .mo-state { display: none; }
+        .mo-state.active { display: block; }
+
+        .mo-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 90px 0;
+        }
+
+        .mo-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: moSpin 0.8s linear infinite;
+        }
+
+        @keyframes moSpin { to { transform: rotate(360deg); } }
+
+        .mo-loading p { font-size: 14px; color: #6b7280; }
+
+        .mo-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 70px 16px;
+            gap: 14px;
+        }
+
+        .mo-error-icon { font-size: 48px; }
+        .mo-error h2 { font-size: 19px; font-weight: 600; color: #1f2937; }
+        .mo-error p { font-size: 14px; color: #9ca3af; max-width: 380px; }
+
+        .mo-retry-btn {
+            padding: 10px 24px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .mo-retry-btn:hover { background: var(--primary-dull); }
+
+        /* Empty state */
+        .mo-empty {
+            text-align: center;
+            padding: 70px 16px;
+            color: #9ca3af;
+        }
+
+        .mo-empty-icon { font-size: 52px; display: block; margin-bottom: 16px; }
+        .mo-empty p { font-size: 15px; color: #6b7280; margin-bottom: 20px; }
+
+        .continue-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            background: none;
+            border: 1px solid var(--primary);
+            border-radius: 9999px;
+            padding: 8px 20px;
+            transition: background 0.2s, color 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .continue-btn:hover { background: var(--primary); color: #fff; }
+
+        /* Order cards */
+        .mo-order-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .mo-order-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .mo-order-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mo-order-number {
+            font-size: 14.5px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .mo-order-date {
+            font-size: 12.5px;
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+
+        .mo-status-pill {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            white-space: nowrap;
+        }
+
+        .mo-status-placed { background: #eff6ff; color: #2563eb; }
+        .mo-status-cancelled { background: #fef2f2; color: #dc2626; }
+        .mo-status-delivered { background: #ecfdf5; color: #16a34a; }
+        .mo-status-confirmed { background: #fefce8; color: #ca8a04; }
+        .mo-status-shipped { background: #f5f3ff; color: #7c3aed; }
+
+        .mo-order-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .mo-order-items-count {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .mo-order-amount {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .mo-order-arrow {
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Pagination */
+        .mo-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 28px;
+        }
+
+        .mo-page-btn {
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Outfit', sans-serif;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #374151;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .mo-page-btn:hover:not(:disabled) { background: #f9fafb; }
+
+        .mo-page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .mo-page-info {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Toast (reused pattern) */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { background: #16a34a; }
+        .toast.error { background: #dc2626; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .mo-order-top { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header"></div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="mo-wrapper">
+
+        <div class="breadcrumb">
+            <a href="index.html">Home</a>
+            <span>›</span>
+            <span>My Orders</span>
+        </div>
+
+        <div class="mo-header">
+            <h1 class="mo-title">My Orders</h1>
+        </div>
+
+        <!-- Status filter tabs -->
+        <div class="mo-filters" id="moFilters">
+            <button class="mo-filter-btn active" data-status="">All</button>
+            <button class="mo-filter-btn" data-status="PLACED">Placed</button>
+            <button class="mo-filter-btn" data-status="CONFIRMED">Confirmed</button>
+            <button class="mo-filter-btn" data-status="SHIPPED">Shipped</button>
+            <button class="mo-filter-btn" data-status="DELIVERED">Delivered</button>
+            <button class="mo-filter-btn" data-status="CANCELLED">Cancelled</button>
+        </div>
+
+        <!-- ══════ LOADING STATE ══════ -->
+        <div class="mo-state active" id="moLoadingState">
+            <div class="mo-loading">
+                <div class="mo-spinner"></div>
+                <p>Loading your orders…</p>
+            </div>
+        </div>
+
+        <!-- ══════ ERROR STATE ══════ -->
+        <div class="mo-state" id="moErrorState">
+            <div class="mo-error">
+                <span class="mo-error-icon">⚠️</span>
+                <h2>Couldn't load your orders</h2>
+                <p id="moErrorMessage">Something went wrong while fetching your orders.</p>
+                <button class="mo-retry-btn" onclick="loadOrders()">Try Again</button>
+            </div>
+        </div>
+
+        <!-- ══════ EMPTY STATE ══════ -->
+        <div class="mo-state" id="moEmptyState">
+            <div class="mo-empty">
+                <span class="mo-empty-icon">📦</span>
+                <p id="moEmptyMessage">You haven't placed any orders yet.</p>
+                <a href="products.html" class="continue-btn">Browse Products →</a>
+            </div>
+        </div>
+
+        <!-- ══════ ORDERS LIST STATE ══════ -->
+        <div class="mo-state" id="moListState">
+            <div id="moOrdersList"><!-- populated by JS --></div>
+
+            <div class="mo-pagination" id="moPagination" style="display:none">
+                <button class="mo-page-btn" id="moPrevBtn" onclick="goToPage(currentPage - 1)">← Prev</button>
+                <span class="mo-page-info" id="moPageInfo">Page 1</span>
+                <button class="mo-page-btn" id="moNextBtn" onclick="goToPage(currentPage + 1)">Next →</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="footer"></div>
+
+    <script>
+        const BASE_URL = 'https://stanveeshopbackend.onrender.com';
+        const currency = '₹';
+        const PAGE_SIZE = 10;
+
+        let currentUser = null;
+        let currentStatus = '';
+        let currentPage = 0;
+        let totalPages = 1;
+
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function showState(id) {
+            document.querySelectorAll('.mo-state').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '—';
+            try {
+                return new Date(iso).toLocaleString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (e) {
+                return iso;
+            }
+        }
+
+        function statusPillClass(status) {
+            switch (status) {
+                case 'CANCELLED': return 'mo-status-cancelled';
+                case 'DELIVERED': return 'mo-status-delivered';
+                case 'CONFIRMED': return 'mo-status-confirmed';
+                case 'SHIPPED': return 'mo-status-shipped';
+                default: return 'mo-status-placed'; // PLACED / anything else
+            }
+        }
+
+        function renderOrders(orders) {
+            document.getElementById('moOrdersList').innerHTML = orders.map(order => `
+                <div class="mo-order-card" onclick="viewOrder('${order.orderId}')">
+                    <div class="mo-order-top">
+                        <div>
+                            <p class="mo-order-number">${order.orderNumber}</p>
+                            <p class="mo-order-date">${formatDate(order.createdAt)}</p>
+                        </div>
+                        <span class="mo-status-pill ${statusPillClass(order.orderStatus)}">${order.orderStatus}</span>
+                    </div>
+                    <div class="mo-order-bottom">
+                        <span class="mo-order-items-count">${order.totalItems} item${order.totalItems !== 1 ? 's' : ''}</span>
+                        <span class="mo-order-amount">${currency}${(order.totalAmount ?? 0).toFixed(2)}</span>
+                        <span class="mo-order-arrow">View Details →</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+function viewOrder(orderId) {
+            window.location.href = `order-details.html?orderId=${orderId}`;
+        }
+
+        function updatePaginationUI(totalOrders) {
+            const pagination = document.getElementById('moPagination');
+            if (totalPages <= 1) {
+                pagination.style.display = 'none';
+                return;
+            }
+            pagination.style.display = 'flex';
+            document.getElementById('moPageInfo').textContent =
+                `Page ${currentPage + 1} of ${totalPages} · ${totalOrders} orders`;
+            document.getElementById('moPrevBtn').disabled = currentPage === 0;
+            document.getElementById('moNextBtn').disabled = currentPage >= totalPages - 1;
+        }
+
+        function goToPage(page) {
+            if (page < 0 || page >= totalPages) return;
+            currentPage = page;
+            loadOrders();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function setActiveFilter(status) {
+            currentStatus = status;
+            currentPage = 0;
+            document.querySelectorAll('.mo-filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.status === status);
+            });
+            loadOrders();
+        }
+
+        async function loadOrders() {
+            if (!currentUser) return;
+
+            showState('moLoadingState');
+
+            try {
+                const qs = new URLSearchParams({
+                    page: currentPage,
+                    size: PAGE_SIZE
+                });
+                if (currentStatus) qs.set('status', currentStatus);
+
+                const res = await fetch(`${BASE_URL}/api/orders/${currentUser.loginid}?${qs.toString()}`);
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    const orders = data.orders || [];
+                    totalPages = data.totalPages || 1;
+
+                    if (orders.length === 0) {
+                        document.getElementById('moEmptyMessage').textContent = currentStatus
+                            ? `You have no ${currentStatus.toLowerCase()} orders.`
+                            : "You haven't placed any orders yet.";
+                        showState('moEmptyState');
+                        return;
+                    }
+
+                    renderOrders(orders);
+                    updatePaginationUI(data.totalOrders ?? orders.length);
+                    showState('moListState');
+                } else {
+                    document.getElementById('moErrorMessage').textContent =
+                        data.message || 'Something went wrong while fetching your orders.';
+                    showState('moErrorState');
+                }
+            } catch (err) {
+                console.error('Failed to load orders:', err);
+                document.getElementById('moErrorMessage').textContent =
+                    'Could not connect to the order server. Please check your connection and try again.';
+                showState('moErrorState');
+            }
+        }
+
+        async function init() {
+            // ── Auth check (same pattern as cart.html / order-confirmation.html) ──
+            const raw = localStorage.getItem('stanveeUser');
+            if (!raw) {
+                showToast('Please login to view your orders', 'error');
+                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                return;
+            }
+            let user;
+            try { user = JSON.parse(raw); } catch (e) {
+                showToast('Session expired, please login again', 'error');
+                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                return;
+            }
+            if (!user || !user.loginid) {
+                showToast('Session expired, please login again', 'error');
+                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                return;
+            }
+
+            currentUser = { loginid: user.loginid, name: user.name };
+
+            // ── Wire up filter tabs ──
+            document.getElementById('moFilters').addEventListener('click', e => {
+                const btn = e.target.closest('.mo-filter-btn');
+                if (!btn) return;
+                setActiveFilter(btn.dataset.status);
+            });
+
+            loadOrders();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+    <script src="js/script.js"></script>
+    <script src="js/app-data.js"></script>
+    <script src="js/include.js"></script>
+</body>
+
+</html>

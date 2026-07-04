@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Confirmed – Stanvee</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/app.css" />
+
+    <style>
+        /* ── ORDER CONFIRMATION PAGE STYLES ── */
+
+        .oc-wrapper {
+            max-width: 760px;
+            margin: 48px auto 80px;
+            padding: 0 16px;
+        }
+
+        /* State containers */
+        .oc-state {
+            display: none;
+        }
+
+        .oc-state.active {
+            display: block;
+        }
+
+        /* ── LOADING STATE ── */
+        .oc-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 100px 0;
+        }
+
+        .oc-spinner {
+            width: 42px;
+            height: 42px;
+            border: 3px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: ocSpin 0.8s linear infinite;
+        }
+
+        @keyframes ocSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .oc-loading p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* ── ERROR STATE ── */
+        .oc-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 80px 16px;
+            gap: 14px;
+        }
+
+        .oc-error-icon {
+            font-size: 52px;
+        }
+
+        .oc-error h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .oc-error p {
+            font-size: 14px;
+            color: #9ca3af;
+            max-width: 380px;
+        }
+
+        /* ── SUCCESS HERO ── */
+        .oc-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 24px 0 36px;
+        }
+
+        .oc-check-circle {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: #ecfdf5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            animation: ocPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes ocPop {
+            from { transform: scale(0.6); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .oc-check-circle svg {
+            width: 38px;
+            height: 38px;
+        }
+
+        .oc-hero h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .oc-hero p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .oc-order-number {
+            margin-top: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 6px 16px;
+            border-radius: 9999px;
+        }
+
+        /* ── CARDS ── */
+        .oc-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .oc-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .oc-status-pill {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 4px 10px;
+            border-radius: 9999px;
+        }
+
+        .oc-status-placed {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .oc-status-cancelled {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .oc-status-delivered {
+            background: #ecfdf5;
+            color: #16a34a;
+        }
+
+        /* Item rows */
+        .oc-item-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .oc-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .oc-item-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f9fafb;
+        }
+
+        .oc-item-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .oc-item-meta {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .oc-item-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .oc-item-qty {
+            font-size: 12.5px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+
+        .oc-item-price {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            flex-shrink: 0;
+        }
+
+        /* Address + payment */
+        .oc-info-text {
+            font-size: 13.5px;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .oc-info-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #9ca3af;
+            margin-bottom: 6px;
+        }
+
+        .oc-two-col {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 640px) {
+            .oc-two-col {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Totals */
+        .oc-totals {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .oc-total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .oc-total-row.grand {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            padding-top: 6px;
+            border-top: 1px solid #f3f4f6;
+            margin-top: 4px;
+        }
+
+        /* Actions */
+        .oc-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .oc-btn {
+            flex: 1;
+            min-width: 160px;
+            padding: 13px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            border-radius: 9999px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s, transform 0.1s, color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .oc-btn:active {
+            transform: scale(0.98);
+        }
+
+        .oc-btn-primary {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+        }
+
+        .oc-btn-primary:hover {
+            background: var(--primary-dull);
+        }
+
+        .oc-btn-secondary {
+            background: #fff;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+
+        .oc-btn-secondary:hover {
+            background: #f9fafb;
+        }
+
+        /* Toast (reused pattern) */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { background: #16a34a; }
+        .toast.error { background: #dc2626; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div id="header"></div> -->
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="oc-wrapper">
+
+        <!-- ══════ LOADING STATE ══════ -->
+        <div class="oc-state active" id="ocLoadingState">
+            <div class="oc-loading">
+                <div class="oc-spinner"></div>
+                <p>Fetching your order details…</p>
+            </div>
+        </div>
+
+        <!-- ══════ ERROR STATE ══════ -->
+        <div class="oc-state" id="ocErrorState">
+            <div class="oc-error">
+                <span class="oc-error-icon">⚠️</span>
+                <h2>We couldn't find this order</h2>
+                <p id="ocErrorMessage">The order may not exist, or it doesn't belong to your account.</p>
+                <div class="oc-actions" style="margin-top:10px">
+                    <a href="my_orders.html" class="oc-btn oc-btn-primary">View My Orders</a>
+                    <a href="shop.html" class="oc-btn oc-btn-secondary">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════ SUCCESS STATE ══════ -->
+        <div class="oc-state" id="ocSuccessState">
+
+            <div class="oc-hero">
+                <div class="oc-check-circle">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="12" fill="#16a34a" />
+                        <path d="M7 12.5L10.2 15.7L17 8.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1>Order Confirmed!</h1>
+                <p>Thanks for shopping with us — your order has been placed successfully.</p>
+                <span class="oc-order-number" id="ocOrderNumber">ORD—</span>
+            </div>
+
+            <!-- Items -->
+            <div class="oc-card">
+                <div class="oc-card-title">
+                    <span>Order Items</span>
+                    <span class="oc-status-pill oc-status-placed" id="ocStatusPill">PLACED</span>
+                </div>
+                <div id="ocItemsList"><!-- populated by JS --></div>
+            </div>
+
+            <!-- Address + Payment -->
+            <div class="oc-card">
+                <div class="oc-two-col">
+                    <div>
+                        <p class="oc-info-label">Delivery Address</p>
+                        <p class="oc-info-text" id="ocAddressText">—</p>
+                    </div>
+                    <div>
+                        <p class="oc-info-label">Payment Method</p>
+                        <p class="oc-info-text" id="ocPaymentText">—</p>
+                        <p class="oc-info-label" style="margin-top:14px">Order Date</p>
+                        <p class="oc-info-text" id="ocOrderDate">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amount details -->
+            <div class="oc-card">
+                <div class="oc-card-title"><span>Amount Details</span></div>
+                <div class="oc-totals">
+                    <div class="oc-total-row">
+                        <span>Total Items</span>
+                        <span id="ocTotalItems">0</span>
+                    </div>
+                    <div class="oc-total-row">
+                        <span>Shipping Fee</span>
+                        <span style="color:#16a34a">Free</span>
+                    </div>
+                    <div class="oc-total-row grand">
+                        <span>Total Amount</span>
+                        <span id="ocTotalAmount">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="oc-actions">
+                <a href="my_orders.html" class="oc-btn oc-btn-primary">View My Orders</a>
+                <a href="shop.html" class="oc-btn oc-btn-secondary">Continue Shopping</a>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="footer"></div>
+
+    <script>
+        const BASE_URL = 'https://stanveeshopbackend.onrender.com';
+        const currency = '₹';
+
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function showState(id) {
+            document.querySelectorAll('.oc-state').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '—';
+            try {
+                return new Date(iso).toLocaleString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (e) {
+                return iso;
+            }
+        }
+
+        function statusPillClass(status) {
+            if (status === 'CANCELLED') return 'oc-status-cancelled';
+            if (status === 'DELIVERED') return 'oc-status-delivered';
+            return 'oc-status-placed'; // PLACED and other in-progress states
+        }
+
+        function renderOrder(order) {
+            document.getElementById('ocOrderNumber').textContent = order.orderNumber || order.orderId;
+
+            const pill = document.getElementById('ocStatusPill');
+            pill.textContent = order.orderStatus || 'PLACED';
+            pill.className = `oc-status-pill ${statusPillClass(order.orderStatus)}`;
+
+            // Items — API returns productId/productName/productImage/quantity/finalPrice
+            const items = order.items || [];
+            document.getElementById('ocItemsList').innerHTML = items.map(item => `
+                <div class="oc-item-row">
+                    <div class="oc-item-thumb">
+                        <img src="${item.productImage || ''}" alt="${item.productName || 'Product'}"
+                             onerror="this.src='https://via.placeholder.com/60x60?text=IMG'"/>
+                    </div>
+                    <div class="oc-item-meta">
+                        <p class="oc-item-name">${item.productName || 'Product'}</p>
+                        <p class="oc-item-qty">Qty: ${item.quantity}</p>
+                    </div>
+                    <p class="oc-item-price">${currency}${(item.finalPrice ?? item.unitPrice ?? 0).toFixed(2)}</p>
+                </div>
+            `).join('') || `<p style="font-size:13px;color:#9ca3af;padding:8px 0">No items found for this order.</p>`;
+
+            // Address — Order API only returns addressId, not the full object,
+            // so we try to resolve it against the user's saved addresses;
+            // fall back to just showing the ID if that lookup isn't available.
+            document.getElementById('ocAddressText').textContent = order.resolvedAddressText || `Address ID: ${order.addressId}`;
+
+            document.getElementById('ocPaymentText').textContent =
+                (order.paymentMethod === 'COD' ? 'Cash On Delivery' : (order.paymentMethod || '—'))
+                + ` · ${order.paymentStatus || 'PENDING'}`;
+
+            document.getElementById('ocOrderDate').textContent = formatDate(order.createdAt);
+
+            document.getElementById('ocTotalItems').textContent = order.totalItems ?? items.length;
+            document.getElementById('ocTotalAmount').textContent = `${currency}${(order.totalAmount ?? 0).toFixed(2)}`;
+
+            showState('ocSuccessState');
+        }
+
+        async function tryResolveAddress(userId, addressId) {
+            // Best-effort enrichment — order details only carry addressId,
+            // so we look it up via the Address API. If it fails, we just
+            // fall back to showing the raw ID (handled in renderOrder).
+            try {
+                const res = await fetch(`${BASE_URL}/api/address/${userId}/${addressId}`);
+                const data = await res.json();
+                if (data.success && data.address) {
+                    const a = data.address;
+                    const parts = [a.addressLine1, a.addressLine2, a.city, a.state].filter(Boolean);
+                    return `${a.fullName} · ${a.phone}\n${parts.join(', ')}, ${a.pincode}, ${a.country || 'India'}`;
+                }
+            } catch (e) {
+                console.error('Address lookup failed:', e);
+            }
+            return null;
+        }
+
+        async function init() {
+            // ── Auth check (same pattern as cart.html) ──
+            const raw = localStorage.getItem('stanveeUser');
+            if (!raw) {
+                showToast('Please login to view your order', 'error');
+                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                return;
+            }
+            let user;
+            try { user = JSON.parse(raw); } catch (e) {
+                showToast('Session expired, please login again', 'error');
+                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                return;
+            }
+            if (!user || !user.loginid) {
+                showToast('Session expired, please login again', 'error');
+                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                return;
+            }
+
+            // ── Get orderId from query string ──
+            const params = new URLSearchParams(window.location.search);
+            const orderId = params.get('orderId');
+
+            if (!orderId) {
+                document.getElementById('ocErrorMessage').textContent =
+                    'No order ID was provided in the link.';
+                showState('ocErrorState');
+                return;
+            }
+
+            // ── Fetch order details ──
+            try {
+                const res = await fetch(`${BASE_URL}/api/orders/${user.loginid}/${orderId}`);
+                const data = await res.json();
+
+                if (res.ok && data.success && data.order) {
+                    const order = data.order;
+                    // Best-effort address enrichment (non-blocking on failure)
+                    order.resolvedAddressText = await tryResolveAddress(user.loginid, order.addressId);
+                    renderOrder(order);
+                } else {
+                    document.getElementById('ocErrorMessage').textContent =
+                        data.message || 'This order could not be found for your account.';
+                    showState('ocErrorState');
+                }
+            } catch (err) {
+                console.error('Failed to fetch order:', err);
+                document.getElementById('ocErrorMessage').textContent =
+                    'Could not connect to the order server. Please check your connection and try again.';
+                showState('ocErrorState');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+    <script src="js/script.js"></script>
+    <script src="js/app-data.js"></script>
+    <script src="js/include.js"></script>
+</body>
+
+</html>

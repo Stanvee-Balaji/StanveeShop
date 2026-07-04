@@ -1,5 +1,7 @@
+
+
 // ── BASE URL ──
-const BASE_URL = 'https://airpaypaymentgateway.onrender.com';
+const BASE_URL = 'https://stanveeshopbackend.onrender.com';
 
 // const BASE_URL = 'http://localhost:8080';
 
@@ -8,9 +10,9 @@ const BASE_URL = 'https://airpaypaymentgateway.onrender.com';
 // ── CART CACHE (instant paint, corrected after fetch) ──
 const CART_CACHE_KEY = 'sv_cart_cache';
 
-function saveCartCache({ count, walletBalance }) {
+function saveCartCache({ count }) {
     try {
-        localStorage.setItem(CART_CACHE_KEY, JSON.stringify({ count, walletBalance, ts: Date.now() }));
+        localStorage.setItem(CART_CACHE_KEY, JSON.stringify({ count, ts: Date.now() }));
     } catch (e) {}
 }
 
@@ -101,16 +103,6 @@ function clearMobileSearch() {
     document.getElementById('mobileSearchBtn').textContent = '🔍';
 }
 
-// ── PROFILE DROPDOWN ──
-function toggleProfile() {
-    document.getElementById('profileDropdown').classList.toggle('open');
-}
-document.addEventListener('click', function(e) {
-    const wrap = document.querySelector('.profile-wrap');
-    if (wrap && !wrap.contains(e.target)) {
-        document.getElementById('profileDropdown').classList.remove('open');
-    }
-});
 
 // ── SEARCH REDIRECT ──
 ['desktopSearch', 'mobileSearch'].forEach(function(id) {
@@ -151,6 +143,42 @@ function resolveCartedProducts() {
         }
     });
     updateCartButtons();
+}
+
+// ── FETCH USER'S EXISTING CART ON PAGE LOAD ──
+async function fetchUserCart() {
+    const raw = localStorage.getItem('stanveeUser');
+    if (!raw) return; // guest — nothing to mark
+
+    let userId;
+    try {
+        userId = JSON.parse(raw).loginid;
+    } catch (e) {
+        return;
+    }
+    if (!userId) return;
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/cart/${encodeURIComponent(userId)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        if (data.success && Array.isArray(data.cartItems)) {
+            cartedNumericIds = data.cartItems.map(item => item.productId);
+
+            // Update the badge too, same source of truth as everywhere else
+            const badge = document.getElementById('cartCount');
+            if (badge) badge.textContent = data.cartItems.length;
+            saveCartCache({ count: data.cartItems.length });
+
+            // Resolve against productIdMap — if products already loaded, this
+            // marks buttons immediately; if not, resolveCartedProducts() is
+            // re-run at the end of loadProducts() once the map is built.
+            resolveCartedProducts();
+        }
+    } catch (err) {
+        console.error('[Cart] Failed to fetch user cart:', err);
+    }
 }
 
 function updateCartButtons() {
@@ -248,15 +276,17 @@ async function loadProducts() {
     }
 }
 loadProducts();
+fetchUserCart();
 
 // ── ADD TO CART ──
 function addToCart(productStringId) {
-    const raw = localStorage.getItem('sv_user');
-    if (!raw) { showToast('Login to add to cart', true); return; }
+    // Stanvee login stores the user object (with loginid) in localStorage
+    const raw = localStorage.getItem('stanveeUser');
+    if (!raw) { showToast('Login to add to cart', true); openLoginModal(); return; }
 
     let userId;
-    try { userId = JSON.parse(raw).id; } catch (e) { showToast('Login to add to cart', true); return; }
-    if (!userId) { showToast('Login to add to cart', true); return; }
+    try { userId = JSON.parse(raw).loginid; } catch (e) { userId = null; }
+    if (!userId) { showToast('Login to add to cart', true); openLoginModal(); return; }
 
     // Look up numeric DB id from the map built during loadProducts()
     const numericId = productIdMap[productStringId];
@@ -270,7 +300,7 @@ function addToCart(productStringId) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: userId,
+                userId: userId,       // ✅ Stanvee loginid (e.g. "SV4189392")
                 productId: numericId, // ✅ numeric DB id (Long)
                 quantity: 1,
                 couponSelected: false
@@ -290,10 +320,8 @@ function addToCart(productStringId) {
                     }
                 });
                 const badge = document.getElementById('cartCount');
-                badge.textContent = (d.cartItems || []).length;
-                const walletEl = document.getElementById('walletAmt');
-                if (walletEl && d.walletBalance != null) walletEl.textContent = d.walletBalance;
-                saveCartCache({ count: (d.cartItems || []).length, walletBalance: d.walletBalance });
+                if (badge) badge.textContent = (d.cartItems || []).length;
+                saveCartCache({ count: (d.cartItems || []).length });
                 showToast('Added to cart ✓');
             } else {
                 showToast(d.message || 'Could not add to cart', true);
@@ -319,69 +347,4 @@ function showToast(msg, isError) {
     t._timer = setTimeout(() => {
         t.style.opacity = '0';
     }, 2500);
-}
-
-// ── AUTH CHECK — reads localStorage set by login_page.html ──
-function checkAuth() {
-    const raw = localStorage.getItem('sv_user');
-    if (!raw) return;
-    try {
-        const user = JSON.parse(raw);
-        if (!user || !user.id) return;
-
-        // Show user nav, hide guest nav
-        const guestNav = document.getElementById('guestNav');
-        const userNav = document.getElementById('userNav');
-        if (guestNav) guestNav.style.display = 'none';
-        if (userNav) userNav.style.display = 'flex';
-
-        // Wallet balance — paint instantly from cache, fall back to stored user value
-        const cached = readCartCache();
-        const walletEl = document.getElementById('walletAmt');
-        // if (walletEl) walletEl.textContent = cached ? .walletBalance ? ? (user.walletBalance ? ? 0);
-
-        // Cart badge — paint instantly from cache (no network wait)
-        // const badge = document.getElementById('cartCount');
-        // if (badge) badge.textContent = cached ? .count ? ? 0;
-
-        // Greeting (if the span exists)
-        const greetEl = document.getElementById('userGreeting');
-        if (greetEl) {
-            const firstName = (user.name || '').split(' ')[0];
-            if (firstName) {
-                greetEl.textContent = 'Hi, ' + firstName;
-                greetEl.style.display = 'inline';
-            }
-        }
-
-        // Correct in background with live data, then refresh cache
-        fetch(BASE_URL + '/api/cart/' + user.id)
-            .then(r => r.json())
-            .then(d => {
-                if (d.success && Array.isArray(d.cartItems)) {
-                    if (badge) badge.textContent = d.cartItems.length;
-                    if (walletEl && d.walletBalance != null) walletEl.textContent = d.walletBalance;
-                    saveCartCache({ count: d.cartItems.length, walletBalance: d.walletBalance });
-
-                    // Store raw numeric productIds from cart
-                    // productIdMap may not be built yet — store and let loadProducts() handle it too
-                    cartedNumericIds = d.cartItems.map(item => item.productId);
-
-                    // Try to resolve now (works if products already loaded)
-                    resolveCartedProducts();
-                }
-            })
-            .catch(() => {});
-
-    } catch (e) { /* malformed session — ignore */ }
-}
-checkAuth();
-
-function showLoginModal() {
-    window.location.href = '/?login=1';
-}
-
-function logout() {
-    localStorage.removeItem('sv_user');
-    window.location.href = 'index.html';
 }
