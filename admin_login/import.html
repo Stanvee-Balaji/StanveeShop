@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import via Excel — Stanvee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- ============================================================
+     APP SHELL — sidebar + topbar markup is identical on every page.
+     No JS: the mobile menu uses a hidden checkbox (#sb-toggle) and
+     the Products dropdown uses a native <details> element.
+============================================================= -->
+    <div id="app-shell">
+        <input type="checkbox" id="sb-toggle">
+        <label for="sb-toggle" class="sb-overlay"></label>
+
+        <!-- ---------- SIDEBAR ---------- -->
+<aside id="sidebar">
+    <div class="sb-brand" style="display:flex;align-items:center;justify-content:center;padding:10px 0;">
+        <img src="images/logoadminpanel.png" alt="Logo" style="height:50px;width:auto;">
+    </div>
+    <nav class="sb-nav">
+        <a class="sb-item" href="dashboard.html">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg><span>Dashboard</span>
+        </a>
+        <details class="sb-group active" open>
+            <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg><span>Products</span>
+                <span class="sb-caret"></span>
+            </summary>
+            <div class="sb-sub">
+                <a class="sb-sub-item" href="products.html">All Products</a><a class="sb-sub-item" href="add-product.html">Add Product</a><a class="sb-sub-item active" href="import.html">Import via Excel</a>
+            </div>
+        </details>
+        <a class="sb-item" href="categories.html">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span>Categories</span>
+        </a>
+        <details class="sb-group">
+            <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg><span>Orders</span>
+                <span class="sb-caret"></span>
+            </summary>
+            <div class="sb-sub">
+                <a class="sb-sub-item" href="orders.html">All Orders</a>
+                <a class="sb-sub-item" href="pending-checkouts.html">Pending Checkouts</a>
+            </div>
+        </details>
+        <div class="sb-item sb-disabled" title="Coming soon">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>Settings</span>
+        </div>
+    </nav>
+    <div class="sb-footer">
+        <div class="sb-avatar">A</div>
+        <div class="sb-footer-info">
+            <div class="sb-footer-name">Logout</div>
+            <div class="sb-footer-role">Administrator</div>
+        </div>
+        <a class="sb-logout-btn" href="login.html" id="logout-btn" title="Logout"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></a>
+    </div>
+</aside>
+
+        <div id="main-wrap">
+            <main id="content">
+                <div class="page-title">Import via Excel</div>
+                <div class="page-sub">Bulk-upload products from a spreadsheet</div>
+
+                <div id="alert-box" style="display:none;margin-bottom:16px;padding:12px 16px;border-radius:8px;font-size:13px;font-weight:600;"></div>
+
+                <div class="card" style="padding:22px;margin-bottom:16px;">
+                    <div class="flex" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <div style="font-weight:700;font-size:14.5px;">Step 1 — Upload your file</div>
+                            <div style="color:var(--text-muted);font-size:12.5px;margin-top:2px;">Accepts .xlsx files only</div>
+                        </div>
+                        <a class="btn btn-secondary" href="#" id="download-template-btn"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Download Template</a>
+                    </div>
+                </div>
+
+                <div class="card" style="padding:22px;margin-bottom:24px;">
+                    <label class="dropzone" for="file-input">
+          <svg class="icon" width="40" height="40" viewBox="0 0 24 24"><path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+          <div style="font-weight:600;font-size:14px;margin-bottom:4px;" id="dropzone-label">Click to choose your .xlsx file</div>
+          <div style="font-size:12.5px;color:var(--text-light);" id="dropzone-sub">or drag &amp; drop here</div>
+          <input type="file" id="file-input" accept=".xlsx">
+        </label>
+                    <div class="flex" style="justify-content:space-between;align-items:center;margin-top:18px;">
+                        <label class="checkbox-row"><input type="checkbox" id="preview-checkbox" checked> Preview before importing</label>
+                        <button type="button" class="btn btn-primary" id="upload-btn"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> <span id="upload-btn-label">Upload &amp; Preview</span></button>
+                    </div>
+                </div>
+
+                <div class="card" style="padding:22px;display:none;" id="results-card">
+                    <div style="font-weight:700;font-size:14.5px;margin-bottom:2px;" id="results-title">Preview Results</div>
+                    <div style="color:var(--text-muted);font-size:12.5px;" id="results-sub">Nothing has been saved to the database yet</div>
+                    <div class="summary-grid">
+                        <div class="card summary-card">
+                            <div class="val" id="stat-total">0</div>
+                            <div class="lab">Total Rows</div>
+                        </div>
+                        <div class="card summary-card" style="border-color:#bbf7d0;">
+                            <div class="val" style="color:var(--green)" id="stat-success">0</div>
+                            <div class="lab" id="stat-success-label">Will Import</div>
+                        </div>
+                        <div class="card summary-card" style="border-color:#fecaca;">
+                            <div class="val" style="color:var(--red)" id="stat-failed">0</div>
+                            <div class="lab" id="stat-failed-label">Will Fail</div>
+                        </div>
+                        <div class="card summary-card">
+                            <div class="val" style="color:#d97706" id="stat-skipped">0</div>
+                            <div class="lab">Duplicates</div>
+                        </div>
+                    </div>
+                    <div id="issues-section">
+                        <div style="font-weight:700;font-size:13px;margin:16px 0 8px;">Issues found</div>
+                        <div class="table-wrap" style="border:1px solid var(--border);border-radius:8px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Row Number</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="issues-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="flex" style="gap:10px;justify-content:flex-end;margin-top:20px;" id="confirm-row">
+                        <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirm-import-btn"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Confirm Import</button>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // ── Config ────────────────────────────────────────────────────────────
+        // MUST match orders.html / dashboard.html / pending-checkouts.html.
+        // API_BASE is the full Render URL — the admin panel is a static site
+        // served from a different origin than the API, so '' (same-origin)
+        // never worked here.
+        console.log("[import][init] Reading adminSessionToken from localStorage…");
+        window.__adminAuth = { token: localStorage.getItem("adminSessionToken") };
+        console.log("[import][init] Token found:", window.__adminAuth.token ? window.__adminAuth.token : "(none)");
+
+        // Same guard as every other admin page: no token → bounce to index
+        // immediately, so we never fire an API call we know will 401.
+        if (!window.__adminAuth.token) {
+            console.warn("[import][init] No token present — redirecting to index.html");
+            window.location.href = "index.html";
+        }
+
+        const API_BASE = "https://api.stanvee.com";
+
+        function authHeaders(extra) {
+            const headers = Object.assign({ "Authorization": window.__adminAuth.token }, extra || {});
+            console.log("[import][authHeaders] Built headers:", headers);
+            return headers;
+        }
+
+        function handleUnauthorized() {
+            console.error("[import][handleUnauthorized] 401 received. Current token was:", window.__adminAuth.token);
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            showAlert("Your session has expired. Redirecting to sign in…", "error");
+            setTimeout(function () { window.location.href = "index.html"; }, 900);
+        }
+
+        function showAlert(message, type) {
+            const box = document.getElementById('alert-box');
+            box.textContent = message;
+            box.style.display = 'block';
+            if (type === 'error') {
+                box.style.background = '#fef2f2';
+                box.style.color = '#b91c1c';
+                box.style.border = '1px solid #fecaca';
+            } else {
+                box.style.background = '#f0fdf4';
+                box.style.color = '#15803d';
+                box.style.border = '1px solid #bbf7d0';
+            }
+        }
+
+        function hideAlert() {
+            document.getElementById('alert-box').style.display = 'none';
+        }
+
+        // ── State ────────────────────────────────────────────────────────────
+        let selectedFile = null;
+        let lastPreviewWasPreviewMode = true;
+
+        const fileInput       = document.getElementById('file-input');
+        const dropzoneLabel   = document.getElementById('dropzone-label');
+        const dropzoneSub     = document.getElementById('dropzone-sub');
+        const previewCheckbox = document.getElementById('preview-checkbox');
+        const uploadBtn       = document.getElementById('upload-btn');
+        const uploadBtnLabel  = document.getElementById('upload-btn-label');
+        const resultsCard     = document.getElementById('results-card');
+        const resultsTitle    = document.getElementById('results-title');
+        const resultsSub      = document.getElementById('results-sub');
+        const issuesSection   = document.getElementById('issues-section');
+        const issuesTbody     = document.getElementById('issues-tbody');
+        const confirmRow      = document.getElementById('confirm-row');
+        const confirmBtn      = document.getElementById('confirm-import-btn');
+        const cancelBtn       = document.getElementById('cancel-btn');
+        const downloadBtn     = document.getElementById('download-template-btn');
+
+        // ── Step 1a: Download Template ──────────────────────────────────────
+        // GET /api/admin/products/excel/template
+        downloadBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            hideAlert();
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/products/excel/template`, {
+                    method: 'GET',
+                    headers: { ...authHeaders() }
+                });
+                if (res.status === 401) {
+                    handleUnauthorized();
+                    return;
+                }
+                if (!res.ok) {
+                    showAlert('Could not download the template. Please try again.', 'error');
+                    return;
+                }
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'product_import_template.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error("[import] Template download failed:", err);
+                showAlert('Network error while downloading the template.', 'error');
+            }
+        });
+
+        // ── File selection ───────────────────────────────────────────────────
+        fileInput.addEventListener('change', () => {
+            selectedFile = fileInput.files[0] || null;
+            if (selectedFile) {
+                dropzoneLabel.textContent = selectedFile.name;
+                dropzoneSub.textContent = 'Ready to upload — click "Upload" below';
+            } else {
+                dropzoneLabel.textContent = 'Click to choose your .xlsx file';
+                dropzoneSub.textContent = 'or drag & drop here';
+            }
+        });
+
+        // ── Step 2: Upload (preview or direct import) ───────────────────────
+        // POST /api/admin/products/excel/import  (multipart/form-data: file, preview)
+        async function runImport(previewMode) {
+            hideAlert();
+            if (!selectedFile) {
+                showAlert('Please choose an .xlsx file first.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            const btnToDisable = previewMode ? uploadBtn : confirmBtn;
+            const originalHtml = btnToDisable.innerHTML;
+            btnToDisable.disabled = true;
+            btnToDisable.innerHTML = previewMode ? 'Uploading…' : 'Importing…';
+
+            try {
+                console.log("[import][runImport] preview:", previewMode, "file:", selectedFile.name, "Token:", window.__adminAuth.token);
+                const res = await fetch(
+                    `${API_BASE}/api/admin/products/excel/import?preview=${previewMode}`,
+                    {
+                        method: 'POST',
+                        headers: { ...authHeaders() }, // do NOT set Content-Type — browser sets the multipart boundary
+                        body: formData
+                    }
+                );
+
+                if (res.status === 401) {
+                    console.error("[import][runImport] 401 Unauthorized. Token sent was:", window.__adminAuth.token);
+                    handleUnauthorized();
+                    return;
+                }
+
+                const payload = await res.json();
+                console.log("[import][runImport] Response body:", payload);
+
+                if (!res.ok || payload.status !== 'success') {
+                    showAlert(
+                        typeof payload.data === 'string' ? payload.data : 'Import failed. Please check the file and try again.',
+                        'error'
+                    );
+                    return;
+                }
+
+                renderSummary(payload.data, previewMode);
+                lastPreviewWasPreviewMode = previewMode;
+
+                if (!previewMode) {
+                    showAlert(`Import complete: ${payload.data.success_count} of ${payload.data.total_rows} rows saved.`, 'success');
+                    confirmRow.style.display = 'none'; // nothing left to confirm after a real import
+                }
+            } catch (err) {
+                console.error("[import] runImport failed:", err);
+                showAlert('Network error while uploading the file.', 'error');
+            } finally {
+                btnToDisable.disabled = false;
+                btnToDisable.innerHTML = originalHtml;
+            }
+        }
+
+        function renderSummary(summary, previewMode) {
+            resultsCard.style.display = 'block';
+            resultsTitle.textContent = previewMode ? 'Preview Results' : 'Import Results';
+            resultsSub.textContent = previewMode
+                ? 'Nothing has been saved yet — review the rows below, then confirm.'
+                : 'These rows have been saved to the database.';
+
+            document.getElementById('stat-total').textContent = summary.total_rows;
+            document.getElementById('stat-success').textContent = summary.success_count;
+            document.getElementById('stat-failed').textContent = summary.failed_count;
+            document.getElementById('stat-skipped').textContent = summary.skipped_duplicates;
+            document.getElementById('stat-success-label').textContent = previewMode ? 'Will Import' : 'Imported';
+            document.getElementById('stat-failed-label').textContent = previewMode ? 'Will Fail' : 'Failed';
+
+            issuesTbody.innerHTML = '';
+            const errors = summary.errors || [];
+            if (errors.length === 0) {
+                issuesSection.style.display = 'none';
+            } else {
+                issuesSection.style.display = 'block';
+                for (const err of errors) {
+                    const tr = document.createElement('tr');
+                    const tdRow = document.createElement('td');
+                    tdRow.textContent = err.row_number;
+                    const tdReason = document.createElement('td');
+                    tdReason.textContent = err.reason;
+                    tr.appendChild(tdRow);
+                    tr.appendChild(tdReason);
+                    issuesTbody.appendChild(tr);
+                }
+            }
+
+            // Only show the "Confirm Import" action when we're in preview mode
+            // and there's at least one row that would actually import.
+            confirmRow.style.display = (previewMode && summary.success_count > 0) ? 'flex' : (previewMode ? 'flex' : 'none');
+        }
+
+        uploadBtn.addEventListener('click', () => {
+            const previewMode = previewCheckbox.checked;
+            runImport(previewMode);
+        });
+
+        // ── Step 3: Confirm Import (re-runs the same file with preview=false) ──
+        confirmBtn.addEventListener('click', () => {
+            runImport(false);
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            resultsCard.style.display = 'none';
+            hideAlert();
+        });
+
+        // If the "Preview before importing" checkbox is unchecked, the main
+        // button becomes a direct import button.
+        previewCheckbox.addEventListener('change', () => {
+            uploadBtnLabel.textContent = previewCheckbox.checked ? 'Upload & Preview' : 'Upload & Import';
+        });
+
+        // ── Logout (same pattern as every other admin page) ─────────────────
+        document.getElementById("logout-btn").addEventListener("click", function (e) {
+            e.preventDefault();
+            const token = window.__adminAuth.token;
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            fetch(API_BASE + "/api/admin/logout", {
+                method: "POST",
+                headers: token ? { "Authorization": token } : {}
+            }).catch(function (err) {
+                console.error("[import][logout] Logout request failed:", err);
+            }).finally(function () {
+                window.location.href = "index.html";
+            });
+        });
+    </script>
+
+</body>
+
+</html>

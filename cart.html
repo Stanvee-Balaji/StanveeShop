@@ -125,7 +125,17 @@
 
         .coupon-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
         .coupon-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; }
-        .coupon-label { font-size: 12px; color: #16a34a; cursor: pointer; }
+        .coupon-label { font-size: 12px; color: #6b7280; cursor: pointer; }
+
+        .coupon-applied-badge {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #16a34a;
+            background: #dcfce7;
+            padding: 2px 7px;
+            border-radius: 9999px;
+            margin-left: 4px;
+        }
 
         .cart-subtotal { text-align: center; font-size: 15px; font-weight: 600; color: #1f2937; }
 
@@ -452,15 +462,57 @@
         /* ── ORDER CONFIRM MODAL ── */
         .confirm-modal-box {
             background: #fff;
-            border-radius: 16px;
+            border-radius: 18px;
             width: 100%;
-            max-width: 460px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 28px;
+            max-width: 620px;
+            max-height: 88vh;
+            overflow: hidden;
+            padding: 0;
             position: relative;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
             animation: modalPop 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .confirm-modal-box * { box-sizing: border-box; }
+
+        .confirm-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 28px;
+            border-bottom: 1px solid #f0f1f3;
+            flex-shrink: 0;
+        }
+
+        .confirm-modal-header .modal-title { margin-bottom: 0; }
+
+        .confirm-modal-header .modal-close-btn {
+            position: static;
+        }
+
+        .confirm-modal-body {
+            padding: 20px 28px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .confirm-modal-footer {
+            padding: 16px 28px 22px;
+            border-top: 1px solid #f0f1f3;
+            flex-shrink: 0;
+            background: #fff;
+        }
+
+        .confirm-modal-footer .confirm-actions { margin-top: 0; }
+
+        @media (max-width: 680px) {
+            .confirm-modal-header { padding: 18px 20px; }
+            .confirm-modal-body { padding: 16px 20px; }
+            .confirm-modal-footer { padding: 14px 20px 18px; }
         }
 
         .confirm-section { margin-bottom: 18px; }
@@ -537,6 +589,10 @@
         }
 
         .buyer-info-grid .form-field:nth-child(3) { grid-column: 1 / -1; }
+
+        @media (max-width: 420px) {
+            .buyer-info-grid { grid-template-columns: 1fr; }
+        }
 
         .buyer-info-note {
             font-size: 11.5px;
@@ -624,6 +680,93 @@
         }
 
         .page-loader-text { font-size: 14px; font-weight: 500; color: #374151; }
+
+        /* ── WALLET DEDUCTION MODAL ── */
+        .wallet-modal-box {
+            background: #fff;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 460px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px 32px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+            animation: modalPop 0.2s ease;
+        }
+
+        .wallet-modal-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 14px;
+        }
+
+        .wallet-modal-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .wallet-items-list {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+        }
+
+        .wallet-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            padding: 6px 0;
+        }
+
+        .wallet-item-row + .wallet-item-row { border-top: 1px dashed #e5e7eb; }
+        .wallet-item-name { color: #374151; font-weight: 500; }
+        .wallet-item-amount { color: #16a34a; font-weight: 700; }
+
+        .wallet-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+            padding-top: 10px;
+            margin-top: 6px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .wallet-error-box {
+            display: none;
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+        }
+
+        .wallet-step-indicator {
+            font-size: 11.5px;
+            color: #9ca3af;
+            margin-top: 8px;
+            text-align: center;
+            min-height: 16px;
+        }
+
+        .wallet-modal-actions { display: flex; gap: 10px; margin-top: 20px; }
     </style>
 </head>
 
@@ -686,10 +829,9 @@
             <hr class="summary-divider" />
 
             <p class="section-label">Payment Method</p>
-            <select class="payment-select" id="paymentSelect">
-                <option value="COD">Cash On Delivery</option>
-                <option value="ONLINE">Online Payment</option>
-            </select>
+            <div class="payment-select" style="cursor:default;background:#f3f4f6;color:#374151;display:flex;align-items:center;gap:6px">
+                🔒 Online Payment
+            </div>
 
             <hr class="summary-divider" />
 
@@ -718,7 +860,7 @@
             </div>
 
             <button class="place-order-btn" id="placeOrderBtn" onclick="openOrderConfirmModal()">
-                Place Order
+                Proceed to Checkout
             </button>
 
             <div style="display:flex;justify-content:center;gap:20px;margin-top:16px">
@@ -795,8 +937,11 @@
     <!-- ══════════════════ ORDER CONFIRM MODAL ══════════════════ -->
     <div class="modal-overlay" id="orderConfirmModal">
         <div class="confirm-modal-box">
-            <button class="modal-close-btn" onclick="closeOrderConfirmModal()" title="Close">✕</button>
-            <h2 class="modal-title">Confirm Your Order</h2>
+            <div class="confirm-modal-header">
+                <h2 class="modal-title">Confirm Your Order</h2>
+                <button class="modal-close-btn" onclick="closeOrderConfirmModal()" title="Close">✕</button>
+            </div>
+            <div class="confirm-modal-body">
 
             <div class="confirm-section">
                 <p class="confirm-section-label">Items</p>
@@ -861,13 +1006,52 @@
                 </div>
             </div>
 
-            <div class="confirm-actions">
-                <button class="confirm-back-btn" id="confirmBackBtn" onclick="closeOrderConfirmModal()">Back to Cart</button>
-                <button class="confirm-place-btn" id="confirmPlaceBtn" onclick="confirmPlaceOrder()">
-                    <span class="btn-spinner"></span>
-                    <span class="btn-label" id="confirmPlaceBtnLabel">Confirm Order</span>
-                </button>
             </div>
+            <div class="confirm-modal-footer">
+                <div class="confirm-actions">
+                    <button class="confirm-back-btn" id="confirmBackBtn" onclick="closeOrderConfirmModal()">Back to Cart</button>
+                    <button class="confirm-place-btn" id="confirmPlaceBtn" onclick="handleProceedToPayment()">
+                        <span class="btn-spinner"></span>
+                        <span class="btn-label" id="confirmPlaceBtnLabel">Confirm Order</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════ WALLET DEDUCTION MODAL ══════════════════ -->
+    <div class="modal-overlay" id="walletDeductionModal">
+        <div class="wallet-modal-box">
+            <button class="modal-close-btn" id="walletModalCloseBtn" onclick="closeWalletDeductionModal()" title="Close">✕</button>
+
+            <div class="wallet-modal-icon">🔐</div>
+            <h2 class="modal-title" style="margin-bottom:6px">Confirm Wallet Redemption</h2>
+            <p class="wallet-modal-subtitle">
+                Enter your Stanvee account password to redeem the selected wallet points toward this order.
+            </p>
+
+            <div class="wallet-error-box" id="walletModalError"></div>
+
+            <div class="wallet-items-list" id="walletItemsList">
+                <!-- populated by JS -->
+            </div>
+
+            <form id="walletDeductionForm" onsubmit="return handleWalletDeductionSubmit(event)">
+                <div class="form-field">
+                    <label for="walletPassword">Account Password</label>
+                    <input type="password" id="walletPassword" placeholder="••••••••" required autocomplete="current-password" />
+                </div>
+
+                <div class="wallet-modal-actions">
+                    <button type="button" class="confirm-back-btn" id="walletBackBtn" onclick="closeWalletDeductionModal()">Cancel</button>
+                    <button type="submit" class="confirm-place-btn" id="walletSubmitBtn">
+                        <span class="btn-spinner"></span>
+                        <span class="btn-label" id="walletSubmitBtnLabel">Confirm & Redeem</span>
+                    </button>
+                </div>
+
+                <p class="wallet-step-indicator" id="walletStepIndicator"></p>
+            </form>
         </div>
     </div>
 
@@ -880,23 +1064,151 @@
     <!-- ══════════════════ JAVASCRIPT ══════════════════ -->
     <script>
         /* ─────────────── BASE URL ─────────────── */
-        const BASE_URL = 'https://stanveeshopbackend.onrender.com';
+        const BASE_URL = 'https://api.stanvee.com';
+        const WALLET_DEDUCT_URL = `${BASE_URL}/api/wallet/deduct`;
+        const WALLET_CONFIRM_URL = `${BASE_URL}/api/wallet/confirm`;
+        const WALLET_TYPE_SHOPPING = 'S'; // Shopping Wallet — matches walletR in header dropdown
+        const WALLET_TYPE_WOW = 'O';      // WOW Wallet — matches walletO in header dropdown
+
+        // ── LIVE WALLET BALANCE API ───────────────
+        // Cached / login-payload wallet numbers go stale (other tabs, other
+        // devices, previous orders). This always asks the server for the
+        // real current balance instead of trusting anything cached locally.
+        const WALLET_BALANCE_API = 'https://stanveeservices.com/CheckLogin.aspx';
+        const WALLET_BALANCE_TOKEN = 'abUnMar5489pidlAewUF4875brlstangwewera4i5n6';
+
+        async function fetchWalletBalance(walletType) {
+            try {
+                const url = `${WALLET_BALANCE_API}?token=${WALLET_BALANCE_TOKEN}` +
+                    `&UserName=${encodeURIComponent(state.user.loginid)}` +
+                    `&Password=123&Wallertype=${walletType}&action=GetBalance`;
+
+                const res = await fetch(url);
+                const rawText = await res.text();
+
+                console.log(`[WalletBalance:${walletType}] Raw response:`, rawText);
+
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch (e) {
+                    console.error(`[WalletBalance:${walletType}] JSON parse failed:`, e, rawText);
+                    return null;
+                }
+
+                // Response envelope assumed to match CheckLogin's login action
+                // (status: 'SUCCESS', response: 'OK', data: {...}). Balance
+                // field name is unconfirmed — tries a few likely keys.
+                const isSuccess = result.status === 'SUCCESS' && result.response === 'OK' && result.data;
+                if (!isSuccess) {
+                    console.error(`[WalletBalance:${walletType}] Failed:`, result);
+                    return null;
+                }
+
+                const d = result.data;
+                const balance = d.balance ?? d.ewallet ?? d.wallet ?? d.amount ?? d.points;
+                if (balance == null) {
+                    console.warn(`[WalletBalance:${walletType}] Could not find balance field in response data:`, d);
+                    return null;
+                }
+
+                return Number(balance);
+            } catch (err) {
+                console.error(`[WalletBalance:${walletType}] Request failed:`, err);
+                return null;
+            }
+        }
+
+        // Writes state's wallet balances into whatever header DOM elements
+        // currently exist. Safe to call any number of times, from any
+        // order relative to header injection — each call just no-ops on
+        // elements that aren't there yet. This is what fixes the race:
+        // instead of writing once and hoping header.html has loaded, we
+        // repaint on every trigger (fetch resolves, header becomes ready).
+        function paintWalletBadges() {
+            const walletEl = document.getElementById('walletAmt');
+            if (walletEl) walletEl.textContent = getTotalWalletBalance();
+
+            const walletREl = document.getElementById('walletR');
+            const walletOEl = document.getElementById('walletO');
+            if (walletREl) walletREl.textContent = `${state.currency}${state.shoppingWalletBalance.toLocaleString('en-IN')}`;
+            if (walletOEl) walletOEl.textContent = `${state.currency}${state.wowWalletBalance.toLocaleString('en-IN')}`;
+        }
+
+        // Writes the live balances back into localStorage's stanveeUser
+        // object. Without this, ANY future page load (or even a reload of
+        // this same page) repaints the header from the stale login-time
+        // snapshot again — this is what previously required a logout/login
+        // to "fix" the displayed number.
+        function persistWalletToLocalUser() {
+            try {
+                const raw = localStorage.getItem('stanveeUser');
+                if (!raw) return;
+                const user = JSON.parse(raw);
+                user.rwallet = state.shoppingWalletBalance;
+                user.owallet = state.wowWalletBalance;
+                localStorage.setItem('stanveeUser', JSON.stringify(user));
+            } catch (e) {
+                console.error('[Wallet] Failed to persist wallet balances to stanveeUser:', e);
+            }
+        }
+
+        // Fetches both wallets live and updates state + header badge.
+        // This is the ONLY source of truth for balances now — cache is
+        // just used for instant paint before this resolves.
+        async function refreshWalletBalances() {
+            if (!state.user) return;
+
+            const [shopping, wow] = await Promise.all([
+                fetchWalletBalance(WALLET_TYPE_SHOPPING),
+                fetchWalletBalance(WALLET_TYPE_WOW)
+            ]);
+
+            if (shopping != null) state.shoppingWalletBalance = shopping;
+            if (wow != null) state.wowWalletBalance = wow;
+
+            paintWalletBadges();
+            persistWalletToLocalUser();
+
+            saveCartCache({
+                count: getCartCount(),
+                shoppingWalletBalance: state.shoppingWalletBalance,
+                wowWalletBalance: state.wowWalletBalance
+            });
+
+            renderCart();
+        }
+
+        // If header.html finishes injecting AFTER refreshWalletBalances()
+        // already ran (the race described above), this repaints using
+        // whatever's already in state — closing the gap regardless of
+        // which finishes first.
+        document.addEventListener('stanveeHeaderReady', paintWalletBadges);
 
         /* ─────────────── STATE ─────────────── */
         const state = {
             user: null,
             currency: '₹',
+            clientIp: null,
             cartItems: {}, // { productId: { quantity, couponSelected } }
             products: [],
             addresses: [],
             selectedAddress: null,
-            paymentOption: 'COD', // 'COD' | 'ONLINE'
+            paymentOption: 'ONLINE', // only 'ONLINE' is supported now
             placingOrder: false,
-            walletBalance: 0,
+            shoppingWalletBalance: 0, // wallet type 'S'
+            wowWalletBalance: 0,      // wallet type 'O'
             loadingAddresses: false,
             editingAddressId: null, // null = "add" mode; set = "edit" mode
+            pendingWalletItems: [],  // items awaiting deduction {name, productId, appliedAmount}
+            walletVouchers: [],      // {voucherNo} collected after successful deducts
+            walletProcessing: false,
+            checkoutAmount: null,    // discounted grand total, locked in BEFORE wallet deduction changes balances
         };
 
+        function getTotalWalletBalance() {
+            return (state.shoppingWalletBalance || 0) + (state.wowWalletBalance || 0);
+        }
         /* ─────────────── TOAST ─────────────── */
         function showToast(msg, type = 'success') {
             const c = document.getElementById('toastContainer');
@@ -943,7 +1255,10 @@
         function logout() {
             state.user = null;
             state.cartItems = {};
-            state.walletBalance = 0;
+            state.shoppingWalletBalance = 0;
+            state.wowWalletBalance = 0;
+            const walletEl = document.getElementById('walletAmt');
+            if (walletEl) walletEl.textContent = 0;
             setUser(null);
             renderCart();
             showToast('Logged out successfully');
@@ -1024,10 +1339,7 @@
             })
                 .then(r => r.json())
                 .then(d => {
-                    if (d.success && d.walletBalance != null) {
-                        state.walletBalance = d.walletBalance;
-                        const el = document.getElementById('walletAmt');
-                        if (el) el.textContent = d.walletBalance;
+                    if (d.success) {
                         renderCart();
                     }
                 })
@@ -1048,21 +1360,19 @@
                 .then(r => r.json())
                 .then(d => {
                     if (d.success) {
-                        state.cartItems = {};
+state.cartItems = {};
                         (d.cartItems || []).forEach(item => {
-                            state.cartItems[String(item.productId)] = {
-                                quantity: item.quantity || 1,
-                                couponSelected: item.couponSelected || false,
-                                cartItemId: item.id,
-                                finalPrice: item.finalPrice
-                            };
+                            state.cartItems[String(item.productId)] = normalizeCartItem(item);
                         });
-                        if (d.walletBalance != null) {
-                            state.walletBalance = d.walletBalance;
-                            const el = document.getElementById('walletAmt');
-                            if (el) el.textContent = d.walletBalance;
-                        }
-                        saveCartCache({ count: (d.cartItems || []).length, walletBalance: d.walletBalance });
+                        if (d.shoppingWalletBalance != null) state.shoppingWalletBalance = d.shoppingWalletBalance;
+                        if (d.wowWalletBalance != null) state.wowWalletBalance = d.wowWalletBalance;
+                        const el = document.getElementById('walletAmt');
+                        if (el) el.textContent = getTotalWalletBalance();
+                        saveCartCache({
+                            count: (d.cartItems || []).length,
+                            shoppingWalletBalance: state.shoppingWalletBalance,
+                            wowWalletBalance: state.wowWalletBalance
+                        });
                         showToast(d.message || 'Item removed from cart');
                         renderCart();
                         syncCartBadge();
@@ -1076,48 +1386,92 @@
                 });
         }
 
-        /* ─────────────── WALLET CALC ─────────────── */
+        /* ─────────────── WALLET CALC ───────────────
+           Wallet points are a shared pool (state.walletBalance). Each product
+           has its own max_points_utilization cap (1 point = ₹1), but if the
+           wallet doesn't have enough left to cover every selected item's cap,
+           we only apply whatever is actually available — first-selected-first
+           allocated, in cart order. This keeps the checkout total in sync with
+           whatever is actually redeemable right now. */
+        function allocateWalletAcrossCart(cartArray) {
+            let remainingShopping = state.shoppingWalletBalance || 0;
+            let remainingWow = state.wowWalletBalance || 0;
+
+            return cartArray.map(product => {
+                const maxPoints = product.maxPoints || 0;
+                // How much THIS item could still draw right now, combining
+                // both pools, Shopping first then WOW — before it consumes
+                // anything itself.
+                const availableForThis = Math.max(0, Math.min(maxPoints, remainingShopping + remainingWow));
+
+                let fromShopping = 0;
+                let fromWow = 0;
+
+                if (product.couponSelected && maxPoints > 0 && (remainingShopping > 0 || remainingWow > 0)) {
+                    // 1. Draw from Shopping Wallet first, up to the cap.
+                    fromShopping = Math.min(maxPoints, remainingShopping);
+                    remainingShopping -= fromShopping;
+
+                    // 2. Whatever's left of the cap spills over into WOW Wallet.
+                    const remainingCap = maxPoints - fromShopping;
+                    fromWow = Math.min(remainingCap, remainingWow);
+                    remainingWow -= fromWow;
+                }
+
+                const appliedAmount = fromShopping + fromWow;
+
+                return { ...product, availableForThis, appliedAmount, fromShopping, fromWow };
+            });
+        }
+
         function calculateWalletSummary(cartArray) {
-            let remainingWallet = state.walletBalance;
+            const allocated = allocateWalletAcrossCart(cartArray);
+
             let totalPrice = 0;
             let totalWalletUsed = 0;
 
-            cartArray.forEach(product => {
+            allocated.forEach(product => {
                 const basePrice = product.offerPrice || 0;
                 const quantity = product.quantity || 1;
-                const couponValue = product.couponDiscount || 0;
                 totalPrice += basePrice * quantity;
-
-                if (product.couponSelected && remainingWallet > 0) {
-                    const maxCoupon = couponValue * quantity;
-                    const deduction = Math.min(maxCoupon, remainingWallet);
-                    totalWalletUsed += deduction;
-                    remainingWallet -= deduction;
-                }
+                totalWalletUsed += product.appliedAmount || 0;
             });
 
             return {
                 totalPrice,
                 grandTotal: totalPrice - totalWalletUsed,
                 walletUsed: totalWalletUsed,
-                walletRemaining: remainingWallet
+                walletRemaining: getTotalWalletBalance() - totalWalletUsed
             };
         }
+/* ─────────────── NORMALIZE CART ITEM (from /api/cart/:userId) ───────────────
+   Cart API now returns full product info inline, so we no longer need a
+   separate /api/products call to join against. This maps the API's field
+   names onto the names the rest of the UI already expects. */
+function normalizeCartItem(item) {
+    return {
+        cartItemId: item.id,
+        productId: item.productId,
+        name: item.productName,
+        category: Array.isArray(item.category) ? (item.category[0] || '') : (item.category || ''),
+        image: [item.image],
+        mrp: Number(item.mrp) || 0,
+        offerPrice: Number(item.offerPrice) || 0,
+        maxPoints: Number(item.maxPointsUtilization) || 0,
+        quantity: item.quantity || 1,
+        couponSelected: item.couponSelected || false,
+        finalPrice: item.finalPrice
+    };
+}
 
-        /* ─────────────── BUILD CART ARRAY ─────────────── */
-        function buildCartArray() {
-            return Object.keys(state.cartItems).map(key => {
-                const product = state.products.find(p => p._id === key || p.product_id === key);
-                if (!product) return null;
-                return {
-                    ...product,
-                    quantity: state.cartItems[key]?.quantity || 1,
-                    couponSelected: state.cartItems[key]?.couponSelected || false,
-                    cartItemId: state.cartItems[key]?.cartItemId || null
-                };
-            }).filter(Boolean);
-        }
-
+/* ─────────────── BUILD CART ARRAY ─────────────── */
+function buildCartArray() {
+    return Object.keys(state.cartItems).map(key => ({
+        ...state.cartItems[key],
+        _id: key,
+        product_id: key
+    }));
+}
         /* ─────────────── RENDER CART ─────────────── */
         function renderCart() {
             const cartArray = buildCartArray();
@@ -1136,11 +1490,41 @@
                 emptyCart.style.display = 'none';
                 continueBtn.style.display = 'inline-flex';
 
-                rowsContainer.innerHTML = cartArray.map((product, idx) => {
+                // Compute, in cart order, how many wallet points each item can
+                // actually draw right now (capped by remaining shared balance).
+                const allocated = allocateWalletAcrossCart(cartArray);
+
+                rowsContainer.innerHTML = allocated.map((product, idx) => {
                     const maxQty = Math.max(product.quantity, 9);
                     const options = Array.from({ length: maxQty }, (_, i) =>
                         `<option value="${i + 1}" ${product.quantity === i + 1 ? 'selected' : ''}>${i + 1}</option>`
                     ).join('');
+
+                    const hasPoints = (product.maxPoints || 0) > 0;
+                    // What the checkbox, if checked, would actually redeem right now
+                    const usableNow = product.availableForThis || 0;
+                    const isPartial = hasPoints && usableNow < product.maxPoints;
+
+                    let couponLabelHtml;
+                    if (!hasPoints) {
+                        couponLabelHtml = `No wallet points redeemable`;
+                    } else if (usableNow <= 0) {
+                        couponLabelHtml = `No wallet balance available`;
+                    } else if (isPartial) {
+                        couponLabelHtml = `Redeem up to ${state.currency}${product.maxPoints}
+                            <span style="color:#d97706">(only ${state.currency}${usableNow} available)</span>`;
+                    } else {
+                        couponLabelHtml = `Redeem up to ${state.currency}${product.maxPoints} points`;
+                    }
+
+                    // Build a "which wallet(s)" breakdown for the applied badge
+                    let walletBreakdownHtml = '';
+                    if (product.couponSelected && product.appliedAmount > 0) {
+                        const parts = [];
+                        if (product.fromShopping > 0) parts.push(`${state.currency}${product.fromShopping} Shopping`);
+                        if (product.fromWow > 0) parts.push(`${state.currency}${product.fromWow} WOW`);
+                        walletBreakdownHtml = parts.join(' + ');
+                    }
 
                     return `
             <div class="cart-row">
@@ -1163,10 +1547,16 @@
                         <div class="coupon-row">
                             <input type="checkbox" id="coupon_${idx}"
                                    ${product.couponSelected ? 'checked' : ''}
+                                   ${(!hasPoints || usableNow <= 0) ? 'disabled' : ''}
                                    onchange="updateCartItem('${product._id}', ${product.quantity}, this.checked)"/>
                             <label class="coupon-label" for="coupon_${idx}">
-                                Apply Coupon (-${state.currency}${product.couponDiscount || 0})
+                                ${couponLabelHtml}
                             </label>
+                            ${product.couponSelected && product.appliedAmount > 0
+                                ? `<span class="coupon-applied-badge">✓ Applied ${state.currency}${product.appliedAmount}
+                                    <span style="font-weight:500;opacity:0.85">(${walletBreakdownHtml})</span>
+                                   </span>`
+                                : ''}
                         </div>
                     </div>
                 </div>
@@ -1191,7 +1581,7 @@
             document.getElementById('grandTotal').textContent = `${state.currency}${grandTotal.toFixed(2)}`;
 
             const btn = document.getElementById('placeOrderBtn');
-            if (btn) btn.textContent = state.paymentOption === 'COD' ? 'Place Order' : 'Proceed to Checkout';
+            if (btn) btn.textContent = 'Proceed to Checkout';
         }
 
         /* ─────────────── ADDRESS ─────────────── */
@@ -1447,12 +1837,11 @@
             }
         }
 
-        function openOrderConfirmModal() {
-            if (!state.user) return showToast('Please login to place an order', 'error');
-            if (!state.selectedAddress) return showToast('Please select a delivery address', 'error');
-            const cartArray = buildCartArray();
-            if (cartArray.length === 0) return showToast('Your cart is empty', 'error');
-
+function openOrderConfirmModal() {
+    if (!state.user) return showToast('Please login to place an order', 'error');
+    if (!state.selectedAddress) return showToast('Please select a delivery address', 'error');
+    const cartArray = buildCartArray();
+    if (cartArray.length === 0) return showToast('Your cart is empty', 'error');
             document.getElementById('confirmItemsList').innerHTML = cartArray.map(item => `
                 <div class="confirm-item-row">
                     <div class="confirm-item-thumb">
@@ -1505,15 +1894,323 @@
             }
         });
 
+        /* ─────────────── BUYER INFO VALIDATION ───────────────
+           Shared check for the Payment Contact Details fields. Must pass
+           BEFORE any wallet deduction happens — we don't want to redeem
+           wallet points and then discover the buyer info is incomplete. */
+        function validateBuyerInfo() {
+            const email = document.getElementById('buyerEmail').value.trim();
+            const phone = document.getElementById('buyerPhone').value.trim();
+            const firstName = document.getElementById('buyerFirstName').value.trim();
+            const lastName = document.getElementById('buyerLastName').value.trim();
+
+            if (!firstName || !lastName || !email || !phone) {
+                showToast('Please fill in all payment contact details', 'error');
+                return false;
+            }
+            if (!/^\S+@\S+\.\S+$/.test(email)) {
+                showToast('Please enter a valid email address', 'error');
+                return false;
+            }
+            if (!/^[0-9]{10}$/.test(phone)) {
+                showToast('Please enter a valid 10-digit phone number', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        /* ─────────────── WALLET DEDUCTION FLOW ───────────────
+           Entry point for the "Proceed to Payment" button. Buyer info must
+           be valid FIRST — only then do we check for wallet points. If
+           wallet points are selected, we must deduct + confirm them via
+           the wallet API BEFORE placing the order / redirecting to Airpay.
+           If no wallet points are in play, skip straight to confirmPlaceOrder(). */
+        function handleProceedToPayment() {
+            if (!validateBuyerInfo()) return;
+
+            const cartArray = buildCartArray();
+            const allocated = allocateWalletAcrossCart(cartArray);
+            const walletItems = allocated.filter(p => p.couponSelected && p.appliedAmount > 0);
+
+            // Lock in the discounted total NOW, before any wallet deduction
+            // changes state.shoppingWalletBalance/wowWalletBalance. If we
+            // recalculate AFTER deduction, the remaining balance is already
+            // reduced by the applied amount, so re-running the allocation
+            // sees less (or zero) left to redeem and silently drops the
+            // discount — which is exactly why Airpay was getting charged
+            // the full ₹9000 instead of the discounted ₹8500.
+            const { grandTotal } = calculateWalletSummary(cartArray);
+            state.checkoutAmount = grandTotal;
+
+            if (walletItems.length > 0) {
+                openWalletDeductionModal(walletItems);
+            } else {
+                confirmPlaceOrder();
+            }
+        }
+
+        function openWalletDeductionModal(walletItems) {
+            // Each cart item may draw from BOTH wallets. The deduct/confirm
+            // API is per-walletType, so split each item into up to two
+            // pending entries — one per wallet actually used.
+            const pending = [];
+            walletItems.forEach(item => {
+                const productId = item.product_id || item._id;
+                if (item.fromShopping > 0) {
+                    pending.push({
+                        name: item.name,
+                        productId,
+                        appliedAmount: item.fromShopping,
+                        walletType: WALLET_TYPE_SHOPPING,
+                        walletLabel: 'Shopping Wallet'
+                    });
+                }
+                if (item.fromWow > 0) {
+                    pending.push({
+                        name: item.name,
+                        productId,
+                        appliedAmount: item.fromWow,
+                        walletType: WALLET_TYPE_WOW,
+                        walletLabel: 'WOW Wallet'
+                    });
+                }
+            });
+
+            state.pendingWalletItems = pending;
+            state.walletVouchers = [];
+
+            const totalRedeem = state.pendingWalletItems.reduce((sum, i) => sum + i.appliedAmount, 0);
+
+            document.getElementById('walletItemsList').innerHTML =
+                state.pendingWalletItems.map(item => `
+                    <div class="wallet-item-row">
+                        <span class="wallet-item-name">${item.name}
+                            <span style="color:#9ca3af;font-weight:500"> · ${item.walletLabel}</span>
+                        </span>
+                        <span class="wallet-item-amount">${state.currency}${item.appliedAmount}</span>
+                    </div>
+                `).join('') +
+                `<div class="wallet-total-row">
+                    <span>Total Redeeming</span>
+                    <span>${state.currency}${totalRedeem}</span>
+                </div>`;
+
+            hideWalletModalError();
+            document.getElementById('walletPassword').value = '';
+            document.getElementById('walletStepIndicator').textContent = '';
+            document.getElementById('walletDeductionModal').classList.add('open');
+        }
+
+        function closeWalletDeductionModal() {
+            if (state.walletProcessing) return; // guard: don't dismiss mid-request
+            document.getElementById('walletDeductionModal').classList.remove('open');
+        }
+
+        function showWalletModalError(msg) {
+            const el = document.getElementById('walletModalError');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function hideWalletModalError() {
+            const el = document.getElementById('walletModalError');
+            el.textContent = '';
+            el.style.display = 'none';
+        }
+
+        function setWalletStep(msg) {
+            document.getElementById('walletStepIndicator').textContent = msg;
+        }
+
+        document.addEventListener('click', e => {
+            const overlay = document.getElementById('walletDeductionModal');
+            if (overlay && overlay.classList.contains('open') && e.target === overlay) {
+                closeWalletDeductionModal();
+            }
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('walletDeductionModal');
+                if (overlay && overlay.classList.contains('open')) closeWalletDeductionModal();
+            }
+        });
+
+        // Wallet API responses wrap the real payload as an escaped JSON string
+        // inside `message` (per API guide). Parse it safely.
+        function parseWalletMessage(rawMessage) {
+            try {
+                return JSON.parse(rawMessage);
+            } catch (e) {
+                console.error('[Wallet] Failed to parse message payload:', rawMessage, e);
+                return null;
+            }
+        }
+
+        async function handleWalletDeductionSubmit(event) {
+            event.preventDefault();
+            if (state.walletProcessing) return false;
+
+            const password = document.getElementById('walletPassword').value;
+            if (!password) {
+                showWalletModalError('Please enter your account password.');
+                return false;
+            }
+
+            hideWalletModalError();
+            state.walletProcessing = true;
+
+            const submitBtn = document.getElementById('walletSubmitBtn');
+            const backBtn = document.getElementById('walletBackBtn');
+            const closeBtn = document.getElementById('walletModalCloseBtn');
+            submitBtn.disabled = true;
+            backBtn.disabled = true;
+            closeBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            document.getElementById('walletSubmitBtnLabel').textContent = 'Processing...';
+
+            state.walletVouchers = [];
+
+            try {
+                // ── Step 1: deduct — one call per product (API is per-productId) ──
+                for (let i = 0; i < state.pendingWalletItems.length; i++) {
+                    const item = state.pendingWalletItems[i];
+                    setWalletStep(`Redeeming points for "${item.name}" (${i + 1}/${state.pendingWalletItems.length})…`);
+
+                    const res = await fetch(WALLET_DEDUCT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: state.user.loginid,
+                            password,
+                            productId: item.productId,
+                            points: item.appliedAmount,
+                            walletType: item.walletType,
+                            note: 'Cart checkout'
+                        })
+                    });
+                    const data = await res.json();
+
+                    console.group('%c[DEBUG] /api/wallet/deduct', 'color:#7c3aed;font-weight:bold');
+                    console.log('Item:', item);
+                    console.log('HTTP status:', res.status);
+                    console.log('Response:', data);
+                    console.groupEnd();
+
+                    if (data.status !== 'success') {
+                        showWalletModalError(data.message || 'Wallet deduction failed. Please try again.');
+                        setWalletStep('');
+                        return false;
+                    }
+
+                    const parsed = parseWalletMessage(data.data);
+                    if (!parsed || !parsed.voucherno) {
+                        showWalletModalError('Unexpected response from wallet service. Please try again.');
+                        setWalletStep('');
+                        return false;
+                    }
+
+                    state.walletVouchers.push({
+                        voucherNo: parsed.voucherno,
+                        walletType: parsed.wallettype || item.walletType
+                    });
+                }
+
+                // ── Step 2: confirm each voucher from step 1 ──
+                let lastConfirmData = null;
+                let lastConfirmVoucher = null;
+                for (let i = 0; i < state.walletVouchers.length; i++) {
+                    const voucher = state.walletVouchers[i];
+                    setWalletStep(`Confirming redemption (${i + 1}/${state.walletVouchers.length})…`);
+
+                    const res = await fetch(WALLET_CONFIRM_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: state.user.loginid,
+                            password,
+                            voucherNo: voucher.voucherNo,
+                            response: 'OK',
+                            walletType: voucher.walletType
+                        })
+                    });
+                    const data = await res.json();
+
+                    console.group('%c[DEBUG] /api/wallet/confirm', 'color:#0891b2;font-weight:bold');
+                    console.log('Voucher:', voucher);
+                    console.log('HTTP status:', res.status);
+                    console.log('Response:', data);
+                    console.groupEnd();
+
+                    if (data.status !== 'success') {
+                        showWalletModalError('Could not confirm wallet redemption. Please contact support.');
+                        setWalletStep('');
+                        return false;
+                    }
+
+                    lastConfirmData = parseWalletMessage(data.message);
+                    lastConfirmVoucher = voucher;
+                }
+
+                // Apply the deduction to the UI immediately using what we
+                // ALREADY KNOW was redeemed (state.pendingWalletItems) —
+                // don't wait on GetBalance to confirm it. GetBalance hits a
+                // separate domain (stanveeservices.com) and can silently fail
+                // (CORS / timeout / bad response), and refreshWalletBalances()
+                // only updates state when that fetch actually succeeds — so a
+                // failure there previously meant the header just never
+                // updated, and even a page refresh re-cached the same stale
+                // number. This was the root cause of needing a full
+                // logout/login to see the correct balance.
+                state.pendingWalletItems.forEach(item => {
+                    if (item.walletType === WALLET_TYPE_SHOPPING) {
+                        state.shoppingWalletBalance = Math.max(0, state.shoppingWalletBalance - item.appliedAmount);
+                    } else if (item.walletType === WALLET_TYPE_WOW) {
+                        state.wowWalletBalance = Math.max(0, state.wowWalletBalance - item.appliedAmount);
+                    }
+                });
+                paintWalletBadges();
+                persistWalletToLocalUser();
+                saveCartCache({
+                    count: getCartCount(),
+                    shoppingWalletBalance: state.shoppingWalletBalance,
+                    wowWalletBalance: state.wowWalletBalance
+                });
+
+                // Best-effort reconciliation with the server's live balance,
+                // run in the background. If GetBalance succeeds, it corrects
+                // any drift; if it fails (as it apparently has been), the
+                // locally-computed values above — which are already
+                // correct — simply stay as-is instead of silently doing
+                // nothing.
+                refreshWalletBalances().catch(err =>
+                    console.warn('[Wallet] Background balance reconciliation failed:', err)
+                );
+
+                // ── All good — close this modal and proceed to place the order ──
+                setWalletStep('');
+                document.getElementById('walletDeductionModal').classList.remove('open');
+                await confirmPlaceOrder();
+                return false;
+
+            } catch (err) {
+                console.error('[Wallet] Deduction/confirmation flow failed:', err);
+                showWalletModalError('Could not connect to wallet service. Please try again.');
+                setWalletStep('');
+                return false;
+            } finally {
+                state.walletProcessing = false;
+                submitBtn.disabled = false;
+                backBtn.disabled = false;
+                closeBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                document.getElementById('walletSubmitBtnLabel').textContent = 'Confirm & Redeem';
+            }
+        }
+
         /* ─────────────── AIRPAY REDIRECT (auto-submit hidden form) ───────────────
            Airpay's iframe/redirect flow expects a real form POST, not fetch —
            the browser needs to navigate there carrying these fields. */
         function redirectToAirpay(payment) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = payment.paymentUrl;
-            form.style.display = 'none';
-
             const fields = {
                 privatekey: payment.privateKey,
                 merchant_id: payment.merchantId,
@@ -1522,6 +2219,22 @@
                 checksum: payment.checksum,
                 chmod: payment.chmod
             };
+
+            // ── DEBUG: inspect exactly what Airpay is receiving ──
+            console.group('%c[AIRPAY DEBUG] Redirect Payload', 'color:#16a34a;font-weight:bold');
+            console.log('paymentUrl:', payment.paymentUrl);
+            console.table(fields);
+            Object.entries(fields).forEach(([key, value]) => {
+                if (value === undefined || value === null || value === '') {
+                    console.warn(`[AIRPAY DEBUG] Missing/empty field: ${key}`);
+                }
+            });
+            console.groupEnd();
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = payment.paymentUrl;
+            form.style.display = 'none';
 
             Object.entries(fields).forEach(([name, value]) => {
                 if (value === undefined || value === null) return;
@@ -1532,33 +2245,50 @@
                 form.appendChild(input);
             });
 
+            // ── DEBUG: confirm actual DOM inputs match what we intended ──
+            console.log('[AIRPAY DEBUG] Final form inputs:',
+                Array.from(form.elements).map(el => ({ name: el.name, value: el.value }))
+            );
+            console.log('%c[AIRPAY DEBUG] Submitting to Airpay in 3s — inspect console/network now', 'color:#dc2626;font-weight:bold');
+
             document.body.appendChild(form);
-            form.submit(); // browser navigates away from here
+            setTimeout(() => form.submit(), 3000); // TEMP: remove delay once verified
+        }
+
+        /* ─────────────── CLIENT IP LOOKUP ───────────────
+           Browsers can't read the client's own public IP directly —
+           it has to be fetched from an external service. Cached in
+           state so we don't call this on every order attempt. */
+        async function getClientIp() {
+            if (state.clientIp) return state.clientIp;
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                state.clientIp = data.ip || null;
+                console.log('[DEBUG] Client IP fetched:', state.clientIp);
+                return state.clientIp;
+            } catch (e) {
+                console.error('[DEBUG] Failed to fetch client IP:', e);
+                return null;
+            }
         }
 
         /* ─────────────── CONFIRM & PLACE ORDER (actual API call) ─────────────── */
         async function confirmPlaceOrder() {
             if (state.placingOrder) return; // prevent double-submit
             if (!state.user || !state.selectedAddress) return closeOrderConfirmModal();
+            
 
-            const isOnline = state.paymentOption === 'ONLINE';
+            // Only ONLINE payment is supported — always validate buyer info.
+            // (Also checked earlier in handleProceedToPayment before any
+            // wallet deduction, but re-checked here since confirmPlaceOrder
+            // can also be reached directly when no wallet points are used.)
+            if (!validateBuyerInfo()) return;
 
-            // Client-side validation for buyer info — only required for Online
-            if (isOnline) {
-                const email = document.getElementById('buyerEmail').value.trim();
-                const phone = document.getElementById('buyerPhone').value.trim();
-                const firstName = document.getElementById('buyerFirstName').value.trim();
-                const lastName = document.getElementById('buyerLastName').value.trim();
-
-                if (!email || !phone || !firstName || !lastName) {
-                    showToast('Please fill in all payment contact details', 'error');
-                    return;
-                }
-                if (!/^\S+@\S+\.\S+$/.test(email)) {
-                    showToast('Please enter a valid email address', 'error');
-                    return;
-                }
-            }
+            const email = document.getElementById('buyerEmail').value.trim();
+            const phone = document.getElementById('buyerPhone').value.trim();
+            const firstName = document.getElementById('buyerFirstName').value.trim();
+            const lastName = document.getElementById('buyerLastName').value.trim();
 
             state.placingOrder = true;
 
@@ -1567,26 +2297,31 @@
             confirmBtn.disabled = true;
             backBtn.disabled = true;
             confirmBtn.classList.add('loading');
-            document.getElementById('confirmPlaceBtnLabel').textContent =
-                isOnline ? 'Redirecting to Payment...' : 'Placing Order...';
+            document.getElementById('confirmPlaceBtnLabel').textContent = 'Redirecting to Payment...';
 
             try {
-                // Cart Checkout mode: "items" is omitted on purpose — the order
-                // (or, for ONLINE, the pending checkout) is built server-side
-                // from whatever's in the user's cart right now. See
-                // ORDER_API_GUIDE.md §1b and the Order+Payment integration guide.
+                // Cart Checkout mode: "items" is omitted on purpose — the pending
+                // ONLINE checkout is built server-side from whatever's in the
+                // user's cart right now. See ORDER_API_GUIDE.md §1b and the
+                // Order+Payment integration guide.
+                // Use the amount locked in by handleProceedToPayment, captured
+                // BEFORE any wallet deduction touched the balances. Only falls
+                // back to a fresh calculation if confirmPlaceOrder is somehow
+                // reached without going through handleProceedToPayment first.
+                const cartArrayForOrder = buildCartArray();
+                const grandTotal = state.checkoutAmount ?? calculateWalletSummary(cartArrayForOrder).grandTotal;
+
                 const body = {
                     userId: state.user.loginid,
                     addressId: state.selectedAddress.id,
-                    paymentMethod: state.paymentOption
+                    paymentMethod: 'ONLINE',
+                    buyerEmail: email,
+                    buyerPhone: phone,
+                    buyerFirstName: firstName,
+                    buyerLastName: lastName,
+                    clientIp: await getClientIp(),
+                    amount: grandTotal // discounted total, locked in before wallet deduction changed the balances
                 };
-
-                if (isOnline) {
-                    body.buyerEmail = document.getElementById('buyerEmail').value.trim();
-                    body.buyerPhone = document.getElementById('buyerPhone').value.trim();
-                    body.buyerFirstName = document.getElementById('buyerFirstName').value.trim();
-                    body.buyerLastName = document.getElementById('buyerLastName').value.trim();
-                }
 
                 const response = await fetch(`${BASE_URL}/api/orders`, {
                     method: 'POST',
@@ -1595,33 +2330,41 @@
                 });
                 const data = await response.json();
 
-                // ── COD path: order is placed immediately (201) ──
-                if (response.ok && data.success && data.requiresPayment === false) {
-                    document.getElementById('orderConfirmModal').classList.remove('open');
-                    const loaderOverlay = document.getElementById('pageLoaderOverlay');
-                    document.getElementById('pageLoaderText').textContent = 'Order placed! Redirecting…';
-                    loaderOverlay.classList.add('open');
-
-                    showToast(data.message || 'Order placed successfully!');
-                    state.cartItems = {};
-                    saveCartCache({ count: 0, walletBalance: state.walletBalance });
-                    renderCart();
-                    syncCartBadge();
-
-                    const orderId = data.order?.orderId;
-                    setTimeout(() => {
-                        window.location.href = orderId
-                            ? `order_confirmation.html?orderId=${orderId}`
-                            : 'order_confirmation.html';
-                    }, 1100);
-                    return; // keep loader visible until navigation happens
-                }
+                // ── DEBUG: log full request + response for /api/orders ──
+                console.group('%c[DEBUG] /api/orders', 'color:#2563eb;font-weight:bold');
+                console.log('Request body sent:', body);
+                console.log('HTTP status:', response.status);
+                console.log('Full response JSON:', data);
+                console.groupEnd();
 
                 // ── ONLINE path: payment initiated, nothing placed yet (202) ──
                 if (response.status === 202 && data.success && data.requiresPayment === true && data.payment) {
                     const loaderOverlay = document.getElementById('pageLoaderOverlay');
                     document.getElementById('pageLoaderText').textContent = 'Redirecting to secure payment…';
                     loaderOverlay.classList.add('open');
+
+                    // Stash what /api/payment/verify/local will need, in case
+                    // manual verification is required after the Airpay round
+                    // trip. Expires after 5 minutes — see readPaymentVerifyCache().
+                    const verifyCachePayload = {
+                        orderId: data.order?.orderId || data.orderId || data.payment?.orderId || null,
+                        amount: document.getElementById('confirmGrandTotal').textContent.replace(/[^\d.]/g, ''),
+                        buyerEmail: body.buyerEmail,
+                        buyerFirstName: body.buyerFirstName,
+                        buyerLastName: body.buyerLastName,
+                        buyerPhone: body.buyerPhone,
+                        buyerPincode: state.selectedAddress?.pincode || null,
+                        clientIp: body.clientIp || null,
+                        paymentUrl: data.payment.paymentUrl,
+                        privateKey: data.payment.privateKey,
+                        checksum: data.payment.checksum
+                    };
+
+                    savePaymentVerifyCache(verifyCachePayload);
+
+                    // Clear the locked checkout amount now that it's been used —
+                    // the next order attempt should compute a fresh one.
+                    state.checkoutAmount = null;
 
                     // Cart is intentionally left untouched here — it's only
                     // cleared server-side once Airpay confirms payment.
@@ -1646,18 +2389,25 @@
                 confirmBtn.disabled = false;
                 backBtn.disabled = false;
                 confirmBtn.classList.remove('loading');
-                document.getElementById('confirmPlaceBtnLabel').textContent =
-                    state.paymentOption === 'COD' ? 'Confirm Order' : 'Proceed to Payment';
+                document.getElementById('confirmPlaceBtnLabel').textContent = 'Proceed to Payment';
             }
         }
 
         /* ─────────────── CART CACHE (shared key with script.js) ─────────────── */
         const CART_CACHE_KEY = 'sv_cart_cache';
 
-        function saveCartCache({ count, walletBalance }) {
+        function saveCartCache({ count, shoppingWalletBalance, wowWalletBalance }) {
             try {
-                localStorage.setItem(CART_CACHE_KEY, JSON.stringify({ count, walletBalance, ts: Date.now() }));
-            } catch (e) {}
+                localStorage.setItem(CART_CACHE_KEY, JSON.stringify({ count, shoppingWalletBalance, wowWalletBalance, ts: Date.now() }));
+                console.log('✅ Cart cache saved. Fields:');
+                console.table([
+                    { field: 'count', value: count },
+                    { field: 'shoppingWalletBalance', value: shoppingWalletBalance },
+                    { field: 'wowWalletBalance', value: wowWalletBalance }
+                ]);
+            } catch (e) {
+                console.error('❌ Failed to save cart cache:', e);
+            }
         }
 
         function readCartCache() {
@@ -1665,6 +2415,52 @@
                 const raw = localStorage.getItem(CART_CACHE_KEY);
                 return raw ? JSON.parse(raw) : null;
             } catch (e) { return null; }
+        }
+
+        /* ─────────────── PAYMENT VERIFY CACHE (5-minute TTL) ───────────────
+           Holds exactly what /api/payment/verify/local needs. Written just
+           before we redirect to Airpay (the page navigates away right after,
+           so this is the only way to get these fields back for manual
+           verification if the redirect/return flow needs re-checking). */
+        const PAYMENT_VERIFY_CACHE_KEY = 'sv_payment_verify_cache';
+        const PAYMENT_VERIFY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+        function savePaymentVerifyCache(fields) {
+            try {
+                localStorage.setItem(
+                    PAYMENT_VERIFY_CACHE_KEY,
+                    JSON.stringify({ ...fields, ts: Date.now() })
+                );
+                console.log('✅ Payment verify cache saved. Fields:');
+                console.table(
+                    Object.entries(fields).map(([field, value]) => ({
+                        field,
+                        value: value === null || value === undefined || value === ''
+                            ? '⚠️ EMPTY'
+                            : value,
+                        saved: value === null || value === undefined || value === '' ? 'NO' : 'YES'
+                    }))
+                );
+            } catch (e) {
+                console.error('❌ Failed to save payment verify cache:', e);
+            }
+        }
+
+        function readPaymentVerifyCache() {
+            try {
+                const raw = localStorage.getItem(PAYMENT_VERIFY_CACHE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (!parsed.ts || Date.now() - parsed.ts > PAYMENT_VERIFY_CACHE_TTL_MS) {
+                    localStorage.removeItem(PAYMENT_VERIFY_CACHE_KEY); // expired — clear it
+                    return null;
+                }
+                return parsed;
+            } catch (e) { return null; }
+        }
+
+        function clearPaymentVerifyCache() {
+            try { localStorage.removeItem(PAYMENT_VERIFY_CACHE_KEY); } catch (e) {}
         }
 
         /* ─────────────── INIT ─────────────── */
@@ -1677,7 +2473,7 @@
                 setUser(null);
                 renderCart();
                 showToast('Please login to view your cart', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
 
@@ -1686,22 +2482,28 @@
                 setUser(null);
                 renderCart();
                 showToast('Session expired, please login again', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
             if (!user || !user.loginid) {
                 setUser(null);
                 renderCart();
                 showToast('Session expired, please login again', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
 
             state.user = { loginid: user.loginid, name: user.name };
 
             // ── 2. Paint navbar + known cart count INSTANTLY from cache ──
+            // Fallback order: cached cart wallet snapshot -> logged-in user's
+            // rwallet (from login/session payload) -> 0. This avoids showing
+            // ₹0 wallet points before the /api/cart response comes back.
+            // Cache is ONLY for instant paint before the live GetBalance
+            // call resolves — never treated as truth beyond that.
             const cached = readCartCache();
-            state.walletBalance = cached?.walletBalance ?? 0;
+            state.shoppingWalletBalance = cached?.shoppingWalletBalance ?? Number(user.rwallet) ?? 0;
+            state.wowWalletBalance = cached?.wowWalletBalance ?? Number(user.owallet) ?? 0;
             setUser(state.user);
             const knownCount = cached?.count ?? 0;
             const cartCountEl = document.getElementById('cartCount');
@@ -1709,48 +2511,37 @@
             document.getElementById('cartCountLabel').textContent = `${knownCount} Item${knownCount !== 1 ? 's' : ''}`;
 
             document.getElementById('cartRows').innerHTML =
-                `<div style="padding:40px 0;text-align:center;color:#9ca3af">Loading your cart…</div>`;
+                `<div style="padding:40px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+                    <div style="width:34px;height:34px;border:3px solid #e5e7eb;border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+                    <span style="color:#9ca3af;font-size:13px">Loading your cart…</span>
+                </div>`;
             document.getElementById('emptyCart').style.display = 'none';
 
-            // ── 3. Load products catalogue ──
-            try {
-                const prodRes = await fetch(`${BASE_URL}/api/products`);
-                const prodData = await prodRes.json();
-                if (prodData.status === 'success') {
-                    state.products = prodData.data.map((p, index) => ({
-                        _id: String(p.id ?? (index + 1)),
-                        product_id: p.product_id,
-                        name: p.product_name,
-                        category: Array.isArray(p.category) ? p.category[0] : (p.category || ''),
-                        offerPrice: Number(p.offer_price) || 0,
-                        mrp: Number(p.mrp) || 0,
-                        couponDiscount: 0,
-                        image: [p.image],
-                    }));
-                }
-            } catch (err) {
-                console.error('Failed to load products catalogue:', err);
-            }
-
-            // ── 4. Fetch cart from backend ──
+            // ── 3. Fetch cart from backend (now includes full product info) ──
             try {
                 const cartRes = await fetch(`${BASE_URL}/api/cart/${user.loginid}`);
                 const cartData = await cartRes.json();
 
                 if (cartData.success && Array.isArray(cartData.cartItems)) {
-                    state.walletBalance = cartData.walletBalance ?? 0;
+                    // Prefer the live wallet balances from the cart API; if
+                    // they're missing, keep whatever we already resolved
+                    // (cache / user.rwallet / user.owallet) instead of
+                    // collapsing to 0.
+                    state.shoppingWalletBalance = cartData.shoppingWalletBalance ?? state.shoppingWalletBalance ?? 0;
+                    state.wowWalletBalance = cartData.wowWalletBalance ?? state.wowWalletBalance ?? 0;
 
-                    state.cartItems = {};
+                    const walletEl = document.getElementById('walletAmt');
+                    if (walletEl) walletEl.textContent = getTotalWalletBalance();
+state.cartItems = {};
                     cartData.cartItems.forEach(item => {
-                        state.cartItems[String(item.productId)] = {
-                            quantity: item.quantity || 1,
-                            couponSelected: item.couponSelected || false,
-                            cartItemId: item.id,
-                            finalPrice: item.finalPrice
-                        };
+                        state.cartItems[String(item.productId)] = normalizeCartItem(item);
                     });
 
-                    saveCartCache({ count: cartData.cartItems.length, walletBalance: cartData.walletBalance });
+                    saveCartCache({
+                        count: cartData.cartItems.length,
+                        shoppingWalletBalance: state.shoppingWalletBalance,
+                        wowWalletBalance: state.wowWalletBalance
+                    });
                 } else {
                     showToast(cartData.message || 'Could not load cart', 'error');
                 }
@@ -1790,15 +2581,7 @@
                 renderAddresses();
             }
 
-            // ── 6. Payment method selector ──
-            const paymentSelectEl = document.getElementById('paymentSelect');
-            if (paymentSelectEl) {
-                paymentSelectEl.addEventListener('change', function () {
-                    state.paymentOption = this.value; // 'COD' | 'ONLINE'
-                    const btn = document.getElementById('placeOrderBtn');
-                    btn.textContent = state.paymentOption === 'COD' ? 'Place Order' : 'Proceed to Checkout';
-                });
-            }
+            // Payment method is fixed to ONLINE — no selector needed anymore.
         }
 
         document.addEventListener('DOMContentLoaded', init);
@@ -1828,8 +2611,8 @@
                 if (cache) {
                     const parsed = JSON.parse(cache);
                     const walletEl = document.getElementById('walletAmt');
-                    if (walletEl && parsed.walletBalance != null) {
-                        walletEl.textContent = parsed.walletBalance;
+                    if (walletEl && (parsed.shoppingWalletBalance != null || parsed.wowWalletBalance != null)) {
+                        walletEl.textContent = (parsed.shoppingWalletBalance || 0) + (parsed.wowWalletBalance || 0);
                     }
                 }
             } catch (e) {}

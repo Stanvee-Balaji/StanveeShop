@@ -23,10 +23,17 @@
                     style="color:#203040">vee</span></span>
         </a>
 
-        <div class="desktop-search">
-            <input type="text" placeholder="Search products..." id="desktopSearch" />
+        <!-- <div class="desktop-search" style="position:relative">
+            <input type="text" placeholder="Search products..." id="desktopSearch" autocomplete="off" />
             <span style="color:#6b7280;font-size:14px">🔍</span>
-        </div>
+            <div class="search-results-dropdown" id="desktopSearchResults"></div>
+        </div> -->
+
+        <div class="desktop-search" style="position:relative">
+    <input type="text" placeholder="Search products..." id="desktopSearch" autocomplete="off" />
+    <span style="color:#6b7280;font-size:14px;cursor:pointer" onclick="performProductSearch(document.getElementById('desktopSearch').value, document.getElementById('desktopSearchResults'))">🔍</span>
+    <div class="search-results-dropdown" id="desktopSearchResults"></div>
+</div>
 
         <div class="nav-right">
             <button class="mobile-search-btn" onclick="toggleMobileSearch()" id="mobileSearchBtn">🔍</button>
@@ -60,13 +67,17 @@
 
 
                         </li>
-
-                         <li class="profile-dropdown-wallets">
+<li class="profile-dropdown-wallets">
             <div class="wallet-row">Shopping Wallet <span id="walletR">₹0</span></div>
             <!-- <div class="wallet-row">E Wallet <span id="walletE">₹0</span></div>
             <div class="wallet-row">H Wallet <span id="walletH">₹0</span></div> -->
             <div class="wallet-row">WOW Wallet <span id="walletO">₹0</span></div>
         </li>
+
+        <li class="profile-dropdown-action" onclick="window.location.href='my_orders.html'">
+            <span class="profile-action-icon">📦</span> My Orders
+        </li>
+
                         <li class="red" onclick="logout()">Logout</li>
                     </ul>
                 </div>
@@ -76,9 +87,10 @@
 
 
     <!-- Mobile search row -->
-    <div class="mobile-search-row" id="mobileSearchRow">
-        <input type="text" placeholder="Search products..." id="mobileSearch" />
+    <div class="mobile-search-row" id="mobileSearchRow" style="position:relative">
+        <input type="text" placeholder="Search products..." id="mobileSearch" autocomplete="off" />
         <button class="clear-btn" onclick="clearMobileSearch()">✕</button>
+        <div class="search-results-dropdown mobile-search-results" id="mobileSearchResults"></div>
     </div>
 
     <!-- Bottom nav -->
