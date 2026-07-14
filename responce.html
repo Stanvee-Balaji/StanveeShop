@@ -6,20 +6,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verifying Payment – Stanvee</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/app.css" />
 
     <style>
-        /* ── PAYMENT RESPONSE PAGE STYLES ── */
+        * , *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+        :root {
+            --primary: #009483;
+            --primary-dull: #006156;
+            --primary-light: rgba(0, 148, 131, 0.1);
+            --red: #dc2626;
+            --red-light: #fef2f2;
+            --amber: #d97706;
+            --amber-light: #fffbeb;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            color: #374151;
+            background: #f9fafb;
+            min-height: 100vh;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* ── MINI BRAND BAR ── */
+        .brand-bar {
+            background: #fff;
+            border-bottom: 1px solid #f3f4f6;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .brand-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1f2937;
+            letter-spacing: -0.01em;
+        }
+
+        /* ── PAGE WRAPPER ── */
         .pr-wrapper {
             max-width: 560px;
-            margin: 60px auto 80px;
+            margin: 48px auto 20px;
             padding: 0 16px;
         }
 
         .pr-state { display: none; }
-        .pr-state.active { display: block; }
+        .pr-state.active { display: block; animation: prFadeIn .25s ease; }
+
+        @keyframes prFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .pr-card {
             background: #fff;
@@ -27,9 +81,9 @@
             border-radius: 16px;
             padding: 40px 28px;
             text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
         }
 
-        /* ── VERIFYING (loading / polling) ── */
         .pr-spinner {
             width: 46px;
             height: 46px;
@@ -43,21 +97,16 @@
         @keyframes prSpin { to { transform: rotate(360deg); } }
 
         .pr-title { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
-        .pr-sub { font-size: 13.5px; color: #9ca3af; }
+        .pr-sub { font-size: 13.5px; color: #9ca3af; line-height: 1.6; }
         .pr-sub strong { color: #6b7280; }
 
-        .pr-progress-hint {
-            margin-top: 18px;
-            font-size: 12px;
-            color: #d1d5db;
-        }
+        .pr-progress-hint { margin-top: 18px; font-size: 12px; color: #d1d5db; }
 
-        /* ── SUCCESS ── */
         .pr-check-circle {
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            background: #ecfdf5;
+            background: var(--primary-light);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -72,29 +121,18 @@
 
         .pr-check-circle svg { width: 34px; height: 34px; }
 
-        /* ── FAILED / CANCELLED / MISMATCH ── */
         .pr-fail-circle {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: #fef2f2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 32px;
+            width: 70px; height: 70px; border-radius: 50%;
+            background: var(--red-light);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; font-size: 32px;
         }
 
         .pr-warn-circle {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: #fffbeb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 32px;
+            width: 70px; height: 70px; border-radius: 50%;
+            background: var(--amber-light);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; font-size: 32px;
         }
 
         .pr-reason-box {
@@ -136,13 +174,14 @@
             border-radius: 9999px;
             cursor: pointer;
             text-align: center;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s, transform 0.1s, opacity .2s;
             text-decoration: none;
             display: inline-block;
             border: none;
         }
 
         .pr-btn:active { transform: scale(0.98); }
+        .pr-btn:disabled { opacity: .6; cursor: not-allowed; }
 
         .pr-btn-primary { background: var(--primary); color: #fff; }
         .pr-btn-primary:hover { background: var(--primary-dull); }
@@ -150,15 +189,14 @@
         .pr-btn-secondary { background: #fff; color: #374151; border: 1px solid #e5e7eb; }
         .pr-btn-secondary:hover { background: #f9fafb; }
 
+        /* ── TOAST ── */
         .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            position: fixed; top: 20px; right: 20px; z-index: 999;
+            display: flex; flex-direction: column; gap: 8px;
+            left: 20px;
         }
+
+        @media (min-width: 480px) { .toast-container { left: auto; } }
 
         .toast {
             padding: 12px 20px;
@@ -170,8 +208,8 @@
             animation: slideIn 0.3s ease;
         }
 
-        .toast.success { background: #16a34a; }
-        .toast.error { background: #dc2626; }
+        .toast.success { background: var(--primary); }
+        .toast.error { background: var(--red); }
 
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
@@ -195,33 +233,35 @@
             </div>
         </div>
 
-        <!-- ══════ SUCCESS STATE (brief, then auto-redirects) ══════ -->
+        <!-- ══════ SUCCESS STATE ══════ -->
         <div class="pr-state" id="prSuccess">
             <div class="pr-card">
                 <div class="pr-check-circle">
                     <svg viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="12" fill="#16a34a" />
+                        <circle cx="12" cy="12" r="12" fill="#009483" />
                         <path d="M7 12.5L10.2 15.7L17 8.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
                 <p class="pr-title">Payment Successful!</p>
-                <p class="pr-sub">Your order has been placed. Redirecting…</p>
+                <p class="pr-sub">Your order has been placed. Redirecting in <strong id="prCountdown">10</strong>s…</p>
                 <span class="pr-order-tag" id="prSuccessOrderTag">ORD—</span>
             </div>
         </div>
 
-        <!-- ══════ STILL PROCESSING (timeout fallback) ══════ -->
+        <!-- ══════ STILL PROCESSING (also used for any error / unexpected
+             condition — the customer only ever sees "pending", never a
+             hard error) ══════ -->
         <div class="pr-state" id="prPending">
             <div class="pr-card">
                 <div class="pr-warn-circle">⏳</div>
-                <p class="pr-title">Still confirming your payment</p>
+                <p class="pr-title">Your order is pending confirmation</p>
                 <p class="pr-sub">
-                    Your payment is taking a little longer than usual to confirm.
-                    This can happen occasionally — your order will appear automatically
-                    once it's done, no need to pay again.
+                    We're still confirming your payment with the gateway. If the payment
+                    was successful, your order status will update automatically within
+                    <strong>30 minutes</strong> — no action is needed and you should not pay again.
                 </p>
                 <div class="pr-actions">
-                    <button class="pr-btn pr-btn-primary" onclick="location.reload()">Check Again</button>
+                    <button class="pr-btn pr-btn-primary" id="prCheckAgainBtn" onclick="handleCheckAgain()">Check Status Again</button>
                     <a href="my_orders.html" class="pr-btn pr-btn-secondary">View My Orders</a>
                 </div>
             </div>
@@ -236,20 +276,7 @@
                 <div class="pr-reason-box" id="prFailedReason" style="display:none"></div>
                 <div class="pr-actions">
                     <a href="cart.html" class="pr-btn pr-btn-primary">Try Again</a>
-                    <a href="shop.html" class="pr-btn pr-btn-secondary">Continue Shopping</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- ══════ HARD ERROR (bad/missing link, no transaction found) ══════ -->
-        <div class="pr-state" id="prError">
-            <div class="pr-card">
-                <div class="pr-fail-circle">⚠️</div>
-                <p class="pr-title">Something went wrong</p>
-                <p class="pr-sub" id="prErrorMessage">We couldn't verify this payment link.</p>
-                <div class="pr-actions">
-                    <a href="cart.html" class="pr-btn pr-btn-primary">Back to Cart</a>
-                    <a href="my_orders.html" class="pr-btn pr-btn-secondary">View My Orders</a>
+                    <a href="products.html" class="pr-btn pr-btn-secondary">Continue Shopping</a>
                 </div>
             </div>
         </div>
@@ -259,51 +286,85 @@
     <script>
         /*
          * ── HOW THIS PAGE IS WIRED, PER THE AIRPAY INTEGRATION GUIDE ──
-         *
-         * Flow:
-         *   1. Buyer pays on Airpay's hosted page (opened via the data
-         *      returned from POST /api/payment/initiate).
-         *   2. Airpay POSTs the encrypted result server-to-server to
-         *      POST /api/payment/response (your configured Airpay
-         *      "Response URL"). The backend decrypts it, recomputes the
-         *      CRC32 secure hash from Airpay's own fields, and compares
-         *      it against ap_securehash.
-         *        - status 200 + hash valid  -> transactions.status = SUCCESS,
-         *          and OrderService converts the PendingOrder into a real Order.
-         *        - otherwise                -> FAILED / CANCELLED / HASH_MISMATCH.
-         *   3. The backend then redirects the buyer's browser HERE:
-         *        response.html?orderId=<orderid>&status=<hint>&reason=<hint>
-         *      (orderId here is the SAME orderid you originally sent to
-         *      /api/payment/initiate — not a separate internal id.)
-         *   4. We never trust the query string status alone — it's only a
-         *      hint for a fast-path on already-known failures. Instead we
-         *      poll the same public status endpoint the rest of the app
-         *      can use:
-         *          GET /api/payment/status/{orderId}
-         *      until it reports a terminal state:
-         *          SUCCESS | FAILED | CANCELLED | HASH_MISMATCH
-         *      (INITIATED / AWAITING_PAYMENT are treated as "still working".)
-         *   5. On SUCCESS we redirect to order_confirmation.html using the
-         *      same orderId (the guide's /status endpoint does not expose
-         *      a separate internal order id, only orderId/status/amount/
-         *      message/updatedAt — if your backend's order_confirmation
-         *      page expects a different key, adjust ORDER_CONFIRM_PARAM
-         *      below).
-         *   6. A 404 from /status means no transaction row exists at all
-         *      for this orderId -> hard error state, not "still pending".
+         * 1. Buyer pays on Airpay's hosted page (opened via POST /api/payment/initiate).
+         * 2. Airpay POSTs the encrypted result server-to-server to
+         *    POST /api/payment/response. Backend decrypts + verifies the
+         *    CRC32 secure hash and marks the transaction SUCCESS / FAILED /
+         *    CANCELLED / HASH_MISMATCH, converting the PendingOrder into a
+         *    real Order only on a verified SUCCESS.
+         * 3. The buyer's BROWSER is redirected here:
+         *      response.html?orderId=<orderid>&status=<hint>&reason=<hint>
+         *    That redirect can arrive at the browser BEFORE step 2's webhook
+         *    finishes on the backend — there's no guaranteed ordering between
+         *    "browser redirected" and "server-to-server callback processed".
+         *    That's why this page polls instead of trusting one single call.
+         * 4. We poll GET /api/payment/status/{orderId} — the same public,
+         *    checksum-free endpoint — until it reports a terminal state:
+         *    SUCCESS | FAILED | CANCELLED | HASH_MISMATCH.
+         *    INITIATED / AWAITING_PAYMENT just mean "keep waiting" → order
+         *    stays shown as pending/processing until then.
+         * 5. If polling times out, we try one manual fallback verification
+         *    via POST /api/payment/verify/local using cached buyer/payment
+         *    fields (written by cart.html right before the Airpay redirect,
+         *    5-minute TTL). If that can't confirm success either, the order
+         *    is simply left as "still processing" — nothing is marked
+         *    failed just because we couldn't confirm in time.
+         * 6. On SUCCESS we show a 10 second countdown, then forward to
+         *    order_confirmation.html.
+         * 7. Any unexpected condition (no transaction row / missing orderId /
+         *    network error / unexpected redirect params) is never shown to
+         *    the customer as an error — it's always shown as "still
+         *    processing / pending confirmation".
          */
 
-        const BASE_URL = 'https://stanveeshopbackend.onrender.com';
 
-        // Query param name order_confirmation.html expects. Change if needed.
+         
+        const BASE_URL = 'https://api.stanvee.com';
         const ORDER_CONFIRM_PARAM = 'orderId';
-
         const POLL_INTERVAL_MS = 2000;
-        const MAX_POLLS = 15; // ~30s of polling before showing "still processing"
+        const MAX_POLLS = 2;
+        const REDIRECT_DELAY_MS = 10000; // 10s countdown before redirect on success
 
         const TERMINAL_SUCCESS = 'SUCCESS';
         const TERMINAL_FAILURES = ['FAILED', 'CANCELLED', 'HASH_MISMATCH'];
         const IN_PROGRESS = ['INITIATED', 'AWAITING_PAYMENT'];
+
+        // ── Manual verify fallback (5-minute TTL cache written by cart.html) ──
+        const PAYMENT_VERIFY_CACHE_KEY = 'sv_payment_verify_cache';
+        const PAYMENT_VERIFY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+        function readPaymentVerifyCache() {
+            try {
+                const raw = localStorage.getItem(PAYMENT_VERIFY_CACHE_KEY);
+                if (!raw) {
+                    console.warn('⚠️ No payment verify cache found in localStorage.');
+                    return null;
+                }
+                const parsed = JSON.parse(raw);
+                if (!parsed.ts || Date.now() - parsed.ts > PAYMENT_VERIFY_CACHE_TTL_MS) {
+                    console.warn('⚠️ Payment verify cache expired (TTL 5 min). Clearing.');
+                    localStorage.removeItem(PAYMENT_VERIFY_CACHE_KEY);
+                    return null;
+                }
+                console.log('✅ Payment verify cache loaded. Fields:');
+                console.table(
+                    Object.entries(parsed)
+                        .filter(([key]) => key !== 'ts')
+                        .map(([field, value]) => ({
+                            field,
+                            value: value === null || value === undefined || value === '' ? '⚠️ EMPTY' : value
+                        }))
+                );
+                return parsed;
+            } catch (e) {
+                console.error('❌ Failed to read payment verify cache:', e);
+                return null;
+            }
+        }
+
+        function clearPaymentVerifyCache() {
+            try { localStorage.removeItem(PAYMENT_VERIFY_CACHE_KEY); } catch (e) {}
+        }
 
         function showToast(msg, type = 'success') {
             const c = document.getElementById('toastContainer');
@@ -343,18 +404,134 @@
             showState('prFailed');
         }
 
+        // Shows the success screen, counts down from 10, then redirects.
+        function showSuccessAndRedirect(orderId) {
+            clearPaymentVerifyCache();
+            document.getElementById('prSuccessOrderTag').textContent = orderId;
+            showState('prSuccess');
+
+            let secondsLeft = REDIRECT_DELAY_MS / 1000;
+            const countdownEl = document.getElementById('prCountdown');
+            countdownEl.textContent = secondsLeft;
+
+            const timer = setInterval(() => {
+                secondsLeft -= 1;
+                if (secondsLeft <= 0) {
+                    clearInterval(timer);
+                    return;
+                }
+                countdownEl.textContent = secondsLeft;
+            }, 1000);
+
+            setTimeout(() => {
+                clearInterval(timer);
+                window.location.href =
+                    `order_confirmation.html?${ORDER_CONFIRM_PARAM}=${encodeURIComponent(orderId)}`;
+            }, REDIRECT_DELAY_MS);
+        }
+
+        /**
+         * Fallback verification path. Called only when normal polling has
+         * timed out or keeps failing. Returns true if it resolved the page
+         * to SUCCESS, false if the caller should fall back to "still
+         * processing" — nothing is ever marked failed by this function.
+         */
+        async function attemptManualVerify(orderId) {
+            console.group('%c[VERIFY DEBUG] Manual verification (/api/payment/verify/local)', 'color:#d97706;font-weight:bold');
+            const cached = readPaymentVerifyCache();
+            if (!cached) {
+                console.warn('[VERIFY DEBUG] No verify cache available in localStorage — cannot self-verify.');
+                console.groupEnd();
+                return false;
+            }
+
+            const url = `${BASE_URL}/api/payment/verify/local`;
+            const body = {
+                orderId,
+                amount: cached.amount,
+                buyerEmail: cached.buyerEmail,
+                buyerFirstName: cached.buyerFirstName,
+                buyerLastName: cached.buyerLastName,
+                buyerPhone: cached.buyerPhone,
+                buyerPincode: cached.buyerPincode,
+                clientIp: cached.clientIp,
+                paymentUrl: cached.paymentUrl,
+                privateKey: cached.privateKey,
+                checksum: cached.checksum
+            };
+            console.log('[VERIFY DEBUG] Request body:', body);
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                console.log('[VERIFY DEBUG] HTTP status:', res.status);
+                const data = await res.json();
+                console.log('[VERIFY DEBUG] Response JSON:', data);
+
+                // ── 200: Verified success (with or without conversion warning) ──
+                if (res.status === 200 && data.verified && data.status === TERMINAL_SUCCESS) {
+                    if (data.message && data.message.toLowerCase().includes('warning')) {
+                        console.warn('⚠️ [VERIFY DEBUG] Verified SUCCESS but with warning:', data.message);
+                    } else {
+                        console.log('✅ [VERIFY DEBUG] Verified SUCCESS:', data.message);
+                    }
+                    console.groupEnd();
+                    showToast('Payment verified — order confirmed!');
+                    showSuccessAndRedirect(data.orderId || orderId);
+                    return true;
+                }
+
+                // ── 400: Field mismatch — tells us exactly which fields differ ──
+                if (res.status === 400 && data.mismatchedFields) {
+                    console.warn('❌ [VERIFY DEBUG] Field mismatch, cannot verify. Mismatched fields:', data.mismatchedFields);
+                    console.groupEnd();
+                    return false;
+                }
+
+                // ── 403: Manual verification disabled in this environment ──
+                if (res.status === 403) {
+                    console.warn('🚫 [VERIFY DEBUG] Manual verification is disabled in this environment:', data.message);
+                    console.groupEnd();
+                    return false;
+                }
+
+                console.warn('[VERIFY DEBUG] Not confirmed — leaving order as pending. Response:', data);
+                console.groupEnd();
+                // Any other outcome — just leave the order as pending, no error shown.
+                return false;
+            } catch (err) {
+                console.error('[VERIFY DEBUG] Request failed:', err);
+                console.groupEnd();
+                return false;
+            }
+        }
+
+        /**
+         * Polls GET /api/payment/status/{orderId}.
+         */
         async function pollPaymentStatus(orderId, attempt = 0) {
             document.getElementById('prProgressHint').textContent =
                 attempt === 0 ? 'Please don\'t close this window.' : 'Still checking with the payment gateway…';
 
+            const url = `${BASE_URL}/api/payment/status/${encodeURIComponent(orderId)}`;
+            console.log(`[POLL DEBUG] Attempt ${attempt + 1}/${MAX_POLLS} → ${url}`);
+
             try {
-                const res = await fetch(`${BASE_URL}/api/payment/status/${encodeURIComponent(orderId)}`);
+                const res = await fetch(url);
+                console.log(`[POLL DEBUG] HTTP status: ${res.status}`);
 
                 if (res.status === 404) {
-                    // No transaction row exists for this orderId at all.
-                    document.getElementById('prErrorMessage').textContent =
-                        'We could not find a payment matching this order. If money was deducted, it will be refunded automatically, or contact support with your order reference.';
-                    showState('prError');
+                    // Transaction row can take a moment to appear after the
+                    // redirect — retry a few times before treating this as
+                    // "still pending" rather than alarming the customer.
+                    if (attempt < 4) {
+                        setTimeout(() => pollPaymentStatus(orderId, attempt + 1), POLL_INTERVAL_MS);
+                        return;
+                    }
+                    showState('prPending');
                     return;
                 }
 
@@ -363,92 +540,120 @@
                 }
 
                 const data = await res.json();
-                // Expected shape: { orderId, status, amount, message, updatedAt }
+                console.log('[POLL DEBUG] Response JSON:', data);
 
                 if (data.status === TERMINAL_SUCCESS) {
-                    document.getElementById('prSuccessOrderTag').textContent = data.orderId || orderId;
-                    showState('prSuccess');
-                    setTimeout(() => {
-                        window.location.href =
-                            `order_confirmation.html?${ORDER_CONFIRM_PARAM}=${encodeURIComponent(data.orderId || orderId)}`;
-                    }, 1400);
+                    console.log(`✅ [POLL DEBUG] Terminal SUCCESS for order ${data.orderId || orderId}`);
+                    showSuccessAndRedirect(data.orderId || orderId);
                     return;
                 }
 
                 if (TERMINAL_FAILURES.includes(data.status)) {
+                    console.warn(`❌ [POLL DEBUG] Terminal failure: ${data.status}`, data.message);
                     showFailed(data.status, data.message);
                     return;
                 }
 
                 if (IN_PROGRESS.includes(data.status)) {
                     if (attempt + 1 >= MAX_POLLS) {
-                        showState('prPending');
+                        const resolved = await attemptManualVerify(orderId);
+                        if (!resolved) showState('prPending');
                         return;
                     }
                     setTimeout(() => pollPaymentStatus(orderId, attempt + 1), POLL_INTERVAL_MS);
                     return;
                 }
 
-                // Unknown/unexpected status value from backend — don't guess,
-                // just keep polling until we hit MAX_POLLS, then fall back.
+                // Unrecognized status — treat as still-in-progress, never as an error.
                 if (attempt + 1 >= MAX_POLLS) {
-                    showState('prPending');
+                    const resolved = await attemptManualVerify(orderId);
+                    if (!resolved) showState('prPending');
                     return;
                 }
                 setTimeout(() => pollPaymentStatus(orderId, attempt + 1), POLL_INTERVAL_MS);
 
             } catch (err) {
-                console.error('Payment status poll failed:', err);
+                // Network / unexpected errors never surface as an error
+                // screen — just keep retrying, then fall back to pending.
                 if (attempt + 1 >= MAX_POLLS) {
-                    showState('prPending');
+                    const resolved = await attemptManualVerify(orderId);
+                    if (!resolved) showState('prPending');
                     return;
                 }
                 setTimeout(() => pollPaymentStatus(orderId, attempt + 1), POLL_INTERVAL_MS);
             }
         }
 
-        function init() {
+        // "Check Again" on the pending screen: try manual verify immediately,
+        // and only fall back to a full page reload (which restarts polling
+        // from scratch) if that doesn't resolve it.
+        async function handleCheckAgain() {
+            const btn = document.getElementById('prCheckAgainBtn');
             const params = new URLSearchParams(window.location.search);
-            const orderId = params.get('orderId');   // same orderid sent to /initiate
-            const status = params.get('status');     // hint only — never trusted alone
+            const orderId = params.get('orderId');
+            if (!orderId) { location.reload(); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Checking…';
+
+            const resolved = await attemptManualVerify(orderId);
+            if (!resolved) {
+                location.reload();
+            }
+        }
+
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            let orderId = params.get('orderId');
+            const status = params.get('status');
             const reason = params.get('reason');
 
+            console.log('[INIT DEBUG] URL redirect params:', { orderId, status, reason });
+
             if (!orderId) {
-                document.getElementById('prErrorMessage').textContent =
-                    'No order reference was found in the payment link.';
-                showState('prError');
+                // Airpay's redirect didn't include orderId — recover it from
+                // the verify cache written by cart.html, then self-verify
+                // directly instead of dead-ending on "pending" with nothing
+                // to check.
+                const cached = readPaymentVerifyCache();
+                if (cached && cached.orderId) {
+                    console.warn('[INIT DEBUG] No orderId in URL — recovered from verify cache:', cached.orderId);
+                    orderId = cached.orderId;
+                    document.getElementById('prOrderNumberInline').textContent = orderId;
+
+                    const resolved = await attemptManualVerify(orderId);
+                    if (!resolved) {
+                        console.warn('[INIT DEBUG] Self-verify did not resolve — showing pending state.');
+                        showState('prPending');
+                    }
+                    return;
+                }
+
+                console.warn('[INIT DEBUG] No orderId in URL and no cache available — showing pending state.');
+                showState('prPending');
                 return;
             }
 
             document.getElementById('prOrderNumberInline').textContent = orderId;
 
-            // Fast-path: query string already tells us it clearly failed/
-            // cancelled/mismatched — no point polling, just show it immediately.
-            // We still only trust the terminal states the guide defines.
             if (TERMINAL_FAILURES.includes(status)) {
                 showFailed(status, reason);
                 return;
             }
 
             if (status === 'ERROR') {
-                document.getElementById('prErrorMessage').textContent =
-                    reason || 'An unexpected error occurred while processing your payment.';
-                showState('prError');
+                // Never shown as an error — treated as still pending.
+                showState('prPending');
                 return;
             }
 
-            // status === 'SUCCESS' (or unknown/missing) → confirm against the
-            // real source of truth (/api/payment/status/{orderId}) before
-            // celebrating, since the redirect status param is just a hint.
+            // Redirect status hint alone is never trusted — always confirmed
+            // against GET /api/payment/status/{orderId}.
             pollPaymentStatus(orderId);
         }
 
         document.addEventListener('DOMContentLoaded', init);
     </script>
-
-    <script src="js/script.js"></script>
-    <script src="js/app-data.js"></script>
-    <script src="js/include.js"></script>
 </body>
 
 </html>

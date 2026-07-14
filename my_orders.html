@@ -11,13 +11,15 @@
 
     <style>
         /* ── MY ORDERS PAGE STYLES ── */
-
-        .mo-wrapper {
-            max-width: 900px;
-            margin: 48px auto 80px;
-            padding: 0 16px;
-        }
-
+.mo-wrapper {
+    max-width: 1500px;
+    margin: 16px auto 40px;
+    padding: 0 16px;
+}
+.mo-header {
+    border-bottom: 1px solid #f1f1f1;
+    padding-bottom: 20px;
+}
         .breadcrumb {
             font-size: 13px;
             color: #9ca3af;
@@ -46,16 +48,17 @@
         }
 
         /* Status filter tabs */
-        .mo-filters {
+.mo-filters {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f1f1f1;
         }
-
         .mo-filter-btn {
-            padding: 7px 16px;
-            font-size: 13px;
+            padding: 9px 20px;
+            font-size: 13.5px;
             font-weight: 500;
             font-family: 'Outfit', sans-serif;
             border: 1px solid #e5e7eb;
@@ -63,7 +66,12 @@
             color: #374151;
             border-radius: 9999px;
             cursor: pointer;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            outline: none;
+            transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+        }
+
+        .mo-filter-btn:active {
+            transform: scale(0.96);
         }
 
         .mo-filter-btn:hover {
@@ -133,8 +141,11 @@
         /* Empty state */
         .mo-empty {
             text-align: center;
-            padding: 70px 16px;
+            padding: 60px 16px;
             color: #9ca3af;
+            background: #fafafa;
+            border-radius: 16px;
+            border: 1px dashed #e5e7eb;
         }
 
         .mo-empty-icon { font-size: 52px; display: block; margin-bottom: 16px; }
@@ -162,16 +173,18 @@
         .mo-order-card {
             background: #fff;
             border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            padding: 18px 20px;
-            margin-bottom: 14px;
+            border-radius: 16px;
+            padding: 20px 22px;
+            margin-bottom: 16px;
             cursor: pointer;
-            transition: border-color 0.15s, box-shadow 0.15s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
         }
 
         .mo-order-card:hover {
             border-color: var(--primary);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+            transform: translateY(-2px);
         }
 
         .mo-order-top {
@@ -184,9 +197,10 @@
         }
 
         .mo-order-number {
-            font-size: 14.5px;
-            font-weight: 600;
+            font-size: 15.5px;
+            font-weight: 700;
             color: #111827;
+            letter-spacing: -0.01em;
         }
 
         .mo-order-date {
@@ -210,6 +224,29 @@
         .mo-status-delivered { background: #ecfdf5; color: #16a34a; }
         .mo-status-confirmed { background: #fefce8; color: #ca8a04; }
         .mo-status-shipped { background: #f5f3ff; color: #7c3aed; }
+        .mo-status-pending-payment { background: #fff7ed; color: #ea580c; }
+        .mo-status-hash-mismatch { background: #fef2f2; color: #dc2626; }
+        .mo-status-converted { background: #ecfdf5; color: #16a34a; }
+
+        .mo-retry-payment-btn {
+            padding: 7px 16px;
+            font-size: 12.5px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .mo-retry-payment-btn:hover { background: var(--primary-dull); }
+
+        .mo-failure-reason {
+            font-size: 12.5px;
+            color: #dc2626;
+            margin-top: 6px;
+        }
 
         .mo-order-bottom {
             display: flex;
@@ -217,6 +254,9 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 10px;
+            padding-top: 12px;
+            margin-top: 4px;
+            border-top: 1px dashed #f1f1f1;
         }
 
         .mo-order-items-count {
@@ -241,8 +281,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 14px;
-            margin-top: 28px;
+            gap: 16px;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f1f1;
         }
 
         .mo-page-btn {
@@ -330,6 +372,7 @@
             <button class="mo-filter-btn" data-status="SHIPPED">Shipped</button>
             <button class="mo-filter-btn" data-status="DELIVERED">Delivered</button>
             <button class="mo-filter-btn" data-status="CANCELLED">Cancelled</button>
+            <button class="mo-filter-btn" data-status="PENDING_VIEW">Pending Payments</button>
         </div>
 
         <!-- ══════ LOADING STATE ══════ -->
@@ -375,7 +418,7 @@
     <div id="footer"></div>
 
     <script>
-        const BASE_URL = 'https://stanveeshopbackend.onrender.com';
+        const BASE_URL = 'https://api.stanvee.com';
         const currency = '₹';
         const PAGE_SIZE = 10;
 
@@ -383,6 +426,7 @@
         let currentStatus = '';
         let currentPage = 0;
         let totalPages = 1;
+        let isPendingView = false; // true when "Pending Payments" tab is active
 
         function showToast(msg, type = 'success') {
             const c = document.getElementById('toastContainer');
@@ -420,6 +464,33 @@
             }
         }
 
+        function pendingStatusPillClass(status) {
+            switch (status) {
+                case 'PENDING_PAYMENT': return 'mo-status-pending-payment';
+                case 'CONVERTED': return 'mo-status-converted';
+                case 'HASH_MISMATCH': return 'mo-status-hash-mismatch';
+                case 'CANCELLED': return 'mo-status-cancelled';
+                case 'FAILED': return 'mo-status-hash-mismatch';
+                default: return 'mo-status-pending-payment';
+            }
+        }
+
+        function pendingStatusLabel(status) {
+            switch (status) {
+                case 'PENDING_PAYMENT': return 'Awaiting Payment';
+                case 'CONVERTED': return 'Payment Confirmed';
+                case 'FAILED': return 'Payment Failed';
+                case 'CANCELLED': return 'Cancelled';
+                case 'HASH_MISMATCH': return 'Verification Failed';
+                default: return status;
+            }
+        }
+
+        // function retryPayment(orderNumber) {
+        //     // Adjust target page to wherever your checkout/retry flow lives
+        //     window.location.href = `checkout.html?retryOrderNumber=${orderNumber}`;
+        // }
+
         function renderOrders(orders) {
             document.getElementById('moOrdersList').innerHTML = orders.map(order => `
                 <div class="mo-order-card" onclick="viewOrder('${order.orderId}')">
@@ -443,6 +514,25 @@ function viewOrder(orderId) {
             window.location.href = `order-details.html?orderId=${orderId}`;
         }
 
+        function renderPendingOrders(pendingOrders) {
+            document.getElementById('moOrdersList').innerHTML = pendingOrders.map(po => `
+                <div class="mo-order-card">
+                    <div class="mo-order-top">
+                        <div>
+                            <p class="mo-order-number">${po.orderNumber}</p>
+                            <p class="mo-order-date">${formatDate(po.createdAt)}</p>
+                        </div>
+                        <span class="mo-status-pill ${pendingStatusPillClass(po.status)}">${pendingStatusLabel(po.status)}</span>
+                    </div>
+                    ${po.failureReason ? `<p class="mo-failure-reason">${po.failureReason}</p>` : ''}
+                    <div class="mo-order-bottom">
+                        <span class="mo-order-items-count">${po.totalItems} item${po.totalItems !== 1 ? 's' : ''}</span>
+                        <span class="mo-order-amount">${currency}${(po.totalAmount ?? 0).toFixed(2)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         function updatePaginationUI(totalOrders) {
             const pagination = document.getElementById('moPagination');
             if (totalPages <= 1) {
@@ -464,7 +554,8 @@ function viewOrder(orderId) {
         }
 
         function setActiveFilter(status) {
-            currentStatus = status;
+            isPendingView = (status === 'PENDING_VIEW');
+            currentStatus = isPendingView ? '' : status;
             currentPage = 0;
             document.querySelectorAll('.mo-filter-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.status === status);
@@ -472,8 +563,52 @@ function viewOrder(orderId) {
             loadOrders();
         }
 
+        async function loadPendingOrders() {
+            if (!currentUser) return;
+
+            showState('moLoadingState');
+
+            try {
+                const qs = new URLSearchParams({
+                    page: currentPage,
+                    size: PAGE_SIZE
+                });
+
+                const res = await fetch(`${BASE_URL}/api/orders/pending/${currentUser.loginid}?${qs.toString()}`);
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    const pendingOrders = data.pendingOrders || [];
+                    totalPages = data.totalPages || 1;
+
+                    if (pendingOrders.length === 0) {
+                        document.getElementById('moEmptyMessage').textContent = "You have no pending payment orders.";
+                        showState('moEmptyState');
+                        return;
+                    }
+
+                    renderPendingOrders(pendingOrders);
+                    updatePaginationUI(data.totalPendingOrders ?? pendingOrders.length);
+                    showState('moListState');
+                } else {
+                    document.getElementById('moErrorMessage').textContent =
+                        data.message || 'Something went wrong while fetching pending orders.';
+                    showState('moErrorState');
+                }
+            } catch (err) {
+                console.error('Failed to load pending orders:', err);
+                document.getElementById('moErrorMessage').textContent =
+                    'Could not connect to the order server. Please check your connection and try again.';
+                showState('moErrorState');
+            }
+        }
+
         async function loadOrders() {
             if (!currentUser) return;
+
+            if (isPendingView) {
+                return loadPendingOrders();
+            }
 
             showState('moLoadingState');
 

@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products — Stanvee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ---- Modal system (scoped, won't clash with style.css) ---- */
+        .sv-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 18, 30, 0.55);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .sv-modal-overlay.open { display: flex; }
+
+        .sv-modal {
+            background: #fff;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 720px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            overflow: hidden;
+            animation: sv-modal-in 0.18s ease;
+        }
+        @keyframes sv-modal-in {
+            from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .sv-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #eef0f5;
+        }
+        .sv-modal-title { font-size: 16px; font-weight: 700; color: #1a1d29; }
+        .sv-modal-close {
+            border: none; background: #f2f3f7; width: 30px; height: 30px; border-radius: 8px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; color: #5b6272;
+        }
+        .sv-modal-close:hover { background: #e6e8f0; }
+
+        .sv-modal-body { padding: 22px; max-height: 72vh; overflow-y: auto; }
+        .sv-modal-footer {
+            padding: 16px 22px; border-top: 1px solid #eef0f5; display: flex; justify-content: flex-end; gap: 10px;
+        }
+
+        .sv-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .sv-form-grid .full { grid-column: 1 / -1; }
+        @media (max-width: 640px) { .sv-form-grid { grid-template-columns: 1fr; } }
+
+        .sv-field label { display: block; font-size: 12.5px; font-weight: 600; color: #4b5163; margin-bottom: 5px; }
+        .sv-field .req { color: #dc3545; }
+        .sv-field input, .sv-field textarea, .sv-field select {
+            width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid #dfe2ea;
+            font-size: 13.5px; font-family: inherit; box-sizing: border-box; outline: none;
+        }
+        .sv-field input:focus, .sv-field textarea:focus, .sv-field select:focus { border-color: #6366f1; }
+        .sv-field textarea { min-height: 64px; resize: vertical; }
+        .sv-hint { font-size: 11.5px; color: #9aa4b8; margin-top: 3px; }
+
+        .sv-view-hero { display: flex; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+        .sv-view-hero img { width: 140px; height: 140px; object-fit: cover; border-radius: 10px; border: 1px solid #eef0f5; }
+        .sv-view-gallery { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .sv-view-gallery img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid #eef0f5; }
+
+        .sv-view-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed #eef0f5; font-size: 13.5px; }
+        .sv-view-row span:first-child { color: #8b92a5; }
+        .sv-view-row span:last-child { color: #1a1d29; font-weight: 600; text-align: right; }
+
+        .sv-view-section-title { font-size: 12.5px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: .04em; margin: 18px 0 8px; }
+        .sv-view-desc { font-size: 13.5px; color: #3a3f4d; line-height: 1.6; }
+        .sv-view-desc li { margin-bottom: 4px; }
+
+        .sv-spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .sv-spec-table td { padding: 6px 8px; border-bottom: 1px solid #f2f3f7; }
+        .sv-spec-table td:first-child { color: #8b92a5; width: 40%; }
+
+        .sv-clickable-row { cursor: pointer; }
+        .sv-clickable-row:hover { background: #f7f8fc; }
+
+        .sv-loading-inline { text-align: center; padding: 30px; color: #9aa4b8; font-size: 13.5px; }
+
+        .sv-toast {
+            position: fixed; top: 20px; right: 20px; z-index: 1100; padding: 12px 16px; border-radius: 10px;
+            font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none;
+        }
+        .sv-toast.success { background: #eafaf0; color: #1a7a3d; border: 1px solid #b7ecc9; }
+        .sv-toast.error { background: #fdeced; color: #b8232f; border: 1px solid #f5c2c7; }
+
+        /* ---- Delete confirmation modal ---- */
+        .sv-delete-icon-wrap {
+            width: 46px; height: 46px; border-radius: 50%; background: #fdeced;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .sv-delete-text { font-size: 14px; color: #3a3f4d; line-height: 1.55; }
+        .sv-delete-text b { color: #1a1d29; }
+        .btn-danger {
+            background: #dc3545; color: #fff; border: 1px solid #dc3545;
+            padding: 9px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer;
+        }
+        .btn-danger:hover { background: #c22836; }
+        .btn-danger:disabled { opacity: 0.65; cursor: not-allowed; }
+
+        /* ---- Row action buttons (Edit / Delete) ---- */
+        #products-body .action-cell { display: flex; gap: 6px; }
+        #products-body .act-btn {
+            width: 30px; height: 30px; border-radius: 7px; border: 1px solid transparent;
+            display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        #products-body .act-btn.edit { background: #eef0ff; color: #6366f1; border-color: #dfe1fb; }
+        #products-body .act-btn.edit:hover { background: #e2e5ff; }
+        #products-body .act-btn.danger { background: #fdeced; color: #dc3545; border-color: #f5c2c7; }
+        #products-body .act-btn.danger:hover { background: #f8d7da; }
+
+        /* ---- Loader scoped to the content area only (sidebar stays usable) ---- */
+        #content-loader {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: 50;
+            border-radius: 8px;
+        }
+        #content-loader.show { display: flex; }
+        @keyframes prod-spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================================================
+     APP SHELL — sidebar + topbar markup is identical on every page.
+     No JS: the mobile menu uses a hidden checkbox (#sb-toggle) and
+     the Products dropdown uses a native <details> element.
+============================================================= -->
+    <div id="app-shell">
+        <input type="checkbox" id="sb-toggle">
+        <label for="sb-toggle" class="sb-overlay"></label>
+
+        <!-- ---------- SIDEBAR ---------- -->
+   <aside id="sidebar">
+    <div class="sb-brand" style="display:flex;align-items:center;justify-content:center;padding:10px 0;">
+        <img src="images/logoadminpanel.png" alt="Logo" style="height:50px;width:auto;">
+    </div>
+    <nav class="sb-nav">
+        <a class="sb-item" href="dashboard.html">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg><span>Dashboard</span>
+        </a>
+        <details class="sb-group active" open>
+            <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg><span>Products</span>
+                <span class="sb-caret"></span>
+            </summary>
+            <div class="sb-sub">
+                <a class="sb-sub-item active" href="products.html">All Products</a><a class="sb-sub-item" href="add-product.html">Add Product</a><a class="sb-sub-item" href="import.html">Import via Excel</a>
+            </div>
+        </details>
+        <a class="sb-item" href="categories.html">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span>Categories</span>
+        </a>
+        <details class="sb-group">
+            <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg><span>Orders</span>
+                <span class="sb-caret"></span>
+            </summary>
+            <div class="sb-sub">
+                <a class="sb-sub-item" href="orders.html">All Orders</a>
+                <a class="sb-sub-item" href="pending-checkouts.html">Pending Checkouts</a>
+            </div>
+        </details>
+        <div class="sb-item sb-disabled" title="Coming soon">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>Settings</span>
+        </div>
+    </nav>
+    <div class="sb-footer">
+        <div class="sb-avatar">A</div>
+        <div class="sb-footer-info">
+            <div class="sb-footer-name">Logout</div>
+            <div class="sb-footer-role">Administrator</div>
+        </div>
+        <a class="sb-logout-btn" href="login.html" id="logout-btn" title="Logout"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></a>
+    </div>
+</aside>
+
+        <div id="main-wrap">
+            <!-- ---------- TOPBAR ---------- -->
+            <!-- <header id="header">
+                <div class="flex" style="align-items:center;gap:10px;">
+                    <label for="sb-toggle" class="hamburger"><svg class="icon" width="22" height="22" viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></label>
+                    <div class="breadcrumb"><span>Products</span> <span style="color:var(--text-light)">/</span> <b>All Products</b></div>
+                </div>
+                <div class="header-right">
+                    <div class="profile-btn">
+                        <div class="profile-avatar">A</div>
+                        <span class="profile-name">Admin User</span>
+                    </div>
+                </div>
+            </header> -->
+
+            <!-- ---------- PAGE CONTENT ---------- -->
+            <main id="content" style="position:relative;min-height:400px;">
+
+                <div class="page-head-row">
+                    <div>
+                        <div class="page-title">All Products</div>
+                        <div class="page-sub">Manage your full product catalog</div>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="open-add-modal"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add Product</button>
+                </div>
+
+                <div id="page-message" style="display:none;margin-bottom:16px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
+
+                <div class="card" style="margin-bottom:18px;">
+                    <form class="filter-bar" id="filter-form">
+                        <div class="filter-item grow">
+                            <label for="f-keyword">Search</label>
+                            <input class="input" type="text" id="f-keyword" name="keyword" placeholder="Search by name or ID…">
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-category">Category</label>
+                            <select class="select" id="f-category" name="category">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-stock">Stock Status</label>
+                            <select class="select" id="f-stock" name="stockStatus">
+                                <option value="">All</option>
+                                <option value="in_stock">In Stock</option>
+                                <option value="out_of_stock">Out of Stock</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-min">Min Price</label>
+                            <input class="input" type="number" id="f-min" name="minPrice" placeholder="0">
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-max">Max Price</label>
+                            <input class="input" type="number" id="f-max" name="maxPrice" placeholder="999">
+                        </div>
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-primary">Apply Filters</button>
+                            <button type="button" id="reset-filters" class="btn btn-secondary">Reset</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Image</th>
+                                    <th>Product Name</th>
+                                    <th>Product ID</th>
+                                    <th>MRP</th>
+                                    <th>Offer Price</th>
+                                    <th>Stock Status</th>
+                                    <th>Category</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-body">
+                                <tr><td colspan="9" style="text-align:center;padding:24px;color:#9aa4b8;">Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar">
+                        <div class="flex" style="align-items:center;gap:8px;">
+                            <span class="pg-info">Rows per page</span>
+                            <select class="page-size-select" id="page-size-select">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="pg-info" id="pg-info-text">Showing 0 of 0 products</div>
+                        <div class="pg-btns">
+                            <button class="pg-btn" id="pg-prev" disabled>Previous</button>
+                            <span class="pg-info" id="pg-page-text">Page 1 of 1</span>
+                            <button class="pg-btn" id="pg-next" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Loader scoped to this content area only (sidebar stays usable while loading) -->
+                <div id="content-loader">
+                    <div style="width:38px;height:38px;border:4px solid #e2e5f1;border-top-color:#6366f1;border-radius:50%;animation:prod-spin 0.8s linear infinite;"></div>
+                    <div style="font-size:13.5px;font-weight:600;color:#5b6272;">Loading products…</div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         VIEW PRODUCT MODAL
+    ============================================================= -->
+    <div class="sv-modal-overlay" id="view-modal-overlay">
+        <div class="sv-modal">
+            <div class="sv-modal-header">
+                <div class="sv-modal-title">Product Details</div>
+                <button type="button" class="sv-modal-close" id="close-view-modal">✕</button>
+            </div>
+            <div class="sv-modal-body" id="view-modal-body">
+                <div class="sv-loading-inline">Loading product…</div>
+            </div>
+            <div class="sv-modal-footer">
+                <button type="button" class="btn btn-secondary" id="close-view-modal-2">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         ADD PRODUCT MODAL
+    ============================================================= -->
+    <div class="sv-modal-overlay" id="add-modal-overlay">
+        <div class="sv-modal" style="max-width:820px;">
+            <div class="sv-modal-header">
+                <div class="sv-modal-title" id="add-modal-title">Add New Product</div>
+                <button type="button" class="sv-modal-close" id="close-add-modal">✕</button>
+            </div>
+            <div class="sv-modal-body">
+                <div id="add-form-message" style="display:none;margin-bottom:14px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
+                <form id="add-product-form">
+                    <div class="sv-form-grid">
+                        <div class="sv-field full">
+                            <label>Product Name <span class="req">*</span></label>
+                            <input type="text" id="a-product-name" required>
+                        </div>
+                        <div class="sv-field">
+                            <label>Product ID <span class="req">*</span></label>
+                            <input type="text" id="a-product-id" required>
+                            <div class="sv-hint">Must be unique</div>
+                        </div>
+                        <div class="sv-field">
+                            <label>SKU</label>
+                            <input type="text" id="a-sku">
+                        </div>
+                        <div class="sv-field">
+                            <label>MRP (₹) <span class="req">*</span></label>
+                            <input type="number" step="0.01" id="a-mrp" required>
+                        </div>
+                        <div class="sv-field">
+                            <label>Offer Price (₹) <span class="req">*</span></label>
+                            <input type="number" step="0.01" id="a-offer-price" required>
+                        </div>
+                        <div class="sv-field">
+                            <label>Stock Quantity</label>
+                            <input type="number" id="a-stock-qty">
+                        </div>
+                        <div class="sv-field">
+                            <label>Stock Status</label>
+                            <select id="a-stock-status">
+                                <option value="">— Not set —</option>
+                                <option value="in_stock">In Stock</option>
+                                <option value="out_of_stock">Out of Stock</option>
+                            </select>
+                        </div>
+                        <div class="sv-field full">
+                            <label>Main Image URL <span class="req">*</span></label>
+                            <input type="url" id="a-image" required placeholder="https://…">
+                        </div>
+                        <div class="sv-field full">
+                            <label>Gallery Image URLs <span class="req">*</span></label>
+                            <textarea id="a-gallery-images" required placeholder="One URL per line, or comma-separated"></textarea>
+                        </div>
+                        <div class="sv-field">
+                            <label>Category <span class="req">*</span></label>
+                            <input type="text" id="a-category" required placeholder="e.g. Kitchen Appliances">
+                            <div class="sv-hint">Comma-separated if multiple</div>
+                        </div>
+                        <div class="sv-field">
+                            <label>Sub Category</label>
+                            <input type="text" id="a-sub-category" placeholder="e.g. Cookware">
+                        </div>
+                        <div class="sv-field full">
+                            <label>Short Description <span class="req">*</span></label>
+                            <textarea id="a-short-desc" required></textarea>
+                        </div>
+                        <div class="sv-field full">
+                            <label>Full Description <span class="req">*</span></label>
+                            <textarea id="a-desc" required style="min-height:90px;"></textarea>
+                        </div>
+                        <div class="sv-field">
+                            <label>Tax Status</label>
+                            <input type="text" id="a-tax-status" placeholder="e.g. taxable">
+                        </div>
+                        <div class="sv-field">
+                            <label>Tax Class</label>
+                            <input type="text" id="a-tax-class" placeholder="e.g. standard">
+                        </div>
+                        <div class="sv-field">
+                            <label>HSN Code</label>
+                            <input type="text" id="a-hsn">
+                        </div>
+                        <div class="sv-field">
+                            <label>EAN</label>
+                            <input type="text" id="a-ean">
+                        </div>
+                        <div class="sv-field">
+                            <label>Warranty</label>
+                            <input type="text" id="a-warranty" placeholder="e.g. 1 Year">
+                        </div>
+                        <div class="sv-field">
+                            <label>Max Points Utilization</label>
+                            <input type="number" min="0" id="a-max-points" placeholder="0">
+                        </div>
+                        <div class="sv-field full">
+                            <label>Specifications (JSON)</label>
+                            <textarea id="a-specifications" placeholder='{"Weight": "1.68 kg", "Dimensions": "53 × 14 × 27 cm"}'></textarea>
+                        </div>
+                        <div class="sv-field full">
+                            <label>Description Items (JSON)</label>
+                            <textarea id="a-description-items" placeholder='[{"label":"Feature","value":"Details..."}]'></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="sv-modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-add-modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submit-add-product">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         DELETE CONFIRMATION MODAL
+    ============================================================= -->
+    <div class="sv-modal-overlay" id="delete-modal-overlay">
+        <div class="sv-modal" style="max-width:440px;">
+            <div class="sv-modal-header">
+                <div class="sv-modal-title">Delete Product</div>
+                <button type="button" class="sv-modal-close" id="close-delete-modal">✕</button>
+            </div>
+            <div class="sv-modal-body">
+                <div style="display:flex;gap:14px;align-items:flex-start;">
+                    <div class="sv-delete-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    </div>
+                    <div class="sv-delete-text">
+                        Are you sure you want to delete <b id="delete-product-name"></b>
+                        (<span id="delete-product-id"></span>)? This action cannot be undone.
+                    </div>
+                </div>
+            </div>
+            <div class="sv-modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-delete-modal">Cancel</button>
+                <button type="button" class="btn-danger" id="confirm-delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sv-toast" id="sv-toast"></div>
+
+    <script>
+        // ------------------------------------------------------------------
+        // Auth
+        // ------------------------------------------------------------------
+        window.__adminAuth = { token: localStorage.getItem("adminSessionToken") };
+        if (!window.__adminAuth.token) { window.location.href = "index.html"; }
+
+        const API_BASE = "https://api.stanvee.com";
+
+        function authHeaders(extra) {
+            return Object.assign({ "Authorization": window.__adminAuth.token }, extra || {});
+        }
+
+        function handleUnauthorized() {
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            showMessage("Your session has expired. Redirecting to sign in…", "error");
+            setTimeout(function () { window.location.href = "index.html"; }, 900);
+        }
+
+        const msgBox = document.getElementById("page-message");
+        function showMessage(text, type) {
+            msgBox.textContent = text;
+            msgBox.style.display = "block";
+            msgBox.style.background = type === "error" ? "rgba(220,53,69,0.12)" : "rgba(40,167,69,0.12)";
+            msgBox.style.border = "1px solid " + (type === "error" ? "rgba(220,53,69,0.4)" : "rgba(40,167,69,0.4)");
+            msgBox.style.color = type === "error" ? "#dc3545" : "#28a745";
+        }
+        function clearMessage() { msgBox.style.display = "none"; msgBox.textContent = ""; }
+
+        function showToast(text, type) {
+            const t = document.getElementById("sv-toast");
+            t.textContent = text;
+            t.className = "sv-toast " + type;
+            t.style.display = "block";
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(function () { t.style.display = "none"; }, 3500);
+        }
+
+        // Loader scoped to #content only — sidebar and topbar stay usable while it shows.
+        function showLoader() {
+            document.getElementById("content-loader").classList.add("show");
+        }
+        function hideLoader() {
+            document.getElementById("content-loader").classList.remove("show");
+        }
+
+        function escapeHtml(str) {
+            return String(str == null ? "" : str)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function formatRupees(value) {
+            if (value == null || value === "") return "—";
+            var num = Number(value);
+            if (isNaN(num)) return "₹" + value;
+            return "₹" + num.toLocaleString("en-IN");
+        }
+
+        function renderStockBadge(status) {
+            var s = (status || "").toLowerCase();
+            if (s === "out_of_stock" || s === "out of stock") {
+                return '<span class="badge badge-red"><svg class="icon" width="11" height="11" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Out of Stock</span>';
+            }
+            return '<span class="badge badge-green"><svg class="icon" width="11" height="11" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>In Stock</span>';
+        }
+
+        async function fetchWithTimeout(url, options, timeoutMs) {
+            const controller = new AbortController();
+            const timer = setTimeout(function () { controller.abort(); }, timeoutMs || 30000000);
+            try {
+                const res = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+                clearTimeout(timer);
+                return res;
+            } catch (err) {
+                clearTimeout(timer);
+                if (err.name === "AbortError") throw new Error("Request timed out: " + url);
+                console.error("[products] Fetch failed for", url, "-", err.message);
+                throw err;
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // State + list loading
+        // ------------------------------------------------------------------
+        let state = { page: 0, size: 20, keyword: "", category: "", stockStatus: "", minPrice: "", maxPrice: "" };
+
+        async function loadCategories() {
+            try {
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/products/categories", { headers: authHeaders() }, 10000);
+                if (res.status === 401) { handleUnauthorized(); return; }
+                const body = await res.json();
+                if (body.status === "success" && Array.isArray(body.data)) {
+                    const sel = document.getElementById("f-category");
+                    body.data.forEach(function (cat) {
+                        const opt = document.createElement("option");
+                        opt.value = cat; opt.textContent = cat;
+                        sel.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error("[products] Failed to load categories:", err);
+            }
+        }
+
+        async function loadProducts() {
+            clearMessage();
+            showLoader();
+            try {
+                const params = new URLSearchParams();
+                params.set("page", state.page);
+                params.set("size", state.size);
+                if (state.keyword) params.set("keyword", state.keyword);
+                if (state.category) params.set("category", state.category);
+                if (state.minPrice !== "") params.set("minPrice", state.minPrice);
+                if (state.maxPrice !== "") params.set("maxPrice", state.maxPrice);
+
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/products?" + params.toString(), { headers: authHeaders() }, 30000000);
+                if (res.status === 401) { handleUnauthorized(); return; }
+
+                const body = await res.json();
+
+                if (body.status !== "success") {
+                    hideLoader();
+                    showMessage(typeof body.data === "string" ? body.data : "Failed to load products.", "error");
+                    document.getElementById("products-body").innerHTML =
+                        '<tr><td colspan="9" style="text-align:center;padding:24px;color:#9aa4b8;">Could not load products.</td></tr>';
+                    return;
+                }
+
+                let products = Array.isArray(body.data) ? body.data : [];
+                if (state.stockStatus) {
+                    products = products.filter(function (p) { return (p.stock_status || "").toLowerCase() === state.stockStatus; });
+                }
+
+                renderTable(products, state.page * state.size);
+                renderPagination(body, products.length);
+                hideLoader();
+            } catch (err) {
+                console.error("[products] loadProducts failed:", err);
+                hideLoader();
+                showMessage("Could not reach the server. Check your connection and try again.", "error");
+                document.getElementById("products-body").innerHTML =
+                    '<tr><td colspan="9" style="text-align:center;padding:24px;color:#9aa4b8;">Could not load products.</td></tr>';
+            }
+        }
+
+        function renderTable(products, startIndex) {
+            const tbody = document.getElementById("products-body");
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:#9aa4b8;">No products found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = products.map(function (p, i) {
+                var cat = Array.isArray(p.category) ? p.category.join(", ") : (p.category || "—");
+                var mrp = formatRupees(p.mrp);
+                var offer = formatRupees(p.offer_price);
+                var pid = escapeHtml(p.product_id || "");
+                return '<tr class="sv-clickable-row" data-view-id="' + pid + '">' +
+                    '<td>' + (startIndex + i + 1) + '</td>' +
+                    '<td><img class="prod-thumb" src="' + escapeHtml(p.image || "https://picsum.photos/seed/" + (pid || "x") + "/80/80") + '" alt=""></td>' +
+                    '<td class="prod-name">' + escapeHtml(p.product_name || "Untitled") + '</td>' +
+                    '<td class="prod-id">' + pid + '</td>' +
+                    '<td>' + escapeHtml(mrp) + '</td>' +
+                    '<td>' + escapeHtml(offer) + '</td>' +
+                    '<td>' + renderStockBadge(p.stock_status) + '</td>' +
+                    '<td>' + escapeHtml(cat) + '</td>' +
+                    '<td class="action-cell">' +
+                        '<button type="button" class="act-btn edit" title="Edit" data-edit-id="' + pid + '"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg></button>' +
+                        '<button type="button" class="act-btn danger" title="Delete" data-delete-id="' + pid + '" data-delete-name="' + escapeHtml(p.product_name || "") + '"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
+                    '</td>' +
+                '</tr>';
+            }).join("");
+
+            tbody.querySelectorAll("tr[data-view-id]").forEach(function (row) {
+                row.addEventListener("click", function (e) {
+                    if (e.target.closest(".act-btn")) return; // don't open view when clicking delete
+                    openViewModal(row.getAttribute("data-view-id"));
+                });
+            });
+            tbody.querySelectorAll(".act-btn.danger").forEach(function (btn) {
+                btn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    openDeleteModal(btn.getAttribute("data-delete-id"), btn.getAttribute("data-delete-name"));
+                });
+            });
+            tbody.querySelectorAll(".act-btn.edit").forEach(function (btn) {
+                btn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    openEditModal(btn.getAttribute("data-edit-id"));
+                });
+            });
+        }
+
+        function renderPagination(body, visibleCount) {
+            const totalPages = body.total_pages || 1;
+            const currentPage = body.current_page ?? state.page;
+            const totalProducts = body.total_products ?? visibleCount;
+            document.getElementById("pg-info-text").textContent = "Showing " + visibleCount + " of " + totalProducts + " products";
+            document.getElementById("pg-page-text").textContent = "Page " + (currentPage + 1) + " of " + totalPages;
+            document.getElementById("pg-prev").disabled = currentPage <= 0;
+            document.getElementById("pg-next").disabled = currentPage + 1 >= totalPages;
+        }
+
+        // ------------------------------------------------------------------
+        // DELETE — custom confirmation modal (replaces window.confirm)
+        // ------------------------------------------------------------------
+        const deleteOverlay = document.getElementById("delete-modal-overlay");
+        const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+        let pendingDeleteId = null;
+
+        function openDeleteModal(productId, productName) {
+            if (!productId) return;
+            pendingDeleteId = productId;
+            document.getElementById("delete-product-name").textContent = productName || "this product";
+            document.getElementById("delete-product-id").textContent = productId;
+            openModal(deleteOverlay);
+        }
+
+        function closeDeleteModal() {
+            closeModal(deleteOverlay);
+            pendingDeleteId = null;
+        }
+
+        document.getElementById("close-delete-modal").addEventListener("click", closeDeleteModal);
+        document.getElementById("cancel-delete-modal").addEventListener("click", closeDeleteModal);
+        deleteOverlay.addEventListener("click", function (e) { if (e.target === deleteOverlay) closeDeleteModal(); });
+
+        confirmDeleteBtn.addEventListener("click", async function () {
+            if (!pendingDeleteId) return;
+            const productId = pendingDeleteId;
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.textContent = "Deleting…";
+            try {
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/products/" + encodeURIComponent(productId), {
+                    method: "DELETE", headers: authHeaders()
+                }, 10000);
+                if (res.status === 401) { closeDeleteModal(); handleUnauthorized(); return; }
+                const body = await res.json();
+                if (res.status === 200 && body.status === "success") {
+                    showToast(typeof body.data === "string" ? body.data : "Product deleted.", "success");
+                    closeDeleteModal();
+                    loadProducts();
+                } else {
+                    showToast(typeof body.data === "string" ? body.data : "Failed to delete product.", "error");
+                }
+            } catch (err) {
+                console.error("[products] delete failed:", err);
+                showToast("Could not reach the server.", "error");
+            } finally {
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.textContent = "Delete";
+            }
+        });
+
+        // ------------------------------------------------------------------
+        // VIEW MODAL
+        // ------------------------------------------------------------------
+        const viewOverlay = document.getElementById("view-modal-overlay");
+        const viewBody = document.getElementById("view-modal-body");
+
+        function openModal(overlay) { overlay.classList.add("open"); document.body.style.overflow = "hidden"; }
+        function closeModal(overlay) { overlay.classList.remove("open"); document.body.style.overflow = ""; }
+
+        function safeParseJson(str) {
+            if (!str) return null;
+            try { return JSON.parse(str); } catch (e) { return null; }
+        }
+
+        async function openViewModal(productId) {
+            if (!productId) return;
+            viewBody.innerHTML = '<div class="sv-loading-inline">Loading product…</div>';
+            openModal(viewOverlay);
+            try {
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/products/" + encodeURIComponent(productId), { headers: authHeaders() }, 30000000);
+                if (res.status === 401) { closeModal(viewOverlay); handleUnauthorized(); return; }
+                const body = await res.json();
+                if (res.status !== 200 || body.status !== "success") {
+                    viewBody.innerHTML = '<div class="sv-loading-inline">' + escapeHtml(typeof body.data === "string" ? body.data : "Product not found.") + '</div>';
+                    return;
+                }
+                renderViewModal(body.data);
+            } catch (err) {
+                console.error("[products] view failed:", err);
+                viewBody.innerHTML = '<div class="sv-loading-inline">Could not load product details.</div>';
+            }
+        }
+
+        function renderViewModal(p) {
+            var cat = Array.isArray(p.category) ? p.category.join(", ") : (p.category || "—");
+            var subCat = Array.isArray(p.sub_category) && p.sub_category.length ? p.sub_category.join(", ") : "—";
+            var gallery = Array.isArray(p.gallery_images) ? p.gallery_images : [];
+            var specs = safeParseJson(p.specifications);
+            var descItems = safeParseJson(p.description_items);
+
+            var html = '';
+            html += '<div class="sv-view-hero">';
+            html += '  <img src="' + escapeHtml(p.image || "") + '" alt="">';
+            html += '  <div style="flex:1;min-width:200px;">';
+            html += '    <div style="font-size:17px;font-weight:700;color:#1a1d29;margin-bottom:4px;">' + escapeHtml(p.product_name || "Untitled") + '</div>';
+            html += '    <div style="font-size:13px;color:#8b92a5;margin-bottom:8px;">Product ID: <b style="color:#1a1d29;">' + escapeHtml(p.product_id || "—") + '</b></div>';
+            html += '    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
+            html += renderStockBadge(p.stock_status);
+            html += '      <span style="font-size:13px;color:#8b92a5;">Qty: <b style="color:#1a1d29;">' + escapeHtml(p.stock_quantity != null ? p.stock_quantity : "—") + '</b></span>';
+            html += '    </div>';
+            if (gallery.length) {
+                html += '<div class="sv-view-gallery">' + gallery.map(function (g) { return '<img src="' + escapeHtml(g) + '" alt="">'; }).join("") + '</div>';
+            }
+            html += '  </div>';
+            html += '</div>';
+
+            html += '<div class="sv-view-row"><span>MRP</span><span>' + escapeHtml(formatRupees(p.mrp)) + '</span></div>';
+            html += '<div class="sv-view-row"><span>Offer Price</span><span>' + escapeHtml(formatRupees(p.offer_price)) + '</span></div>';
+            html += '<div class="sv-view-row"><span>Category</span><span>' + escapeHtml(cat) + '</span></div>';
+            html += '<div class="sv-view-row"><span>Sub Category</span><span>' + escapeHtml(subCat) + '</span></div>';
+            html += '<div class="sv-view-row"><span>SKU</span><span>' + escapeHtml(p.sku || "—") + '</span></div>';
+            html += '<div class="sv-view-row"><span>HSN</span><span>' + escapeHtml(p.product_hsn || "—") + '</span></div>';
+            html += '<div class="sv-view-row"><span>EAN</span><span>' + escapeHtml(p.product_ean || "—") + '</span></div>';
+            html += '<div class="sv-view-row"><span>Tax Status / Class</span><span>' + escapeHtml(p.tax_status || "—") + ' / ' + escapeHtml(p.tax_class || "—") + '</span></div>';
+            html += '<div class="sv-view-row"><span>Warranty</span><span>' + escapeHtml(p.warranty || "—") + '</span></div>';
+            html += '<div class="sv-view-row"><span>Max Points Utilization</span><span>' + escapeHtml(p.max_points_utilization != null ? p.max_points_utilization : "0") + '</span></div>';
+
+            html += '<div class="sv-view-section-title">Short Description</div>';
+            html += '<div class="sv-view-desc">' + (p.product_short_desc || "—") + '</div>';
+
+            html += '<div class="sv-view-section-title">Full Description</div>';
+            html += '<div class="sv-view-desc">' + (p.product_desc || "—") + '</div>';
+
+            if (specs && typeof specs === "object") {
+                html += '<div class="sv-view-section-title">Specifications</div>';
+                html += '<table class="sv-spec-table">' + Object.keys(specs).map(function (k) {
+                    return '<tr><td>' + escapeHtml(k) + '</td><td>' + escapeHtml(specs[k]) + '</td></tr>';
+                }).join("") + '</table>';
+            }
+
+            if (Array.isArray(descItems) && descItems.length) {
+                html += '<div class="sv-view-section-title">Feature Highlights</div>';
+                html += '<div class="sv-view-desc"><ul style="padding-left:18px;">' + descItems.map(function (item) {
+                    return '<li><b>' + escapeHtml(item.label || "") + '</b> ' + escapeHtml(item.value || "") + '</li>';
+                }).join("") + '</ul></div>';
+            }
+
+            viewBody.innerHTML = html;
+        }
+
+        document.getElementById("close-view-modal").addEventListener("click", function () { closeModal(viewOverlay); });
+        document.getElementById("close-view-modal-2").addEventListener("click", function () { closeModal(viewOverlay); });
+        viewOverlay.addEventListener("click", function (e) { if (e.target === viewOverlay) closeModal(viewOverlay); });
+
+        // ------------------------------------------------------------------
+        // ADD PRODUCT MODAL
+        // ------------------------------------------------------------------
+        const addOverlay = document.getElementById("add-modal-overlay");
+        const addFormMsg = document.getElementById("add-form-message");
+
+        function showAddFormMessage(text, type) {
+            addFormMsg.textContent = text;
+            addFormMsg.style.display = "block";
+            if (type === "error") {
+                addFormMsg.style.background = "rgba(220,53,69,0.12)";
+                addFormMsg.style.border = "1px solid rgba(220,53,69,0.4)";
+                addFormMsg.style.color = "#dc3545";
+            } else if (type === "info") {
+                addFormMsg.style.background = "rgba(99,102,241,0.1)";
+                addFormMsg.style.border = "1px solid rgba(99,102,241,0.35)";
+                addFormMsg.style.color = "#4338ca";
+            } else {
+                addFormMsg.style.background = "rgba(40,167,69,0.12)";
+                addFormMsg.style.border = "1px solid rgba(40,167,69,0.4)";
+                addFormMsg.style.color = "#28a745";
+            }
+        }
+        function clearAddFormMessage() { addFormMsg.style.display = "none"; addFormMsg.textContent = ""; }
+
+        function resetAddForm() {
+            document.getElementById("add-product-form").reset();
+            clearAddFormMessage();
+        }
+
+        // editingProductId: null = "Add" mode, a product_id string = "Edit" mode
+        let editingProductId = null;
+        const addModalTitle = document.getElementById("add-modal-title");
+        const submitProductBtn = document.getElementById("submit-add-product");
+
+        function setModalMode(mode) {
+            if (mode === "edit") {
+                addModalTitle.textContent = "Edit Product";
+                submitProductBtn.textContent = "Update Product";
+            } else {
+                addModalTitle.textContent = "Add New Product";
+                submitProductBtn.textContent = "Save Product";
+            }
+        }
+
+        function closeAddModal() {
+            closeModal(addOverlay);
+            editingProductId = null;
+        }
+
+        document.getElementById("open-add-modal").addEventListener("click", function () {
+            editingProductId = null;
+            resetAddForm();
+            setModalMode("add");
+            openModal(addOverlay);
+        });
+        document.getElementById("close-add-modal").addEventListener("click", closeAddModal);
+        document.getElementById("cancel-add-modal").addEventListener("click", closeAddModal);
+        addOverlay.addEventListener("click", function (e) { if (e.target === addOverlay) closeAddModal(); });
+
+        function splitList(value) {
+            return value.split(/[\n,]/).map(function (s) { return s.trim(); }).filter(Boolean);
+        }
+
+        // ------------------------------------------------------------------
+        // EDIT — reuses the Add Product modal, pre-filled with existing data
+        // ------------------------------------------------------------------
+        function populateFormForEdit(p) {
+            document.getElementById("a-product-name").value = p.product_name || "";
+            document.getElementById("a-product-id").value = p.product_id || "";
+            document.getElementById("a-sku").value = p.sku || "";
+            document.getElementById("a-mrp").value = p.mrp != null ? p.mrp : "";
+            document.getElementById("a-offer-price").value = p.offer_price != null ? p.offer_price : "";
+            document.getElementById("a-stock-qty").value = p.stock_quantity != null ? p.stock_quantity : "";
+            document.getElementById("a-stock-status").value = p.stock_status || "";
+            document.getElementById("a-image").value = p.image || "";
+            document.getElementById("a-gallery-images").value = Array.isArray(p.gallery_images) ? p.gallery_images.join("\n") : "";
+            document.getElementById("a-category").value = Array.isArray(p.category) ? p.category.join(", ") : (p.category || "");
+            document.getElementById("a-sub-category").value = Array.isArray(p.sub_category) ? p.sub_category.join(", ") : (p.sub_category || "");
+            document.getElementById("a-short-desc").value = p.product_short_desc || "";
+            document.getElementById("a-desc").value = p.product_desc || "";
+            document.getElementById("a-tax-status").value = p.tax_status || "";
+            document.getElementById("a-tax-class").value = p.tax_class || "";
+            document.getElementById("a-hsn").value = p.product_hsn || "";
+            document.getElementById("a-ean").value = p.product_ean || "";
+            document.getElementById("a-warranty").value = p.warranty || "";
+            document.getElementById("a-max-points").value = p.max_points_utilization != null ? p.max_points_utilization : "";
+            document.getElementById("a-specifications").value = p.specifications || "";
+            document.getElementById("a-description-items").value = p.description_items || "";
+        }
+
+        async function openEditModal(productId) {
+            if (!productId) return;
+            editingProductId = productId;
+            document.getElementById("add-product-form").reset();
+            setModalMode("edit");
+            openModal(addOverlay);
+            showAddFormMessage("Loading product details…", "info");
+            submitProductBtn.disabled = true;
+
+            try {
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/products/" + encodeURIComponent(productId), { headers: authHeaders() }, 30000000);
+                if (res.status === 401) { closeAddModal(); handleUnauthorized(); return; }
+                const body = await res.json();
+                if (res.status !== 200 || body.status !== "success") {
+                    showAddFormMessage(typeof body.data === "string" ? body.data : "Could not load product.", "error");
+                    return;
+                }
+                clearAddFormMessage();
+                populateFormForEdit(body.data);
+            } catch (err) {
+                console.error("[products] edit fetch failed:", err);
+                showAddFormMessage("Could not reach the server. Check your connection and try again.", "error");
+            } finally {
+                submitProductBtn.disabled = false;
+            }
+        }
+
+        document.getElementById("submit-add-product").addEventListener("click", async function () {
+            clearAddFormMessage();
+
+            const productName = document.getElementById("a-product-name").value.trim();
+            const productId = document.getElementById("a-product-id").value.trim();
+            const mrp = document.getElementById("a-mrp").value.trim();
+            const offerPrice = document.getElementById("a-offer-price").value.trim();
+            const image = document.getElementById("a-image").value.trim();
+            const galleryRaw = document.getElementById("a-gallery-images").value.trim();
+            const category = document.getElementById("a-category").value.trim();
+            const shortDesc = document.getElementById("a-short-desc").value.trim();
+            const desc = document.getElementById("a-desc").value.trim();
+
+            const missing = [];
+            if (!productName) missing.push("Product Name");
+            if (!productId) missing.push("Product ID");
+            if (!mrp) missing.push("MRP");
+            if (!offerPrice) missing.push("Offer Price");
+            if (!image) missing.push("Main Image URL");
+            if (!galleryRaw) missing.push("Gallery Image URLs");
+            if (!category) missing.push("Category");
+            if (!shortDesc) missing.push("Short Description");
+            if (!desc) missing.push("Full Description");
+
+            if (missing.length) {
+                showAddFormMessage("Please fill in: " + missing.join(", "), "error");
+                return;
+            }
+
+            const maxPointsRaw = document.getElementById("a-max-points").value.trim();
+            if (maxPointsRaw !== "" && parseInt(maxPointsRaw, 10) < 0) {
+                showAddFormMessage("Max Points Utilization cannot be negative.", "error");
+                return;
+            }
+
+            const specsRaw = document.getElementById("a-specifications").value.trim();
+            const descItemsRaw = document.getElementById("a-description-items").value.trim();
+            if (specsRaw && safeParseJson(specsRaw) === null) {
+                showAddFormMessage("Specifications must be valid JSON.", "error");
+                return;
+            }
+            if (descItemsRaw && safeParseJson(descItemsRaw) === null) {
+                showAddFormMessage("Description Items must be valid JSON.", "error");
+                return;
+            }
+
+            const payload = {
+                product_name: productName,
+                product_id: productId,
+                mrp: mrp,
+                offer_price: offerPrice,
+                image: image,
+                gallery_images: splitList(galleryRaw),
+                category: splitList(category),
+                product_desc: desc,
+                product_short_desc: shortDesc
+            };
+
+            const subCategory = document.getElementById("a-sub-category").value.trim();
+            if (subCategory) payload.sub_category = splitList(subCategory);
+
+            const stockQty = document.getElementById("a-stock-qty").value.trim();
+            if (stockQty) payload.stock_quantity = stockQty;
+
+            const stockStatus = document.getElementById("a-stock-status").value;
+            if (stockStatus) payload.stock_status = stockStatus;
+
+            const sku = document.getElementById("a-sku").value.trim();
+            if (sku) payload.sku = sku;
+
+            const taxStatus = document.getElementById("a-tax-status").value.trim();
+            if (taxStatus) payload.tax_status = taxStatus;
+
+            const taxClass = document.getElementById("a-tax-class").value.trim();
+            if (taxClass) payload.tax_class = taxClass;
+
+            const hsn = document.getElementById("a-hsn").value.trim();
+            if (hsn) payload.product_hsn = hsn;
+
+            const ean = document.getElementById("a-ean").value.trim();
+            if (ean) payload.product_ean = ean;
+
+            const warranty = document.getElementById("a-warranty").value.trim();
+            if (warranty) payload.warranty = warranty;
+
+            if (maxPointsRaw !== "") payload.max_points_utilization = parseInt(maxPointsRaw, 10);
+            if (specsRaw) payload.specifications = specsRaw;
+            if (descItemsRaw) payload.description_items = descItemsRaw;
+
+            const submitBtn = document.getElementById("submit-add-product");
+            const isEdit = !!editingProductId;
+            submitBtn.disabled = true;
+            submitBtn.textContent = isEdit ? "Updating…" : "Saving…";
+
+            try {
+                const url = isEdit
+                    ? API_BASE + "/api/admin/products/" + encodeURIComponent(editingProductId)
+                    : API_BASE + "/api/admin/products";
+
+                const res = await fetchWithTimeout(url, {
+                    method: isEdit ? "PUT" : "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload)
+                }, 30000000);
+
+                if (res.status === 401) { closeModal(addOverlay); handleUnauthorized(); return; }
+
+                const body = await res.json();
+                const expectedStatus = isEdit ? 200 : 201;
+
+              if (res.status === expectedStatus && body.status === "success") {
+    showToast(isEdit ? "Product updated successfully." : "Product created successfully.", "success");
+    closeModal(addOverlay);
+    resetAddForm();
+    editingProductId = null;
+    if (!isEdit) {
+        state.page = 0; // only jump to first page for newly created products
+    }
+    loadProducts();
+} else {
+                    showAddFormMessage(typeof body.data === "string" ? body.data : (isEdit ? "Failed to update product." : "Failed to create product."), "error");
+                }
+            } catch (err) {
+                console.error("[products] save failed:", err);
+                showAddFormMessage("Could not reach the server. Check your connection and try again.", "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = isEdit ? "Update Product" : "Save Product";
+            }
+        });
+
+        // ------------------------------------------------------------------
+        // Filters / pagination
+        // ------------------------------------------------------------------
+        document.getElementById("filter-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            state.page = 0;
+            state.keyword = document.getElementById("f-keyword").value.trim();
+            state.category = document.getElementById("f-category").value;
+            state.stockStatus = document.getElementById("f-stock").value;
+            state.minPrice = document.getElementById("f-min").value;
+            state.maxPrice = document.getElementById("f-max").value;
+            loadProducts();
+        });
+
+        document.getElementById("reset-filters").addEventListener("click", function () {
+            document.getElementById("filter-form").reset();
+            state = { page: 0, size: state.size, keyword: "", category: "", stockStatus: "", minPrice: "", maxPrice: "" };
+            loadProducts();
+        });
+
+        document.getElementById("page-size-select").addEventListener("change", function (e) {
+            state.size = parseInt(e.target.value, 10) || 20;
+            state.page = 0;
+            loadProducts();
+        });
+
+        document.getElementById("pg-prev").addEventListener("click", function () {
+            if (state.page > 0) { state.page -= 1; loadProducts(); }
+        });
+        document.getElementById("pg-next").addEventListener("click", function () {
+            state.page += 1; loadProducts();
+        });
+
+        // ------------------------------------------------------------------
+        // Logout
+        // ------------------------------------------------------------------
+        document.getElementById("logout-btn").addEventListener("click", function (e) {
+            e.preventDefault();
+            const token = window.__adminAuth.token;
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            fetch(API_BASE + "/api/admin/logout", {
+                method: "POST",
+                headers: token ? { "Authorization": token } : {}
+            }).catch(function () {}).finally(function () {
+                window.location.href = "index.html";
+            });
+        });
+
+        // Escape key closes any open modal
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closeModal(viewOverlay);
+                closeModal(addOverlay);
+                closeDeleteModal();
+            }
+        });
+
+        // ------------------------------------------------------------------
+        // Init
+        // ------------------------------------------------------------------
+        if (window.__adminAuth.token) {
+            loadCategories();
+            loadProducts();
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders — Stanvee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .sv-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 18, 30, 0.55);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .sv-modal-overlay.open { display: flex; }
+
+        .sv-modal {
+            background: #fff;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 760px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            overflow: hidden;
+            animation: sv-modal-in 0.18s ease;
+        }
+        @keyframes sv-modal-in {
+            from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .sv-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #eef0f5;
+        }
+        .sv-modal-title { font-size: 16px; font-weight: 700; color: #1a1d29; }
+        .sv-modal-close {
+            border: none; background: #f2f3f7; width: 30px; height: 30px; border-radius: 8px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; color: #5b6272;
+        }
+        .sv-modal-close:hover { background: #e6e8f0; }
+
+        .sv-modal-body { padding: 22px; max-height: 72vh; overflow-y: auto; }
+        .sv-modal-footer {
+            padding: 16px 22px; border-top: 1px solid #eef0f5; display: flex; justify-content: flex-end; gap: 10px;
+        }
+
+        .sv-field label { display: block; font-size: 12.5px; font-weight: 600; color: #4b5163; margin-bottom: 5px; }
+        .sv-field .req { color: #dc3545; }
+        .sv-field input, .sv-field textarea, .sv-field select {
+            width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid #dfe2ea;
+            font-size: 13.5px; font-family: inherit; box-sizing: border-box; outline: none;
+        }
+        .sv-field input:focus, .sv-field textarea:focus, .sv-field select:focus { border-color: #6366f1; }
+        .sv-field textarea { min-height: 64px; resize: vertical; }
+
+        .sv-view-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed #eef0f5; font-size: 13.5px; }
+        .sv-view-row span:first-child { color: #8b92a5; }
+        .sv-view-row span:last-child { color: #1a1d29; font-weight: 600; text-align: right; }
+
+        .sv-view-section-title { font-size: 12.5px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: .04em; margin: 18px 0 8px; }
+
+        .sv-item-row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid #f2f3f7; }
+        .sv-item-row img { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #eef0f5; flex-shrink: 0; }
+        .sv-item-name { font-size: 13.5px; font-weight: 600; color: #1a1d29; }
+        .sv-item-meta { font-size: 12px; color: #8b92a5; }
+        .sv-item-price { font-size: 13.5px; font-weight: 700; color: #1a1d29; margin-left: auto; text-align: right; white-space: nowrap; }
+
+        .sv-clickable-row { cursor: pointer; }
+        .sv-clickable-row:hover { background: #f7f8fc; }
+
+        .sv-loading-inline { text-align: center; padding: 30px; color: #9aa4b8; font-size: 13.5px; }
+
+        .sv-toast {
+            position: fixed; top: 20px; right: 20px; z-index: 1100; padding: 12px 16px; border-radius: 10px;
+            font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none;
+        }
+        .sv-toast.success { background: #eafaf0; color: #1a7a3d; border: 1px solid #b7ecc9; }
+        .sv-toast.error { background: #fdeced; color: #b8232f; border: 1px solid #f5c2c7; }
+
+        #orders-body .action-cell { display: flex; gap: 6px; }
+        #orders-body .act-btn {
+            width: 30px; height: 30px; border-radius: 7px; border: 1px solid transparent;
+            display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        #orders-body .act-btn.edit { background: #eef0ff; color: #6366f1; border-color: #dfe1fb; }
+        #orders-body .act-btn.edit:hover { background: #e2e5ff; }
+
+        .badge-status {
+            display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px;
+            font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em;
+        }
+        .badge-status.PLACED            { background: #eef0ff; color: #4338ca; }
+        .badge-status.CONFIRMED         { background: #e6f4ff; color: #0369a1; }
+        .badge-status.SHIPPED           { background: #fff4e0; color: #92600a; }
+        .badge-status.OUT_FOR_DELIVERY  { background: #fff0e0; color: #b8541a; }
+        .badge-status.DELIVERED         { background: #eafaf0; color: #1a7a3d; }
+        .badge-status.CANCELLED         { background: #fdeced; color: #b8232f; }
+        .badge-status.PAID              { background: #eafaf0; color: #1a7a3d; }
+        .badge-status.PENDING           { background: #fff4e0; color: #92600a; }
+        .badge-status.FAILED            { background: #fdeced; color: #b8232f; }
+
+        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .stat-card { background: #fff; border: 1px solid #eef0f5; border-radius: 12px; padding: 14px 16px; }
+        .stat-card .stat-label { font-size: 11.5px; color: #8b92a5; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 6px; }
+        .stat-card .stat-value { font-size: 20px; font-weight: 800; color: #1a1d29; }
+
+        #content-loader {
+            position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+            gap: 14px; background: rgba(255, 255, 255, 0.85); z-index: 50; border-radius: 8px;
+        }
+        #content-loader.show { display: flex; }
+        @keyframes prod-spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body>
+
+    <div id="app-shell">
+        <input type="checkbox" id="sb-toggle">
+        <label for="sb-toggle" class="sb-overlay"></label>
+
+        <!-- ---------- SIDEBAR ---------- -->
+        <aside id="sidebar">
+            <div class="sb-brand" style="display:flex;align-items:center;justify-content:center;padding:10px 0;">
+                <img src="images/logoadminpanel.png" alt="Logo" style="height:50px;width:auto;">
+            </div>
+            <nav class="sb-nav">
+                <a class="sb-item" href="dashboard.html">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg><span>Dashboard</span>
+                </a>
+                <details class="sb-group">
+                    <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg><span>Products</span>
+                        <span class="sb-caret"></span>
+                    </summary>
+                    <div class="sb-sub">
+                        <a class="sb-sub-item" href="products.html">All Products</a><a class="sb-sub-item" href="add-product.html">Add Product</a><a class="sb-sub-item" href="import.html">Import via Excel</a>
+                    </div>
+                </details>
+                <a class="sb-item" href="categories.html">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span>Categories</span>
+                </a>
+                <details class="sb-group active" open>
+                    <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg><span>Orders</span>
+                        <span class="sb-caret"></span>
+                    </summary>
+                    <div class="sb-sub">
+                        <a class="sb-sub-item active" href="orders.html">All Orders</a>
+                        <a class="sb-sub-item" href="pending-checkouts.html">Pending Checkouts</a>
+                    </div>
+                </details>
+                <div class="sb-item sb-disabled" title="Coming soon">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>Settings</span>
+                </div>
+            </nav>
+            <div class="sb-footer">
+                <div class="sb-avatar">A</div>
+                <div class="sb-footer-info">
+                    <div class="sb-footer-name">Logout</div>
+                    <div class="sb-footer-role">Administrator</div>
+                </div>
+                <a class="sb-logout-btn" href="login.html" id="logout-btn" title="Logout"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></a>
+            </div>
+        </aside>
+
+        <div id="main-wrap">
+            <main id="content" style="position:relative;min-height:400px;">
+
+                <div class="page-head-row">
+                    <div>
+                        <div class="page-title">Orders</div>
+                        <div class="page-sub">Track fulfillment, payment status, and shipping details</div>
+                    </div>
+                </div>
+
+                <div id="page-message" style="display:none;margin-bottom:16px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
+
+                <!-- ---------- STAT CARDS ---------- -->
+                <div class="stat-cards" id="stat-cards">
+                    <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value" id="stat-total">—</div></div>
+                    <div class="stat-card"><div class="stat-label">Placed</div><div class="stat-value" id="stat-placed">—</div></div>
+                    <div class="stat-card"><div class="stat-label">Confirmed</div><div class="stat-value" id="stat-confirmed">—</div></div>
+                    <div class="stat-card"><div class="stat-label">Shipped</div><div class="stat-value" id="stat-shipped">—</div></div>
+                    <div class="stat-card"><div class="stat-label">Delivered</div><div class="stat-value" id="stat-delivered">—</div></div>
+                    <div class="stat-card"><div class="stat-label">Cancelled</div><div class="stat-value" id="stat-cancelled">—</div></div>
+                    <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value" id="stat-paid">—</div></div>
+                    <div class="stat-card"><div class="stat-label">Pending Payment</div><div class="stat-value" id="stat-pending-payment">—</div></div>
+                    <div class="stat-card"><div class="stat-label">Failed Payment</div><div class="stat-value" id="stat-failed-payment">—</div></div>
+                    <!-- <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value" id="stat-revenue">—</div></div> -->
+                </div>
+
+                <!-- ---------- FILTERS ---------- -->
+                <div class="card" style="margin-bottom:18px;">
+                    <form class="filter-bar" id="filter-form">
+                        <div class="filter-item grow">
+                            <label for="f-order-number">Order Number</label>
+                            <input class="input" type="text" id="f-order-number" placeholder="ORD1720...">
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-order-status">Order Status</label>
+                            <select class="select" id="f-order-status">
+                                <option value="">All</option>
+                                <option value="PLACED">Placed</option>
+                                <option value="CONFIRMED">Confirmed</option>
+                                <option value="SHIPPED">Shipped</option>
+                                <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+                                <option value="DELIVERED">Delivered</option>
+                                <option value="CANCELLED">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-payment-status">Payment Status</label>
+                            <select class="select" id="f-payment-status">
+                                <option value="">All</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="PAID">Paid</option>
+                                <option value="FAILED">Failed</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-payment-method">Payment Method</label>
+                            <select class="select" id="f-payment-method">
+                                <option value="">All</option>
+                                <option value="COD">COD</option>
+                                <option value="ONLINE">Online</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-user-id">User ID</label>
+                            <input class="input" type="text" id="f-user-id" placeholder="e.g. user_123">
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-from-date">From</label>
+                            <input class="input" type="date" id="f-from-date">
+                        </div>
+                        <div class="filter-item">
+                            <label for="f-to-date">To</label>
+                            <input class="input" type="date" id="f-to-date">
+                        </div>
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-primary">Apply Filters</button>
+                            <button type="button" id="reset-filters" class="btn btn-secondary">Reset</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ---------- TABLE ---------- -->
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Order Number</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Amount</th>
+                                    <th>Payment</th>
+                                    <th>Order Status</th>
+                                    <th>Placed On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-body">
+                                <tr><td colspan="9" style="text-align:center;padding:24px;color:#9aa4b8;">Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar">
+                        <div class="flex" style="align-items:center;gap:8px;">
+                            <span class="pg-info">Rows per page</span>
+                            <select class="page-size-select" id="page-size-select">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="pg-info" id="pg-info-text">Showing 0 of 0 orders</div>
+                        <div class="pg-btns">
+                            <button class="pg-btn" id="pg-prev" disabled>Previous</button>
+                            <span class="pg-info" id="pg-page-text">Page 1 of 1</span>
+                            <button class="pg-btn" id="pg-next" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-loader">
+                    <div style="width:38px;height:38px;border:4px solid #e2e5f1;border-top-color:#6366f1;border-radius:50%;animation:prod-spin 0.8s linear infinite;"></div>
+                    <div style="font-size:13.5px;font-weight:600;color:#5b6272;">Loading orders…</div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         VIEW ORDER MODAL
+    ============================================================= -->
+    <div class="sv-modal-overlay" id="view-modal-overlay">
+        <div class="sv-modal">
+            <div class="sv-modal-header">
+                <div class="sv-modal-title">Order Details</div>
+                <button type="button" class="sv-modal-close" id="close-view-modal">✕</button>
+            </div>
+            <div class="sv-modal-body" id="view-modal-body">
+                <div class="sv-loading-inline">Loading order…</div>
+            </div>
+            <div class="sv-modal-footer">
+                <button type="button" class="btn btn-secondary" id="close-view-modal-2">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         UPDATE STATUS MODAL
+    ============================================================= -->
+    <div class="sv-modal-overlay" id="status-modal-overlay">
+        <div class="sv-modal" style="max-width:480px;">
+            <div class="sv-modal-header">
+                <div class="sv-modal-title">Update Order Status</div>
+                <button type="button" class="sv-modal-close" id="close-status-modal">✕</button>
+            </div>
+            <div class="sv-modal-body">
+                <div id="status-form-message" style="display:none;margin-bottom:14px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
+                <div style="font-size:13px;color:#8b92a5;margin-bottom:14px;">
+                    Order: <b id="status-order-number" style="color:#1a1d29;"></b>
+                </div>
+                <div class="sv-field" style="margin-bottom:14px;">
+                    <label>New Status <span class="req">*</span></label>
+                    <select id="s-order-status">
+                        <option value="PLACED">Placed</option>
+                        <option value="CONFIRMED">Confirmed</option>
+                        <option value="SHIPPED">Shipped</option>
+                        <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+                <div class="sv-field" style="margin-bottom:14px;">
+                    <label>Tracking ID / AWB</label>
+                    <input type="text" id="s-tracking-id" placeholder="e.g. DL987654321IN">
+                </div>
+                <div class="sv-field">
+                    <label>Remarks</label>
+                    <textarea id="s-remarks" placeholder="e.g. Handed to courier, cancelled by admin, etc."></textarea>
+                </div>
+            </div>
+            <div class="sv-modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-status-modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submit-status-update">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sv-toast" id="sv-toast"></div>
+
+    <script>
+        // ------------------------------------------------------------------
+        // Auth — redirect to login immediately if no session token
+        // ------------------------------------------------------------------
+        console.log("[orders][init] Reading adminSessionToken from localStorage…");
+        window.__adminAuth = { token: localStorage.getItem("adminSessionToken") };
+        console.log("[orders][init] Token found:", window.__adminAuth.token ? window.__adminAuth.token : "(none)");
+        console.log("[orders][init] adminEmail in localStorage:", localStorage.getItem("adminEmail"));
+
+        // Same guard as dashboard.html: no token → bounce to login immediately,
+        // so we never fire an API call we know will 401.
+        if (!window.__adminAuth.token) {
+            console.warn("[orders][init] No token present — redirecting to index.html");
+            window.location.href = "index.html";
+        }
+
+
+
+        // MUST match dashboard.html's API_BASE. This page is served from a
+        // different origin than the API, and the API is deployed on Render,
+        // not localhost — using localhost:8080 here was the bug causing every
+        // call to 401 / the token to look "missing".
+        const API_BASE = "https://api.stanvee.com";
+
+        function authHeaders(extra) {
+            const headers = Object.assign({ "Authorization": window.__adminAuth.token }, extra || {});
+            console.log("[orders][authHeaders] Built headers:", headers);
+            return headers;
+        }
+
+        function handleUnauthorized() {
+            console.error("[orders][handleUnauthorized] 401 received. Current token was:", window.__adminAuth.token);
+            console.error("[orders][handleUnauthorized] Clearing token and adminEmail from localStorage.");
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            showMessage("Your session has expired. Redirecting to sign in…", "error");
+            setTimeout(function () { window.location.href = "index.html"; }, 900);
+        }
+
+        const msgBox = document.getElementById("page-message");
+        function showMessage(text, type) {
+            msgBox.textContent = text;
+            msgBox.style.display = "block";
+            msgBox.style.background = type === "error" ? "rgba(220,53,69,0.12)" : "rgba(40,167,69,0.12)";
+            msgBox.style.border = "1px solid " + (type === "error" ? "rgba(220,53,69,0.4)" : "rgba(40,167,69,0.4)");
+            msgBox.style.color = type === "error" ? "#dc3545" : "#28a745";
+        }
+        function clearMessage() { msgBox.style.display = "none"; msgBox.textContent = ""; }
+
+        function showToast(text, type) {
+            const t = document.getElementById("sv-toast");
+            t.textContent = text;
+            t.className = "sv-toast " + type;
+            t.style.display = "block";
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(function () { t.style.display = "none"; }, 3500);
+        }
+
+        function showLoader() { document.getElementById("content-loader").classList.add("show"); }
+        function hideLoader() { document.getElementById("content-loader").classList.remove("show"); }
+
+        function escapeHtml(str) {
+            return String(str == null ? "" : str)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function formatRupees(value) {
+            if (value == null || value === "") return "—";
+            var num = Number(value);
+            if (isNaN(num)) return "₹" + value;
+            return "₹" + num.toLocaleString("en-IN");
+        }
+
+        function formatDate(iso) {
+            if (!iso) return "—";
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return iso;
+            return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) +
+                   " " + d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+        }
+
+        function statusBadge(value) {
+            var v = (value || "—").toUpperCase();
+            return '<span class="badge-status ' + v + '">' + v.replace(/_/g, " ") + '</span>';
+        }
+
+        async function fetchWithTimeout(url, options, timeoutMs) {
+            const controller = new AbortController();
+            const timer = setTimeout(function () { controller.abort(); }, timeoutMs || 30000);
+            console.log("[orders][fetch] →", (options && options.method) || "GET", url);
+            if (options && options.headers) {
+                console.log("[orders][fetch] headers:", options.headers);
+            }
+            if (options && options.body) {
+                console.log("[orders][fetch] body:", options.body);
+            }
+            try {
+                const res = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+                clearTimeout(timer);
+                console.log("[orders][fetch] ← status", res.status, "for", url);
+                return res;
+            } catch (err) {
+                clearTimeout(timer);
+                if (err.name === "AbortError") {
+                    console.error("[orders][fetch] Timed out:", url);
+                    throw new Error("Request timed out: " + url);
+                }
+                console.error("[orders] Fetch failed for", url, "-", err.message);
+                throw err;
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // State + list loading
+        // ------------------------------------------------------------------
+        let state = { page: 0, size: 20, orderNumber: "", orderStatus: "", paymentStatus: "", paymentMethod: "", userId: "", fromDate: "", toDate: "" };
+
+        async function loadStats() {
+            console.log("[orders][loadStats] Starting. Token at call time:", window.__adminAuth.token);
+            try {
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/orders/dashboard", { headers: authHeaders() }, 15000);
+                if (res.status === 401) {
+                    console.error("[orders][loadStats] 401 Unauthorized from /orders/dashboard");
+                    handleUnauthorized();
+                    return;
+                }
+                const s = await res.json();
+                console.log("[orders][loadStats] Response body:", s);
+                document.getElementById("stat-total").textContent = s.totalOrders ?? 0;
+                document.getElementById("stat-placed").textContent = s.placedCount ?? 0;
+                document.getElementById("stat-confirmed").textContent = s.confirmedCount ?? 0;
+                document.getElementById("stat-shipped").textContent = s.shippedCount ?? 0;
+                document.getElementById("stat-delivered").textContent = s.deliveredCount ?? 0;
+                document.getElementById("stat-cancelled").textContent = s.cancelledCount ?? 0;
+                document.getElementById("stat-paid").textContent = s.paidCount ?? 0;
+                document.getElementById("stat-pending-payment").textContent = s.pendingPaymentCount ?? 0;
+                document.getElementById("stat-failed-payment").textContent = s.failedPaymentCount ?? 0;
+                // document.getElementById("stat-revenue").textContent = formatRupees(s.totalRevenue);
+            } catch (err) {
+                console.error("[orders] Failed to load dashboard stats:", err);
+            }
+        }
+
+        async function loadOrders() {
+            clearMessage();
+            showLoader();
+            console.log("[orders][loadOrders] Starting. Current state:", state);
+            console.log("[orders][loadOrders] Token at call time:", window.__adminAuth.token);
+            try {
+                const params = new URLSearchParams();
+                params.set("page", state.page);
+                params.set("size", state.size);
+                if (state.orderNumber) params.set("orderNumber", state.orderNumber);
+                if (state.orderStatus) params.set("orderStatus", state.orderStatus);
+                if (state.paymentStatus) params.set("paymentStatus", state.paymentStatus);
+                if (state.paymentMethod) params.set("paymentMethod", state.paymentMethod);
+                if (state.userId) params.set("userId", state.userId);
+                if (state.fromDate) params.set("fromDate", state.fromDate);
+                if (state.toDate) params.set("toDate", state.toDate);
+
+                console.log("[orders][loadOrders] Query params:", params.toString());
+
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/orders?" + params.toString(), { headers: authHeaders() }, 30000);
+
+                if (res.status === 401) {
+                    console.error("[orders][loadOrders] 401 Unauthorized from /api/admin/orders. Token sent was:", window.__adminAuth.token);
+                    // Try to read the body for more detail if possible
+                    try {
+                        const errBody = await res.clone().json();
+                        console.error("[orders][loadOrders] 401 response body:", errBody);
+                    } catch (parseErr) {
+                        console.error("[orders][loadOrders] Could not parse 401 response body:", parseErr);
+                    }
+                    hideLoader();
+                    handleUnauthorized();
+                    return;
+                }
+
+                const body = await res.json();
+                console.log("[orders][loadOrders] Response body:", body);
+
+                if (!body.success) {
+                    console.warn("[orders][loadOrders] success=false. Message:", body.message);
+                    hideLoader();
+                    showMessage(body.message || "Failed to load orders.", "error");
+                    document.getElementById("orders-body").innerHTML =
+                        '<tr><td colspan="9" style="text-align:center;padding:24px;color:#9aa4b8;">Could not load orders.</td></tr>';
+                    return;
+                }
+
+                renderTable(body.orders || [], state.page * state.size);
+                renderPagination(body);
+                hideLoader();
+            } catch (err) {
+                console.error("[orders] loadOrders failed:", err);
+                hideLoader();
+                showMessage("Could not reach the server. Check your connection and try again.", "error");
+                document.getElementById("orders-body").innerHTML =
+                    '<tr><td colspan="9" style="text-align:center;padding:24px;color:#9aa4b8;">Could not load orders.</td></tr>';
+            }
+        }
+
+        function renderTable(orders, startIndex) {
+            const tbody = document.getElementById("orders-body");
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:#9aa4b8;">No orders found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = orders.map(function (o, i) {
+                var oid = escapeHtml(o.orderId || "");
+                return '<tr class="sv-clickable-row" data-view-id="' + oid + '">' +
+                    '<td>' + (startIndex + i + 1) + '</td>' +
+                    '<td class="prod-id">' + escapeHtml(o.orderNumber || "—") + '</td>' +
+                    '<td>' + escapeHtml(o.customerName || o.userId || "—") + '</td>' +
+                    '<td>' + (o.totalItems != null ? o.totalItems : "—") + '</td>' +
+                    '<td>' + escapeHtml(formatRupees(o.totalAmount)) + '</td>' +
+                    '<td>' + statusBadge(o.paymentStatus) + '<div style="font-size:11px;color:#9aa4b8;margin-top:3px;">' + escapeHtml(o.paymentMethod || "—") + '</div></td>' +
+                    '<td>' + statusBadge(o.orderStatus) + '</td>' +
+                    '<td style="font-size:12.5px;color:#5b6272;">' + escapeHtml(formatDate(o.createdAt)) + '</td>' +
+                    '<td class="action-cell">' +
+                        '<button type="button" class="act-btn edit" title="Update Status" data-status-id="' + oid + '" data-order-number="' + escapeHtml(o.orderNumber || "") + '" data-current-status="' + escapeHtml(o.orderStatus || "") + '"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg></button>' +
+                    '</td>' +
+                '</tr>';
+            }).join("");
+
+            tbody.querySelectorAll("tr[data-view-id]").forEach(function (row) {
+                row.addEventListener("click", function (e) {
+                    if (e.target.closest(".act-btn")) return;
+                    openViewModal(row.getAttribute("data-view-id"));
+                });
+            });
+            tbody.querySelectorAll(".act-btn.edit").forEach(function (btn) {
+                btn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    openStatusModal(
+                        btn.getAttribute("data-status-id"),
+                        btn.getAttribute("data-order-number"),
+                        btn.getAttribute("data-current-status")
+                    );
+                });
+            });
+        }
+
+        function renderPagination(body) {
+            const totalPages = body.totalPages || 1;
+            const currentPage = body.currentPage ?? state.page;
+            const totalOrders = body.totalOrders ?? 0;
+            const visibleCount = (body.orders || []).length;
+            document.getElementById("pg-info-text").textContent = "Showing " + visibleCount + " of " + totalOrders + " orders";
+            document.getElementById("pg-page-text").textContent = "Page " + (currentPage + 1) + " of " + totalPages;
+            document.getElementById("pg-prev").disabled = currentPage <= 0;
+            document.getElementById("pg-next").disabled = currentPage + 1 >= totalPages;
+        }
+
+        // ------------------------------------------------------------------
+        // VIEW ORDER MODAL
+        // ------------------------------------------------------------------
+        const viewOverlay = document.getElementById("view-modal-overlay");
+        const viewBody = document.getElementById("view-modal-body");
+
+        function openModal(overlay) { overlay.classList.add("open"); document.body.style.overflow = "hidden"; }
+        function closeModal(overlay) { overlay.classList.remove("open"); document.body.style.overflow = ""; }
+
+        async function openViewModal(orderId) {
+            if (!orderId) return;
+            console.log("[orders][openViewModal] orderId:", orderId, "Token:", window.__adminAuth.token);
+            viewBody.innerHTML = '<div class="sv-loading-inline">Loading order…</div>';
+            openModal(viewOverlay);
+            try {
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/orders/" + encodeURIComponent(orderId), { headers: authHeaders() }, 30000);
+                if (res.status === 401) {
+                    console.error("[orders][openViewModal] 401 Unauthorized fetching order", orderId);
+                    closeModal(viewOverlay);
+                    handleUnauthorized();
+                    return;
+                }
+                const body = await res.json();
+                console.log("[orders][openViewModal] Response body:", body);
+                if (res.status !== 200 || !body.success) {
+                    viewBody.innerHTML = '<div class="sv-loading-inline">' + escapeHtml(body.message || "Order not found.") + '</div>';
+                    return;
+                }
+                renderViewModal(body.order);
+            } catch (err) {
+                console.error("[orders] view failed:", err);
+                viewBody.innerHTML = '<div class="sv-loading-inline">Could not load order details.</div>';
+            }
+        }
+
+        function renderViewModal(o) {
+            var html = '';
+
+            html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">';
+            html += '  <div>';
+            html += '    <div style="font-size:17px;font-weight:700;color:#1a1d29;">' + escapeHtml(o.orderNumber || "—") + '</div>';
+            html += '    <div style="font-size:12.5px;color:#8b92a5;">Placed ' + escapeHtml(formatDate(o.createdAt)) + '</div>';
+            html += '  </div>';
+            html += '  <div style="display:flex;gap:6px;">' + statusBadge(o.orderStatus) + statusBadge(o.paymentStatus) + '</div>';
+            html += '</div>';
+
+            html += '<div class="sv-view-row"><span>User ID</span><span>' + escapeHtml(o.userId || "—") + '</span></div>';
+            html += '<div class="sv-view-row"><span>Payment Method</span><span>' + escapeHtml(o.paymentMethod || "—") + '</span></div>';
+            html += '<div class="sv-view-row"><span>Total Amount</span><span>' + escapeHtml(formatRupees(o.totalAmount)) + '</span></div>';
+            html += '<div class="sv-view-row"><span>Total Items</span><span>' + (o.totalItems != null ? o.totalItems : "—") + '</span></div>';
+            if (o.cancelledAt) {
+                html += '<div class="sv-view-row"><span>Cancelled At</span><span>' + escapeHtml(formatDate(o.cancelledAt)) + '</span></div>';
+                html += '<div class="sv-view-row"><span>Cancel Reason</span><span>' + escapeHtml(o.cancelReason || "—") + '</span></div>';
+            }
+
+            // ---- Shipping address ----
+            html += '<div class="sv-view-section-title">Shipping Address</div>';
+            if (o.address) {
+                var a = o.address;
+                html += '<div style="font-size:13.5px;color:#3a3f4d;line-height:1.6;">';
+                html += '<b>' + escapeHtml(a.fullName || "") + '</b> · ' + escapeHtml(a.phone || "") + '<br>';
+                html += escapeHtml(a.addressLine1 || "") + (a.addressLine2 ? ", " + escapeHtml(a.addressLine2) : "") + '<br>';
+                html += escapeHtml(a.city || "") + ', ' + escapeHtml(a.state || "") + ' - ' + escapeHtml(a.pincode || "") + '<br>';
+                html += escapeHtml(a.country || "India") + ' · <span style="color:#8b92a5;">' + escapeHtml(a.addressType || "") + '</span>';
+                html += '</div>';
+            } else {
+                html += '<div class="sv-loading-inline" style="padding:10px 0;">No address on file.</div>';
+            }
+
+            // ---- Payment / transaction snapshot ----
+            html += '<div class="sv-view-section-title">Payment Details</div>';
+            if (o.payment) {
+                var p = o.payment;
+                html += '<div class="sv-view-row"><span>Transaction Status</span><span>' + statusBadge(p.status) + '</span></div>';
+                html += '<div class="sv-view-row"><span>Airpay Transaction ID</span><span>' + escapeHtml(p.apTransactionId || "—") + '</span></div>';
+                html += '<div class="sv-view-row"><span>Airpay Status Code</span><span>' + escapeHtml(p.airpayStatusCode || "—") + '</span></div>';
+                html += '<div class="sv-view-row"><span>Secure Hash</span><span>' + escapeHtml(p.secureHashStatus || "—") + '</span></div>';
+                html += '<div class="sv-view-row"><span>Message</span><span>' + escapeHtml(p.message || "—") + '</span></div>';
+                if (p.errorMessage) {
+                    html += '<div class="sv-view-row"><span>Error</span><span style="color:#dc3545;">' + escapeHtml(p.errorMessage) + '</span></div>';
+                }
+                html += '<div class="sv-view-row"><span>Retry Count</span><span>' + (p.retryCount != null ? p.retryCount : 0) + '</span></div>';
+                html += '<div class="sv-view-row"><span>Completed At</span><span>' + escapeHtml(formatDate(p.completedAt)) + '</span></div>';
+            } else {
+                html += '<div class="sv-loading-inline" style="padding:10px 0;">' +
+                        (o.paymentMethod === "COD" ? "Cash on Delivery — no online transaction." : "No transaction record found.") +
+                        '</div>';
+            }
+
+            // ---- Items ----
+            html += '<div class="sv-view-section-title">Items (' + (o.items ? o.items.length : 0) + ')</div>';
+            if (o.items && o.items.length) {
+                html += o.items.map(function (it) {
+                    return '<div class="sv-item-row">' +
+                        '<img src="' + escapeHtml(it.productImage || "https://picsum.photos/seed/" + it.productId + "/80/80") + '" alt="">' +
+                        '<div>' +
+                        '<div class="sv-item-name">' + escapeHtml(it.productName || "Product") + '</div>' +
+                        '<div class="sv-item-meta">Qty: ' + it.quantity + ' × ' + escapeHtml(formatRupees(it.unitPrice)) + '</div>' +
+                        '</div>' +
+                        '<div class="sv-item-price">' + escapeHtml(formatRupees(it.finalPrice)) + '</div>' +
+                        '</div>';
+                }).join("");
+            } else {
+                html += '<div class="sv-loading-inline" style="padding:10px 0;">No items found.</div>';
+            }
+
+            viewBody.innerHTML = html;
+        }
+
+        document.getElementById("close-view-modal").addEventListener("click", function () { closeModal(viewOverlay); });
+        document.getElementById("close-view-modal-2").addEventListener("click", function () { closeModal(viewOverlay); });
+        viewOverlay.addEventListener("click", function (e) { if (e.target === viewOverlay) closeModal(viewOverlay); });
+
+        // ------------------------------------------------------------------
+        // UPDATE STATUS MODAL
+        // ------------------------------------------------------------------
+        const statusOverlay = document.getElementById("status-modal-overlay");
+        const statusFormMsg = document.getElementById("status-form-message");
+        let statusOrderId = null;
+
+        function showStatusFormMessage(text, type) {
+            statusFormMsg.textContent = text;
+            statusFormMsg.style.display = "block";
+            statusFormMsg.style.background = type === "error" ? "rgba(220,53,69,0.12)" : "rgba(40,167,69,0.12)";
+            statusFormMsg.style.border = "1px solid " + (type === "error" ? "rgba(220,53,69,0.4)" : "rgba(40,167,69,0.4)");
+            statusFormMsg.style.color = type === "error" ? "#dc3545" : "#28a745";
+        }
+        function clearStatusFormMessage() { statusFormMsg.style.display = "none"; statusFormMsg.textContent = ""; }
+
+        function openStatusModal(orderId, orderNumber, currentStatus) {
+            console.log("[orders][openStatusModal] orderId:", orderId, "orderNumber:", orderNumber, "currentStatus:", currentStatus);
+            statusOrderId = orderId;
+            document.getElementById("status-order-number").textContent = orderNumber || orderId;
+            document.getElementById("s-order-status").value = currentStatus || "PLACED";
+            document.getElementById("s-tracking-id").value = "";
+            document.getElementById("s-remarks").value = "";
+            clearStatusFormMessage();
+            openModal(statusOverlay);
+        }
+        function closeStatusModal() { closeModal(statusOverlay); statusOrderId = null; }
+
+        document.getElementById("close-status-modal").addEventListener("click", closeStatusModal);
+        document.getElementById("cancel-status-modal").addEventListener("click", closeStatusModal);
+        statusOverlay.addEventListener("click", function (e) { if (e.target === statusOverlay) closeStatusModal(); });
+
+        document.getElementById("submit-status-update").addEventListener("click", async function () {
+            if (!statusOrderId) return;
+            clearStatusFormMessage();
+
+            const payload = {
+                orderStatus: document.getElementById("s-order-status").value,
+                trackingId: document.getElementById("s-tracking-id").value.trim() || null,
+                remarks: document.getElementById("s-remarks").value.trim() || null
+            };
+            console.log("[orders][submit-status-update] Payload:", payload, "orderId:", statusOrderId, "Token:", window.__adminAuth.token);
+
+            const btn = document.getElementById("submit-status-update");
+            btn.disabled = true;
+            btn.textContent = "Updating…";
+
+            try {
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/orders/" + encodeURIComponent(statusOrderId) + "/status", {
+                    method: "PUT",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload)
+                }, 15000);
+
+                if (res.status === 401) {
+                    console.error("[orders][submit-status-update] 401 Unauthorized updating order", statusOrderId, "Token sent:", window.__adminAuth.token);
+                    closeStatusModal();
+                    handleUnauthorized();
+                    return;
+                }
+
+                const body = await res.json();
+                console.log("[orders][submit-status-update] Response body:", body);
+
+                if (res.status === 200 && body.success) {
+                    showToast("Order status updated successfully.", "success");
+                    closeStatusModal();
+                    loadOrders();
+                    loadStats();
+                } else {
+                    console.warn("[orders][submit-status-update] Failed. Message:", body.message);
+                    showStatusFormMessage(body.message || "Failed to update order status.", "error");
+                }
+            } catch (err) {
+                console.error("[orders] status update failed:", err);
+                showStatusFormMessage("Could not reach the server. Check your connection and try again.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Update Status";
+            }
+        });
+
+        // ------------------------------------------------------------------
+        // Filters / pagination
+        // ------------------------------------------------------------------
+        document.getElementById("filter-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            state.page = 0;
+            state.orderNumber = document.getElementById("f-order-number").value.trim();
+            state.orderStatus = document.getElementById("f-order-status").value;
+            state.paymentStatus = document.getElementById("f-payment-status").value;
+            state.paymentMethod = document.getElementById("f-payment-method").value;
+            state.userId = document.getElementById("f-user-id").value.trim();
+            state.fromDate = document.getElementById("f-from-date").value;
+            state.toDate = document.getElementById("f-to-date").value;
+            console.log("[orders][filter-form submit] New state:", state);
+            loadOrders();
+        });
+
+        document.getElementById("reset-filters").addEventListener("click", function () {
+            document.getElementById("filter-form").reset();
+            state = { page: 0, size: state.size, orderNumber: "", orderStatus: "", paymentStatus: "", paymentMethod: "", userId: "", fromDate: "", toDate: "" };
+            console.log("[orders][reset-filters] State reset:", state);
+            loadOrders();
+        });
+
+        document.getElementById("page-size-select").addEventListener("change", function (e) {
+            state.size = parseInt(e.target.value, 10) || 20;
+            state.page = 0;
+            console.log("[orders][page-size-select] New size:", state.size);
+            loadOrders();
+        });
+
+        document.getElementById("pg-prev").addEventListener("click", function () {
+            if (state.page > 0) { state.page -= 1; console.log("[orders][pg-prev] page now:", state.page); loadOrders(); }
+        });
+        document.getElementById("pg-next").addEventListener("click", function () {
+            state.page += 1; console.log("[orders][pg-next] page now:", state.page); loadOrders();
+        });
+
+        // ------------------------------------------------------------------
+        // Logout
+        // ------------------------------------------------------------------
+        document.getElementById("logout-btn").addEventListener("click", function (e) {
+            e.preventDefault();
+            const token = window.__adminAuth.token;
+            console.log("[orders][logout] Logging out. Token was:", token);
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            fetch(API_BASE + "/api/admin/logout", {
+                method: "POST",
+                headers: token ? { "Authorization": token } : {}
+            }).then(function (res) {
+                console.log("[orders][logout] Logout response status:", res.status);
+            }).catch(function (err) {
+                console.error("[orders][logout] Logout request failed:", err);
+            }).finally(function () {
+                // window.location.href = "index.html";
+            });
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closeModal(viewOverlay);
+                closeStatusModal();
+            }
+        });
+
+        // ------------------------------------------------------------------
+        // Init
+        // ------------------------------------------------------------------
+        console.log("[orders][init] Kicking off loadStats() and loadOrders()…");
+        loadStats();
+        loadOrders();
+    </script>
+
+</body>
+
+</html>

@@ -1,7 +1,7 @@
 
 
 // ── BASE URL ──
-const BASE_URL = 'https://stanveeshopbackend.onrender.com';
+const BASE_URL = 'https://api.stanvee.com';
 
 // const BASE_URL = 'http://localhost:8080';
 
@@ -220,6 +220,7 @@ function productCardHTML(p, currency) {
           <span class="offer-price">${currency}${p.offer_price}</span>
           <span class="orig-price">${currency}${p.mrp}</span>
         </div>
+        ${p.max_points_utilization > 0 ? `<div class="points-badge">Avail up to ${currency}${p.max_points_utilization} off</div>` : ''}
         ${btnHTML}
       </div>
     </div>`;

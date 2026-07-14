@@ -1584,7 +1584,7 @@
             serverTotalPages: 0,
         };
 
-        const BASE_URL = 'https://stanveeshopbackend.onrender.com';
+        const BASE_URL = 'https://api.stanvee.com';
 
         // ── CART CACHE (shared key with script.js / cart.html) ──
         const CART_CACHE_KEY = 'sv_cart_cache';
@@ -1602,6 +1602,9 @@
             } catch (e) {}
         }
 
+
+
+        
         function readCartCache() {
             try {
                 const raw = localStorage.getItem(CART_CACHE_KEY);
@@ -2185,7 +2188,7 @@
           userId: userId,
           productId: numericId,
           quantity: 1,
-          couponSelected: false
+          couponSelected: true
         })
       })
         .then(r => r.json())
