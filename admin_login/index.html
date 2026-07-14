@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — Stanvee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="sb-brand" style="display:flex;align-items:center;justify-content:center;padding:10px 0;">
+                <img src="images/logoadminpanel.png" alt="Logo" style="height:50px;width:auto;">
+            </div>
+            <div class="login-sub">Sign in to manage your product catalog</div>
+
+            <div id="login-message" style="display:none;margin-bottom:14px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
+
+            <form id="login-form">
+                <div class="field">
+                    <label class="label" for="login-email">Email</label>
+                    <input class="input" type="email" id="login-email" name="email" placeholder="admin@company.com" autocomplete="username">
+                </div>
+                <div class="field">
+                    <label class="label" for="login-password">Password</label>
+                    <input class="input" type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <div class="remember-row">
+                    <label class="checkbox-row"><input type="checkbox" id="remember-me" checked> Remember me</label>
+                </div>
+                <button type="submit" id="login-btn" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">
+                    <span id="login-btn-text">Sign In</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // In-memory only — token is not written to localStorage/sessionStorage.
+        window.__adminAuth = { token: null, email: null };
+
+        const API_BASE = "https://api.stanvee.com"; // same-origin. Set e.g. "https://api.stanvee.com" if API is on a different host.
+
+        const form = document.getElementById("login-form");
+        const btn = document.getElementById("login-btn");
+        const btnText = document.getElementById("login-btn-text");
+        const msg = document.getElementById("login-message");
+
+        function showMessage(text, type) {
+            msg.textContent = text;
+            msg.style.display = "block";
+            if (type === "error") {
+                msg.style.background = "rgba(220,53,69,0.12)";
+                msg.style.border = "1px solid rgba(220,53,69,0.4)";
+                msg.style.color = "#dc3545";
+            } else {
+                msg.style.background = "rgba(40,167,69,0.12)";
+                msg.style.border = "1px solid rgba(40,167,69,0.4)";
+                msg.style.color = "#28a745";
+            }
+        }
+
+        function clearMessage() {
+            msg.style.display = "none";
+            msg.textContent = "";
+        }
+
+        function setLoading(isLoading) {
+            btn.disabled = isLoading;
+            btn.style.opacity = isLoading ? "0.7" : "1";
+            btn.style.cursor = isLoading ? "not-allowed" : "pointer";
+            btnText.textContent = isLoading ? "Signing in…" : "Sign In";
+        }
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            clearMessage();
+
+            const email = document.getElementById("login-email").value.trim();
+            const password = document.getElementById("login-password").value;
+
+            if (!email || !password) {
+                showMessage("Please enter both email and password.", "error");
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const res = await fetch(API_BASE + "/api/admin/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                let bd;
+                try {
+                    bd = await res.json();
+                } catch (parseErr) {
+                    showMessage("Unexpected response from server. Please try again.", "error");
+                    setLoading(false);
+                    return;
+                }
+
+                if (res.status === 200 && bd.status === "success" && bd.sessionToken) {
+                    window.__adminAuth.token = bd.sessionToken;
+                    window.__adminAuth.email = email;
+                    // Persisted so a page refresh doesn't bounce back to login.
+                    localStorage.setItem("adminSessionToken", bd.sessionToken);
+                    localStorage.setItem("adminEmail", email);
+                    showMessage(bd.message || "Login successful. Redirecting…", "success");
+                    setTimeout(function () {
+                        window.location.href = "dashboard.html";
+                    }, 400);
+                } else if (res.status === 400) {
+                    showMessage(bd.message || "Email and password are required.", "error");
+                    setLoading(false);
+                } else if (res.status === 401) {
+                    showMessage(bd.message || "Invalid email or password.", "error");
+                    setLoading(false);
+                } else {
+                    showMessage(bd.message || ("Login failed (status " + res.status + ").") , "error");
+                    setLoading(false);
+                }
+            } catch (networkErr) {
+                showMessage("Could not reach the server. Check your connection and try again.", "error");
+                setLoading(false);
+            }
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Stanvee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- ============================================================
+     APP SHELL — sidebar + topbar markup is identical on every page.
+     No JS: the mobile menu uses a hidden checkbox (#sb-toggle) and
+     the Products dropdown uses a native <details> element.
+============================================================= -->
+    <div id="app-shell">
+        <input type="checkbox" id="sb-toggle">
+        <label for="sb-toggle" class="sb-overlay"></label>
+
+        <!-- ---------- SIDEBAR ---------- -->
+     <aside id="sidebar">
+    <div class="sb-brand" style="display:flex;align-items:center;justify-content:center;padding:10px 0;">
+        <img src="images/logoadminpanel.png" alt="Logo" style="height:50px;width:auto;">
+    </div>
+    <nav class="sb-nav">
+        <a class="sb-item active" href="dashboard.html">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg><span>Dashboard</span>
+        </a>
+        <details class="sb-group">
+            <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg><span>Products</span>
+                <span class="sb-caret"></span>
+            </summary>
+            <div class="sb-sub">
+                <a class="sb-sub-item" href="products.html">All Products</a><a class="sb-sub-item" href="add-product.html">Add Product</a><a class="sb-sub-item" href="import.html">Import via Excel</a>
+            </div>
+        </details>
+        <a class="sb-item" href="categories.html">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span>Categories</span>
+        </a>
+        <details class="sb-group">
+            <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg><span>Orders</span>
+                <span class="sb-caret"></span>
+            </summary>
+            <div class="sb-sub">
+                <a class="sb-sub-item" href="orders.html">All Orders</a>
+                <a class="sb-sub-item" href="pending-checkouts.html">Pending Checkouts</a>
+            </div>
+        </details>
+        <div class="sb-item sb-disabled" title="Coming soon">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>Settings</span>
+        </div>
+    </nav>
+    <div class="sb-footer">
+        <div class="sb-avatar">A</div>
+        <div class="sb-footer-info">
+            <div class="sb-footer-name">Logout</div>
+            <div class="sb-footer-role">Administrator</div>
+        </div>
+        <a class="sb-logout-btn" href="login.html" id="logout-btn" title="Logout"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></a>
+    </div>
+</aside>
+
+        <div id="main-wrap">
+            <!-- ---------- TOPBAR ---------- -->
+            <!-- <header id="header">
+                <div class="flex" style="align-items:center;gap:10px;">
+                    <label for="sb-toggle" class="hamburger"><svg class="icon" width="22" height="22" viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></label>
+                    <div class="breadcrumb"><b>Dashboard</b></div>
+                </div>
+                <div class="header-right">
+                    <div class="profile-btn">
+                        <div class="profile-avatar">A</div>
+                        <span class="profile-name">Admin User</span>
+                    </div>
+                </div>
+            </header> -->
+
+            <!-- ---------- PAGE CONTENT ---------- -->
+            <main id="content" style="position:relative;min-height:400px;">
+
+                <!-- Loading overlay: shown while dashboard data is being fetched -->
+                <div id="content-loader" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(255,255,255,0.85);z-index:5;border-radius:10px;">
+                    <div style="width:38px;height:38px;border:4px solid #e2e5f1;border-top-color:#6366f1;border-radius:50%;animation:dash-spin 0.8s linear infinite;"></div>
+                    <div style="font-size:13.5px;font-weight:600;color:#5b6272;">Loading dashboard…</div>
+                </div>
+                <style>
+                    @keyframes dash-spin { to { transform: rotate(360deg); } }
+                </style>
+
+                <div class="page-title">Dashboard</div>
+                <div class="page-sub">Overview of your product catalog</div>
+
+                <div id="dash-message" style="display:none;margin-bottom:16px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
+
+                <div class="stat-grid">
+                    <div class="card stat-card">
+                        <div>
+                            <div class="stat-label">Total Products</div>
+                            <div class="stat-value" id="stat-total">—</div>
+                        </div>
+                        <div class="stat-icon" style="background:#eef0fe;color:#6366f1;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>
+                    </div>
+                    <div class="card stat-card">
+                        <div>
+                            <div class="stat-label">In Stock</div>
+                            <div class="stat-value" id="stat-instock">—</div>
+                        </div>
+                        <div class="stat-icon" style="background:#dcfce7;color:#16a34a;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+                    </div>
+                    <div class="card stat-card">
+                        <div>
+                            <div class="stat-label">Out of Stock</div>
+                            <div class="stat-value" id="stat-outstock">—</div>
+                        </div>
+                        <div class="stat-icon" style="background:#fee2e2;color:#dc2626;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+                    </div>
+                    <div class="card stat-card">
+                        <div>
+                            <div class="stat-label">Total Categories</div>
+                            <div class="stat-value" id="stat-categories">—</div>
+                        </div>
+                        <div class="stat-icon" style="background:#fef3c7;color:#d97706;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="padding:18px 20px 4px;font-weight:700;font-size:15px;">Recently Added Products</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Product ID</th>
+                                    <th>Offer Price</th>
+                                    <th>Stock</th>
+                                    <th>Category</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-products-body">
+                                <tr><td colspan="5" style="text-align:center;padding:24px;color:#9aa4b8;">Loading products…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // ------------------------------------------------------------------
+        // Auth: token is persisted in localStorage by index.html, so a page
+        // refresh here doesn't bounce back to the index screen. If there's
+        // no token at all, redirect to index.
+        // ------------------------------------------------------------------
+        window.__adminAuth = window.__adminAuth || { token: null };
+        window.__adminAuth.token = localStorage.getItem("adminSessionToken");
+
+        if (!window.__adminAuth.token) {
+            window.location.href = "index.html";
+        }
+
+        // Your page is served from a different origin (e.g. Live Server on
+        // 127.0.0.1:5500) than the Spring Boot API (localhost:8080), so this
+        // MUST be the full origin — a relative "" path would silently hit
+        // the wrong server and every call would fail or return the wrong data.
+        const API_BASE = "https://api.stanvee.com";
+
+        function authHeaders() {
+            return { "Authorization": window.__adminAuth.token };
+        }
+
+        const dashMsg = document.getElementById("dash-message");
+        function showDashMessage(text, type) {
+            dashMsg.textContent = text;
+            dashMsg.style.display = "block";
+            if (type === "error") {
+                dashMsg.style.background = "rgba(220,53,69,0.12)";
+                dashMsg.style.border = "1px solid rgba(220,53,69,0.4)";
+                dashMsg.style.color = "#dc3545";
+            } else {
+                dashMsg.style.background = "rgba(40,167,69,0.12)";
+                dashMsg.style.border = "1px solid rgba(40,167,69,0.4)";
+                dashMsg.style.color = "#28a745";
+            }
+        }
+
+        function handleUnauthorized() {
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            showDashMessage("Your session has expired. Redirecting to sign in…", "error");
+            setTimeout(function () { window.location.href = "index.html"; }, 900);
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function renderStockBadge(status) {
+            var s = (status || "").toLowerCase();
+            if (s === "out_of_stock" || s === "out of stock") {
+                return '<span class="badge badge-red"><svg class="icon" width="11" height="11" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Out of Stock</span>';
+            }
+            return '<span class="badge badge-green"><svg class="icon" width="11" height="11" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>In Stock</span>';
+        }
+
+        function hideContentLoader() {
+            var loader = document.getElementById("content-loader");
+            if (loader) loader.style.display = "none";
+        }
+
+        async function fetchWithTimeout(url, options, timeoutMs) {
+            const controller = new AbortController();
+            const timer = setTimeout(function () { controller.abort(); }, timeoutMs || 10000);
+            try {
+                const res = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+                clearTimeout(timer);
+                return res;
+            } catch (err) {
+                clearTimeout(timer);
+                if (err.name === "AbortError") {
+                    console.error("[dashboard] Request timed out:", url);
+                    throw new Error("Request timed out: " + url);
+                }
+                console.error("[dashboard] Fetch failed for", url, "-", err.message,
+                    "\nThis is usually a CORS problem: the page origin (" + location.origin +
+                    ") differs from the API origin (" + API_BASE + "). Check the browser console/network tab for a 'CORS policy' error, and make sure the backend allows this origin.");
+                throw err;
+            }
+        }
+
+        async function loadDashboard() {
+            console.log("[dashboard] Loading from", API_BASE);
+            try {
+                // Single dedicated dashboard endpoint — replaces the old
+                // "fetch full product list + categories, count in JS" approach.
+                const res = await fetchWithTimeout(
+                    API_BASE + "/api/admin/products/dashboard",
+                    { headers: authHeaders() },
+                    10000
+                );
+
+                if (res.status === 401) {
+                    hideContentLoader();
+                    handleUnauthorized();
+                    return;
+                }
+
+                const body = await res.json();
+
+                if (res.status !== 200) {
+                    hideContentLoader();
+                    showDashMessage(typeof body.data === "string" ? body.data : "Failed to load dashboard.", "error");
+                    document.getElementById("recent-products-body").innerHTML =
+                        '<tr><td colspan="5" style="text-align:center;padding:24px;color:#9aa4b8;">Could not load products.</td></tr>';
+                    return;
+                }
+
+                // ---- Stat cards ----
+                document.getElementById("stat-total").textContent = body.total_products ?? "—";
+                document.getElementById("stat-instock").textContent = body.in_stock ?? "—";
+                document.getElementById("stat-outstock").textContent = body.out_of_stock ?? "—";
+                document.getElementById("stat-categories").textContent = body.total_categories ?? "—";
+
+                // ---- Recently added table ----
+                const recent = Array.isArray(body.recent_products) ? body.recent_products : [];
+                const tbody = document.getElementById("recent-products-body");
+
+                if (recent.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#9aa4b8;">No products yet.</td></tr>';
+                    hideContentLoader();
+                    return;
+                }
+
+                tbody.innerHTML = recent.map(function (p) {
+                    var cat = Array.isArray(p.category) ? p.category.join(", ") : (p.category || "—");
+                    var price = p.offer_price != null ? "" + p.offer_price : "—";
+                    return '<tr>' +
+                        '<td class="flex" style="align-items:center;gap:10px;">' +
+                            '<img class="prod-thumb" src="' + escapeHtml(p.image || "https://picsum.photos/seed/" + escapeHtml(p.product_id || "x") + "/80/80") + '" alt="">' +
+                            '<span class="prod-name">' + escapeHtml(p.product_name || "Untitled") + '</span>' +
+                        '</td>' +
+                        '<td class="prod-id">' + escapeHtml(p.product_id || "—") + '</td>' +
+                        '<td>' + escapeHtml(price) + '</td>' +
+                        '<td>' + renderStockBadge(p.stock_status) + '</td>' +
+                        '<td>' + escapeHtml(cat) + '</td>' +
+                    '</tr>';
+                }).join("");
+
+                hideContentLoader();
+            } catch (err) {
+                console.error("[dashboard] loadDashboard failed:", err);
+                hideContentLoader();
+                showDashMessage("Could not reach the server. Check your connection and try again.", "error");
+                document.getElementById("recent-products-body").innerHTML =
+                    '<tr><td colspan="5" style="text-align:center;padding:24px;color:#9aa4b8;">Could not load products.</td></tr>';
+            }
+        }
+
+        if (window.__adminAuth.token) {
+            loadDashboard();
+        }
+
+        // ---- Logout ----
+        document.getElementById("logout-btn").addEventListener("click", function (e) {
+            e.preventDefault();
+            const token = window.__adminAuth.token;
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            fetch(API_BASE + "/api/admin/logout", {
+                method: "POST",
+                headers: token ? { "Authorization": token } : {}
+            }).catch(function () {
+                // ignore network errors on logout — we're leaving the page anyway
+            }).finally(function () {
+                window.location.href = "index.html";
+            });
+        });
+    </script>
+
+</body>
+
+</html>

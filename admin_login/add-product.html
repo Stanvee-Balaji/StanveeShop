@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product — Stanvee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ---- Scoped additions for this page (won't clash with style.css) ---- */
+        .req { color: #dc3545; }
+
+        #page-message {
+            display: none; margin-bottom: 16px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.4;
+        }
+
+        .field-error {
+            font-size: 11.5px; color: #dc3545; margin-top: 4px; display: none;
+        }
+        .field-error.show { display: block; }
+        .input.has-error, .textarea.has-error { border-color: #dc3545 !important; }
+
+        .gallery-item { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .gallery-item .input { flex: 1; }
+        .gallery-item .act-btn.danger { flex-shrink: 0; }
+
+        #add-gallery-row {
+            padding: 7px 12px; font-size: 12.5px; margin-top: 2px;
+        }
+
+        .img-preview img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block; }
+
+        .form-actions-bar {
+            display: flex; justify-content: flex-end; gap: 10px; align-items: center;
+        }
+
+        .btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+        .sv-toast {
+            position: fixed; top: 20px; right: 20px; z-index: 1100; padding: 12px 16px; border-radius: 10px;
+            font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none;
+        }
+        .sv-toast.success { background: #eafaf0; color: #1a7a3d; border: 1px solid #b7ecc9; }
+        .sv-toast.error { background: #fdeced; color: #b8232f; border: 1px solid #f5c2c7; }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================================================
+     APP SHELL — sidebar + topbar markup is identical on every page.
+     No JS: the mobile menu uses a hidden checkbox (#sb-toggle) and
+     the Products dropdown uses a native <details> element.
+============================================================= -->
+    <div id="app-shell">
+        <input type="checkbox" id="sb-toggle">
+        <label for="sb-toggle" class="sb-overlay"></label>
+
+        <!-- ---------- SIDEBAR ---------- -->
+<aside id="sidebar">
+    <div class="sb-brand" style="display:flex;align-items:center;justify-content:center;padding:10px 0;">
+        <img src="images/logoadminpanel.png" alt="Logo" style="height:50px;width:auto;">
+    </div>
+    <nav class="sb-nav">
+        <a class="sb-item" href="dashboard.html">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg><span>Dashboard</span>
+        </a>
+        <details class="sb-group active" open>
+            <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg><span>Products</span>
+                <span class="sb-caret"></span>
+            </summary>
+            <div class="sb-sub">
+                <a class="sb-sub-item" href="products.html">All Products</a><a class="sb-sub-item active" href="add-product.html">Add Product</a><a class="sb-sub-item" href="import.html">Import via Excel</a>
+            </div>
+        </details>
+        <a class="sb-item" href="categories.html">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span>Categories</span>
+        </a>
+        <details class="sb-group">
+            <summary><svg class="icon" width="18" height="18" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg><span>Orders</span>
+                <span class="sb-caret"></span>
+            </summary>
+            <div class="sb-sub">
+                <a class="sb-sub-item" href="orders.html">All Orders</a>
+                <a class="sb-sub-item" href="pending-checkouts.html">Pending Checkouts</a>
+            </div>
+        </details>
+        <div class="sb-item sb-disabled" title="Coming soon">
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>Settings</span>
+        </div>
+    </nav>
+    <div class="sb-footer">
+        <div class="sb-avatar">A</div>
+        <div class="sb-footer-info">
+            <div class="sb-footer-name">Logout</div>
+            <div class="sb-footer-role">Administrator</div>
+        </div>
+        <a class="sb-logout-btn" href="login.html" id="logout-btn" title="Logout"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></a>
+    </div>
+</aside>
+
+        <div id="main-wrap">
+            <!-- ---------- TOPBAR ---------- -->
+            <!-- <header id="header">
+                <div class="flex" style="align-items:center;gap:10px;">
+                    <label for="sb-toggle" class="hamburger"><svg class="icon" width="22" height="22" viewBox="0 0 24 24">
+              <line x1="4" x2="20" y1="12" y2="12" />
+              <line x1="4" x2="20" y1="6" y2="6" />
+              <line x1="4" x2="20" y1="18" y2="18" />
+            </svg></label>
+                    <div class="breadcrumb"><span>Products</span> <span style="color:var(--text-light)">/</span> <b>Add
+              Product</b></div>
+                </div>
+                <div class="header-right">
+                    <div class="profile-btn">
+                        <div class="profile-avatar">A</div>
+                        <span class="profile-name">Admin User</span>
+                    </div>
+                </div>
+            </header> -->
+
+            <!-- ---------- PAGE CONTENT ---------- -->
+            <main id="content">
+                <div class="page-head-row">
+                    <div>
+                        <div class="page-title">Add Product</div>
+                        <div class="page-sub">Create a new catalog entry</div>
+                    </div>
+                </div>
+
+                <div id="page-message"></div>
+
+                <form id="add-product-form" novalidate>
+                    <div class="form-grid">
+                        <div>
+                            <div class="card form-card">
+                                <div class="form-section-title">Product Details</div>
+                                <div class="field">
+                                    <label class="label" for="pf-name">Product Name <span class="req">*</span></label>
+                                    <input class="input" id="pf-name" name="product_name" value="" placeholder="e.g. Classic Ceramic Bowl">
+                                    <div class="field-error" id="err-pf-name">Product name is required.</div>
+                                </div>
+                                <div class="two-col">
+                                    <div class="field">
+                                        <label class="label" for="pf-pid">Product ID <span class="req">*</span></label>
+                                        <input class="input" id="pf-pid" name="product_id" value="" placeholder="e.g. PRD-1001">
+                                        <div class="field-error" id="err-pf-pid">Product ID is required.</div>
+                                    </div>
+                                    <div></div>
+                                    <div class="field">
+                                        <label class="label" for="pf-mrp">MRP (₹) <span class="req">*</span></label>
+                                        <input class="input" type="number" step="0.01" min="0" id="pf-mrp" name="mrp" value="" placeholder="0.00">
+                                        <div class="field-error" id="err-pf-mrp">Enter a valid MRP.</div>
+                                    </div>
+                                    <div class="field">
+                                        <label class="label" for="pf-offer">Offer Price (₹) <span class="req">*</span></label>
+                                        <input class="input" type="number" step="0.01" min="0" id="pf-offer" name="offer_price" value="" placeholder="0.00">
+                                        <div class="field-error" id="err-pf-offer">Offer price must be valid and not exceed MRP.</div>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label class="label" for="pf-category">Category <span class="req">*</span></label>
+                                    <input class="input" id="pf-category" name="category" value="" placeholder="e.g. Dining, Tableware" list="category-datalist">
+                                    <datalist id="category-datalist"></datalist>
+                                    <div class="hint">Comma-separated. Will be sent to the API as a list.</div>
+                                    <div class="field-error" id="err-pf-category">At least one category is required.</div>
+                                </div>
+                                <div class="field">
+                                    <label class="label" for="pf-shortdesc">Short Description <span class="req">*</span></label>
+                                    <textarea class="textarea" id="pf-shortdesc" name="product_short_desc" rows="2" placeholder="One-line summary (HTML allowed)"></textarea>
+                                    <div class="field-error" id="err-pf-shortdesc">Short description is required.</div>
+                                </div>
+                                <div class="field" style="margin-bottom:0;">
+                                    <label class="label" for="pf-fulldesc">Full Description <span class="req">*</span></label>
+                                    <textarea class="textarea" id="pf-fulldesc" name="product_desc" rows="6" placeholder="Detailed description (HTML allowed)"></textarea>
+                                    <div class="field-error" id="err-pf-fulldesc">Full description is required.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="card form-card">
+                                <div class="form-section-title">Media</div>
+                                <div class="field">
+                                    <label class="label" for="pf-image">Main Image URL <span class="req">*</span></label>
+                                    <input class="input" id="pf-image" name="image" value="" placeholder="https://…">
+                                    <div class="field-error" id="err-pf-image">A valid main image URL is required.</div>
+                                    <div class="img-preview-row">
+                                        <div class="img-preview center" id="image-preview-box" style="color:var(--text-light);font-size:11px;">No image</div>
+                                        <span style="font-size:12px;color:var(--text-light);">Preview</span>
+                                    </div>
+                                </div>
+                                <div class="field" style="margin-bottom:0;">
+                                    <label class="label">Gallery Images <span class="req">*</span></label>
+                                    <div id="gallery-list">
+                                        <div class="gallery-item">
+                                            <input class="input gallery-input" name="gallery_images" value="" placeholder="https://…">
+                                            <button type="button" class="act-btn danger remove-gallery-btn" title="Remove"><svg class="icon" width="15" height="15"
+                                viewBox="0 0 24 24">
+                                <path d="M18 6 6 18" />
+                                <path d="m6 6 12 12" />
+                              </svg></button>
+                                        </div>
+                                        <div class="gallery-item">
+                                            <input class="input gallery-input" name="gallery_images" value="" placeholder="https://…">
+                                            <button type="button" class="act-btn danger remove-gallery-btn" title="Remove"><svg class="icon" width="15" height="15"
+                                viewBox="0 0 24 24">
+                                <path d="M18 6 6 18" />
+                                <path d="m6 6 12 12" />
+                              </svg></button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" id="add-gallery-row">+ Add Image URL</button>
+                                    <div class="hint">At least one gallery image URL is required.</div>
+                                    <div class="field-error" id="err-gallery">Add at least one valid gallery image URL.</div>
+                                </div>
+                            </div>
+
+                            <details class="card form-card details-card" open>
+                                <summary>Additional Details <span class="sb-caret"></span></summary>
+                                <div class="two-col">
+                                    <div class="field"><label class="label" for="pf-stockqty">Stock Quantity</label><input class="input" type="number" min="0" id="pf-stockqty" name="stock_quantity" value=""></div>
+                                    <div class="field"><label class="label" for="pf-stockstatus">Stock Status</label>
+                                        <select class="select" id="pf-stockstatus" name="stock_status">
+                      <option value="">— Not set —</option>
+                      <option value="in_stock">In Stock</option>
+                      <option value="out_of_stock">Out of Stock</option>
+                    </select>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label class="label" for="pf-subcat">Sub Category</label>
+                                    <input class="input" id="pf-subcat" name="sub_category" value="" placeholder="Comma-separated…">
+                                </div>
+                                <div class="two-col">
+                                    <div class="field"><label class="label" for="pf-sku">SKU</label><input class="input" id="pf-sku" name="sku" value=""></div>
+                                    <div class="field"><label class="label" for="pf-warranty">Warranty</label><input class="input" id="pf-warranty" name="warranty" value="" placeholder="e.g. 1 Year"></div>
+                                    <div class="field"><label class="label" for="pf-taxstatus">Tax Status</label><input class="input" id="pf-taxstatus" name="tax_status" value="" placeholder="e.g. taxable"></div>
+                                    <div class="field"><label class="label" for="pf-taxclass">Tax Class</label><input class="input" id="pf-taxclass" name="tax_class" value="" placeholder="e.g. standard"></div>
+                                    <div class="field"><label class="label" for="pf-hsn">Product HSN</label><input class="input" id="pf-hsn" name="product_hsn" value=""></div>
+                                    <div class="field"><label class="label" for="pf-ean">Product EAN</label><input class="input" id="pf-ean" name="product_ean" value=""></div>
+                                </div>
+                                <div class="field">
+                                    <label class="label" for="pf-maxpoints">Max Points Utilization</label>
+                                    <input class="input" type="number" min="0" id="pf-maxpoints" name="max_points_utilization" value="" placeholder="0">
+                                    <div class="field-error" id="err-pf-maxpoints">Cannot be negative.</div>
+                                </div>
+                                <div class="field">
+                                    <label class="label" for="pf-descitems">Description Items (JSON)</label>
+                                    <textarea class="textarea" id="pf-descitems" name="description_items" rows="3" placeholder='[{"label":"Material","value":"Ceramic"}]'></textarea>
+                                    <div class="hint">Must be valid JSON, e.g. [{"label":"Material","value":"Ceramic"}]</div>
+                                    <div class="field-error" id="err-pf-descitems">Must be valid JSON.</div>
+                                </div>
+                                <div class="field" style="margin-bottom:0;">
+                                    <label class="label" for="pf-specs">Specifications (JSON)</label>
+                                    <textarea class="textarea" id="pf-specs" name="specifications" rows="3" placeholder='{"Weight":"1.2kg"}'></textarea>
+                                    <div class="hint">Must be valid JSON, e.g. {"Weight":"1.2kg","Dimensions":"20x20x10cm"}</div>
+                                    <div class="field-error" id="err-pf-specs">Must be valid JSON.</div>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+
+                    <div class="card form-actions-bar">
+                        <a class="btn btn-secondary" href="products.html">Cancel</a>
+                        <button type="submit" class="btn btn-primary" id="submit-product-btn"><svg class="icon" width="15" height="15" viewBox="0 0 24 24">
+                <path d="M20 6 9 17l-5-5" />
+              </svg> Save Product</button>
+                    </div>
+                </form>
+
+            </main>
+        </div>
+    </div>
+
+    <div class="sv-toast" id="sv-toast"></div>
+
+    <script>
+        // ------------------------------------------------------------------
+        // Auth
+        // ------------------------------------------------------------------
+        window.__adminAuth = { token: localStorage.getItem("adminSessionToken") };
+        if (!window.__adminAuth.token) { window.location.href = "index.html"; }
+
+        const API_BASE = "https://api.stanvee.com";
+
+        function authHeaders(extra) {
+            return Object.assign({ "Authorization": window.__adminAuth.token }, extra || {});
+        }
+
+        function handleUnauthorized() {
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            showPageMessage("Your session has expired. Redirecting to sign in…", "error");
+            setTimeout(function () { window.location.href = "index.html"; }, 900);
+        }
+
+        const pageMsgBox = document.getElementById("page-message");
+        function showPageMessage(text, type) {
+            pageMsgBox.textContent = text;
+            pageMsgBox.style.display = "block";
+            pageMsgBox.style.background = type === "error" ? "rgba(220,53,69,0.12)" : "rgba(40,167,69,0.12)";
+            pageMsgBox.style.border = "1px solid " + (type === "error" ? "rgba(220,53,69,0.4)" : "rgba(40,167,69,0.4)");
+            pageMsgBox.style.color = type === "error" ? "#dc3545" : "#28a745";
+            pageMsgBox.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        function clearPageMessage() { pageMsgBox.style.display = "none"; pageMsgBox.textContent = ""; }
+
+        function showToast(text, type) {
+            const t = document.getElementById("sv-toast");
+            t.textContent = text;
+            t.className = "sv-toast " + type;
+            t.style.display = "block";
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(function () { t.style.display = "none"; }, 3500);
+        }
+
+        function escapeHtml(str) {
+            return String(str == null ? "" : str)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        async function fetchWithTimeout(url, options, timeoutMs) {
+            const controller = new AbortController();
+            const timer = setTimeout(function () { controller.abort(); }, timeoutMs || 10000);
+            try {
+                const res = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+                clearTimeout(timer);
+                return res;
+            } catch (err) {
+                clearTimeout(timer);
+                if (err.name === "AbortError") throw new Error("Request timed out: " + url);
+                console.error("[add-product] Fetch failed for", url, "-", err.message);
+                throw err;
+            }
+        }
+
+        function safeParseJson(str) {
+            if (!str) return null;
+            try { return JSON.parse(str); } catch (e) { return undefined; } // undefined = invalid
+        }
+
+        function splitList(value) {
+            return value.split(/[\n,]/).map(function (s) { return s.trim(); }).filter(Boolean);
+        }
+
+        // ------------------------------------------------------------------
+        // Load categories for datalist suggestions (best-effort, non-blocking)
+        // ------------------------------------------------------------------
+        async function loadCategoryOptions() {
+            try {
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/products/categories", { headers: authHeaders() }, 10000);
+                if (res.status === 401) { handleUnauthorized(); return; }
+                const body = await res.json();
+                if (body.status === "success" && Array.isArray(body.data)) {
+                    const dl = document.getElementById("category-datalist");
+                    body.data.forEach(function (cat) {
+                        const opt = document.createElement("option");
+                        opt.value = cat;
+                        dl.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error("[add-product] Failed to load categories:", err);
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Main image live preview
+        // ------------------------------------------------------------------
+        const imageInput = document.getElementById("pf-image");
+        const previewBox = document.getElementById("image-preview-box");
+        let previewTimer;
+
+        function renderImagePreview(url) {
+            previewBox.innerHTML = "";
+            if (!url) { previewBox.textContent = "No image"; return; }
+            const img = document.createElement("img");
+            img.src = url;
+            img.alt = "";
+            img.onerror = function () { previewBox.textContent = "Invalid image URL"; };
+            previewBox.appendChild(img);
+        }
+
+        imageInput.addEventListener("input", function () {
+            clearTimeout(previewTimer);
+            const url = imageInput.value.trim();
+            previewTimer = setTimeout(function () { renderImagePreview(url); }, 400);
+        });
+
+        // ------------------------------------------------------------------
+        // Dynamic gallery image rows
+        // ------------------------------------------------------------------
+        const galleryList = document.getElementById("gallery-list");
+
+        function makeGalleryRow() {
+            const row = document.createElement("div");
+            row.className = "gallery-item";
+            row.innerHTML =
+                '<input class="input gallery-input" name="gallery_images" value="" placeholder="https://…">' +
+                '<button type="button" class="act-btn danger remove-gallery-btn" title="Remove">' +
+                '<svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
+                '</button>';
+            row.querySelector(".remove-gallery-btn").addEventListener("click", function () {
+                if (galleryList.querySelectorAll(".gallery-item").length > 1) {
+                    row.remove();
+                } else {
+                    row.querySelector(".gallery-input").value = "";
+                }
+            });
+            return row;
+        }
+
+        galleryList.querySelectorAll(".remove-gallery-btn").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                const row = btn.closest(".gallery-item");
+                if (galleryList.querySelectorAll(".gallery-item").length > 1) {
+                    row.remove();
+                } else {
+                    row.querySelector(".gallery-input").value = "";
+                }
+            });
+        });
+
+        document.getElementById("add-gallery-row").addEventListener("click", function () {
+            galleryList.appendChild(makeGalleryRow());
+        });
+
+        // ------------------------------------------------------------------
+        // Field error helpers
+        // ------------------------------------------------------------------
+        function setFieldError(inputEl, errorId, show) {
+            const errEl = document.getElementById(errorId);
+            if (errEl) errEl.classList.toggle("show", !!show);
+            if (inputEl) inputEl.classList.toggle("has-error", !!show);
+        }
+
+        function clearAllFieldErrors() {
+            document.querySelectorAll(".field-error.show").forEach(function (el) { el.classList.remove("show"); });
+            document.querySelectorAll(".input.has-error, .textarea.has-error").forEach(function (el) { el.classList.remove("has-error"); });
+        }
+
+        // ------------------------------------------------------------------
+        // Submit
+        // ------------------------------------------------------------------
+        const form = document.getElementById("add-product-form");
+        const submitBtn = document.getElementById("submit-product-btn");
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            clearPageMessage();
+            clearAllFieldErrors();
+
+            const nameEl = document.getElementById("pf-name");
+            const pidEl = document.getElementById("pf-pid");
+            const mrpEl = document.getElementById("pf-mrp");
+            const offerEl = document.getElementById("pf-offer");
+            const categoryEl = document.getElementById("pf-category");
+            const shortDescEl = document.getElementById("pf-shortdesc");
+            const fullDescEl = document.getElementById("pf-fulldesc");
+            const imageEl = document.getElementById("pf-image");
+            const maxPointsEl = document.getElementById("pf-maxpoints");
+            const descItemsEl = document.getElementById("pf-descitems");
+            const specsEl = document.getElementById("pf-specs");
+
+            const name = nameEl.value.trim();
+            const pid = pidEl.value.trim();
+            const mrpRaw = mrpEl.value.trim();
+            const offerRaw = offerEl.value.trim();
+            const category = categoryEl.value.trim();
+            const shortDesc = shortDescEl.value.trim();
+            const fullDesc = fullDescEl.value.trim();
+            const image = imageEl.value.trim();
+            const galleryUrls = Array.from(document.querySelectorAll(".gallery-input"))
+                .map(function (i) { return i.value.trim(); })
+                .filter(Boolean);
+            const maxPointsRaw = maxPointsEl.value.trim();
+            const descItemsRaw = descItemsEl.value.trim();
+            const specsRaw = specsEl.value.trim();
+
+            let hasError = false;
+
+            if (!name) { setFieldError(nameEl, "err-pf-name", true); hasError = true; }
+            if (!pid) { setFieldError(pidEl, "err-pf-pid", true); hasError = true; }
+
+            const mrpNum = parseFloat(mrpRaw);
+            const offerNum = parseFloat(offerRaw);
+            if (!mrpRaw || isNaN(mrpNum) || mrpNum < 0) { setFieldError(mrpEl, "err-pf-mrp", true); hasError = true; }
+            if (!offerRaw || isNaN(offerNum) || offerNum < 0 || (!isNaN(mrpNum) && offerNum > mrpNum)) {
+                setFieldError(offerEl, "err-pf-offer", true); hasError = true;
+            }
+
+            if (!category) { setFieldError(categoryEl, "err-pf-category", true); hasError = true; }
+            if (!shortDesc) { setFieldError(shortDescEl, "err-pf-shortdesc", true); hasError = true; }
+            if (!fullDesc) { setFieldError(fullDescEl, "err-pf-fulldesc", true); hasError = true; }
+            if (!image) { setFieldError(imageEl, "err-pf-image", true); hasError = true; }
+            if (galleryUrls.length === 0) { document.getElementById("err-gallery").classList.add("show"); hasError = true; }
+
+            if (maxPointsRaw !== "" && parseInt(maxPointsRaw, 10) < 0) {
+                setFieldError(maxPointsEl, "err-pf-maxpoints", true); hasError = true;
+            }
+
+            let descItemsParsed = null;
+            if (descItemsRaw) {
+                descItemsParsed = safeParseJson(descItemsRaw);
+                if (descItemsParsed === undefined) { setFieldError(descItemsEl, "err-pf-descitems", true); hasError = true; }
+            }
+            let specsParsed = null;
+            if (specsRaw) {
+                specsParsed = safeParseJson(specsRaw);
+                if (specsParsed === undefined) { setFieldError(specsEl, "err-pf-specs", true); hasError = true; }
+            }
+
+            if (hasError) {
+                showPageMessage("Please fix the highlighted fields before saving.", "error");
+                return;
+            }
+
+            const payload = {
+                product_name: name,
+                product_id: pid,
+                mrp: mrpRaw,
+                offer_price: offerRaw,
+                image: image,
+                gallery_images: galleryUrls,
+                category: splitList(category),
+                product_desc: fullDesc,
+                product_short_desc: shortDesc
+            };
+
+            const subCategory = document.getElementById("pf-subcat").value.trim();
+            if (subCategory) payload.sub_category = splitList(subCategory);
+
+            const stockQty = document.getElementById("pf-stockqty").value.trim();
+            if (stockQty) payload.stock_quantity = stockQty;
+
+            const stockStatus = document.getElementById("pf-stockstatus").value;
+            if (stockStatus) payload.stock_status = stockStatus;
+
+            const sku = document.getElementById("pf-sku").value.trim();
+            if (sku) payload.sku = sku;
+
+            const taxStatus = document.getElementById("pf-taxstatus").value.trim();
+            if (taxStatus) payload.tax_status = taxStatus;
+
+            const taxClass = document.getElementById("pf-taxclass").value.trim();
+            if (taxClass) payload.tax_class = taxClass;
+
+            const hsn = document.getElementById("pf-hsn").value.trim();
+            if (hsn) payload.product_hsn = hsn;
+
+            const ean = document.getElementById("pf-ean").value.trim();
+            if (ean) payload.product_ean = ean;
+
+            const warranty = document.getElementById("pf-warranty").value.trim();
+            if (warranty) payload.warranty = warranty;
+
+            if (maxPointsRaw !== "") payload.max_points_utilization = parseInt(maxPointsRaw, 10);
+            if (specsRaw) payload.specifications = specsRaw;
+            if (descItemsRaw) payload.description_items = descItemsRaw;
+
+            submitBtn.disabled = true;
+            const originalBtnHtml = submitBtn.innerHTML;
+            submitBtn.textContent = "Saving…";
+
+            try {
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/products", {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload)
+                }, 10000);
+
+                if (res.status === 401) { handleUnauthorized(); return; }
+
+                const body = await res.json();
+
+                if (res.status === 201 && body.status === "success") {
+                    showToast("Product created successfully.", "success");
+                    setTimeout(function () { window.location.href = "products.html"; }, 700);
+                } else {
+                    showPageMessage(typeof body.data === "string" ? body.data : "Failed to create product.", "error");
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+            } catch (err) {
+                console.error("[add-product] create failed:", err);
+                showPageMessage("Could not reach the server. Check your connection and try again.", "error");
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+            }
+        });
+
+        // ------------------------------------------------------------------
+        // Logout
+        // ------------------------------------------------------------------
+        document.getElementById("logout-btn").addEventListener("click", function (e) {
+            e.preventDefault();
+            const token = window.__adminAuth.token;
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            fetch(API_BASE + "/api/admin/logout", {
+                method: "POST",
+                headers: token ? { "Authorization": token } : {}
+            }).catch(function () {}).finally(function () {
+                window.location.href = "index.html";
+            });
+        });
+
+        // ------------------------------------------------------------------
+        // Init
+        // ------------------------------------------------------------------
+        if (window.__adminAuth.token) {
+            loadCategoryOptions();
+        }
+    </script>
+
+</body>
+
+</html>

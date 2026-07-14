@@ -12,6 +12,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     restoreStanveeSession();
     refreshCartCount();
 
+    // Let page-specific scripts (e.g. cart.html) know the header DOM now
+    // exists, so they can safely paint live wallet balances into it. Fixes
+    // a race where cart.html tried to write walletR/walletO before
+    // header.html had finished injecting, silently no-op'ing the update.
+    document.dispatchEvent(new CustomEvent('stanveeHeaderReady'));
+
     // ── Highlight active nav link based on current page ──
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     document.querySelectorAll('.desktop-nav-links a, .mobile-nav-menu a').forEach(link => {
@@ -147,10 +153,19 @@ function updateHeaderForLoggedInUser(user) {
     if (guestNav) guestNav.style.display = "none";
     if (userNav) userNav.style.display = "flex";
 
+    // walletAmt is the small top badge next to the cart icon — it must
+    // show the COMBINED total (Shopping + WOW), same as the dropdown
+    // breakdown below it. Previously this used rwallet alone, so the
+    // badge showed only the Shopping Wallet portion while the dropdown
+    // correctly showed both — the mismatch seen in the screenshots.
+    const combinedWalletTotal = Number(user.rwallet || 0) + Number(user.owallet || 0);
     if (walletAmt) {
-        walletAmt.textContent = Number(user.rwallet || 0).toLocaleString("en-IN");
+        walletAmt.textContent = combinedWalletTotal.toLocaleString("en-IN");
     }
 
+    // Login-payload wallet numbers are shown ONLY as an instant-paint
+    // placeholder — cart.html's refreshWalletBalances() (GetBalance API)
+    // overwrites these with the live, authoritative balance right after.
     if (walletR) walletR.textContent = "₹" + Number(user.rwallet || 0).toLocaleString("en-IN");
     if (walletE) walletE.textContent = "₹" + Number(user.ewallet || 0).toLocaleString("en-IN");
     if (walletH) walletH.textContent = "₹" + Number(user.hwallet || 0).toLocaleString("en-IN");
@@ -231,7 +246,7 @@ function showToastFallback(msg, isError) {
 }
 
 const STANVEE_API_TOKEN = "abUnMar5489pidlAewUF4875brlstangwewera4i5n6";
-const STANVEE_CART_BASE = "https://stanveeshopbackend.onrender.com/api/cart";
+const STANVEE_CART_BASE = "https://api.stanvee.com/api/cart";
 
 // ── CART COUNT ──
 function setCartBadge(count) {
@@ -361,3 +376,170 @@ document.addEventListener("submit", async (e) => {
     }
 });
 
+
+
+// ── PRODUCT SEARCH ──
+const STANVEE_SEARCH_API = "https://api.stanvee.com/api/products/search";
+
+let searchRequestId = 0; // tracks latest request so stale responses get ignored
+
+function debounce(fn, delay) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+function formatPrice(num) {
+    return "₹" + Number(num || 0).toLocaleString("en-IN");
+}
+
+function slugifyCategory(cat) {
+    if (!cat) return "";
+    return cat.toString().trim().toLowerCase().replace(/\s+/g, "-");
+}
+
+function renderSearchResults(container, products) {
+    if (!container) return;
+
+    if (!products || products.length === 0) {
+        container.innerHTML = `<div class="search-no-results">No products found</div>`;
+        container.classList.add("open");
+        return;
+    }
+
+    container.innerHTML = products.map(p => {
+        const name = p.product_name || "";
+        const image = p.image || "";
+        const mrp = p.mrp ? formatPrice(p.mrp) : "";
+        const offerPrice = p.offer_price ? formatPrice(p.offer_price) : "";
+        const hasDiscount = p.mrp && p.offer_price && Number(p.mrp) > Number(p.offer_price);
+        const catSlug = slugifyCategory(p.category && p.category[0]);
+
+        return `
+            <div class="search-result-item" data-product-id="${p.product_id || ''}" data-cat="${catSlug}">
+                <img src="${image}" alt="${name}" class="search-result-img" onerror="this.style.visibility='hidden'" />
+                <div class="search-result-info">
+                    <div class="search-result-name">${name}</div>
+                    <div class="search-result-price">
+                        <span class="search-result-offer">${offerPrice}</span>
+                        ${hasDiscount ? `<span class="search-result-mrp">${mrp}</span>` : ""}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    container.classList.add("open");
+
+    container.querySelectorAll(".search-result-item").forEach(item => {
+        item.addEventListener("click", () => {
+            const productId = item.getAttribute("data-product-id");
+            const cat = item.getAttribute("data-cat");
+            window.location.href = `product_details.html?id=${encodeURIComponent(productId)}&cat=${encodeURIComponent(cat)}`;
+        });
+    });
+}
+
+function showSearchLoader(container) {
+    if (!container) return;
+    container.innerHTML = `<div class="search-loading"><span class="search-spinner"></span> Searching...</div>`;
+    container.classList.add("open");
+}
+
+async function performProductSearch(query, container) {
+    if (!query || query.trim().length === 0) {
+        if (container) {
+            container.innerHTML = "";
+            container.classList.remove("open");
+        }
+        return;
+    }
+
+    showSearchLoader(container);
+
+    const thisRequestId = ++searchRequestId; // mark this call as the latest
+
+    try {
+        const url = `${STANVEE_SEARCH_API}?q=${encodeURIComponent(query.trim())}&page=0&size=20&sortBy=productName&sortDir=asc`;
+        const res = await fetch(url);
+
+        // If a newer search started while this one was in flight, drop this result
+        if (thisRequestId !== searchRequestId) return;
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+
+        if (thisRequestId !== searchRequestId) return; // double-check after JSON parse too
+
+        if (data.status === "success" && Array.isArray(data.data)) {
+            renderSearchResults(container, data.data);
+        } else {
+            renderSearchResults(container, []);
+        }
+    } catch (err) {
+        if (thisRequestId !== searchRequestId) return;
+        console.error("[Search] Failed to fetch search results:", err);
+        if (container) {
+            container.innerHTML = `<div class="search-no-results">Something went wrong. Please try again.</div>`;
+            container.classList.add("open");
+        }
+    }
+}
+
+const debouncedDesktopSearch = debounce((val) => {
+    performProductSearch(val, document.getElementById("desktopSearchResults"));
+}, 400);
+
+const debouncedMobileSearch = debounce((val) => {
+    performProductSearch(val, document.getElementById("mobileSearchResults"));
+}, 400);
+
+document.addEventListener("input", (e) => {
+    if (e.target.id === "desktopSearch") {
+        // show loader immediately as user types, before debounce fires
+        showSearchLoader(document.getElementById("desktopSearchResults"));
+        debouncedDesktopSearch(e.target.value);
+    } else if (e.target.id === "mobileSearch") {
+        showSearchLoader(document.getElementById("mobileSearchResults"));
+        debouncedMobileSearch(e.target.value);
+    }
+});
+
+// Run search immediately (no debounce) when user presses Enter — "the button" trigger
+document.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    if (e.target.id === "desktopSearch") {
+        performProductSearch(e.target.value, document.getElementById("desktopSearchResults"));
+    } else if (e.target.id === "mobileSearch") {
+        performProductSearch(e.target.value, document.getElementById("mobileSearchResults"));
+    }
+});
+
+// Close dropdowns on outside click
+document.addEventListener("click", (e) => {
+    const desktopBox = document.querySelector(".desktop-search");
+    const desktopResults = document.getElementById("desktopSearchResults");
+    if (desktopBox && desktopResults && !desktopBox.contains(e.target)) {
+        desktopResults.classList.remove("open");
+    }
+
+    const mobileRow = document.getElementById("mobileSearchRow");
+    const mobileResults = document.getElementById("mobileSearchResults");
+    if (mobileRow && mobileResults && !mobileRow.contains(e.target)) {
+        mobileResults.classList.remove("open");
+    }
+});
+
+// Clear mobile search should also clear results
+function clearMobileSearch() {
+    const input = document.getElementById("mobileSearch");
+    const results = document.getElementById("mobileSearchResults");
+    if (input) input.value = "";
+    if (results) {
+        results.innerHTML = "";
+        results.classList.remove("open");
+    }
+}
