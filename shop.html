@@ -1413,13 +1413,7 @@
         <button class="filter-pill" onclick="toggleMobileSort()">
       <i class="fa fa-sort"></i> Sort: <span id="mobileSortLabel">Default</span>
     </button>
-        <button class="filter-pill active" id="mpillAll" onclick="filterByCategory('all')">All</button>
-        <button class="filter-pill" id="mpillAudio" onclick="filterByCategory('Audio')">Audio</button>
-        <button class="filter-pill" id="mpillHA" onclick="filterByCategory('homeappliances')">Appliances</button>
-        <button class="filter-pill" id="mpillHE" onclick="filterByCategory('homeessentials')">Home</button>
-        <button class="filter-pill" id="mpillKA" onclick="filterByCategory('kitchenappliances')">Kitchen</button>
-        <button class="filter-pill" id="mpillDining" onclick="filterByCategory('Dining')">Dining</button>
-        <button class="filter-pill" id="mpillBiz" onclick="filterByCategory('businessessentials')">Business</button>
+        <span id="mobileCatPills"><button class="filter-pill active" id="mpillAll" onclick="filterByCategory('all')">All</button></span>
     </div>
 
     <!-- MOBILE SORT PANEL -->
@@ -1453,14 +1447,7 @@
         <div style="margin-bottom:24px">
             <div class="sidebar-title">Product Categories</div>
             <ul class="cat-list" id="drawerCatList">
-                <li class="active" onclick="filterByCategory('all');closeFilterDrawer()">All Products <span class="cat-count" id="dCountAll">0</span></li>
-                <li onclick="filterByCategory('Audio');closeFilterDrawer()">Audio Devices <span class="cat-count" id="dCountAudio">0</span></li>
-                <li onclick="filterByCategory('businessessentials');closeFilterDrawer()">Business Essentials <span class="cat-count" id="dCountBiz">0</span></li>
-                <li onclick="filterByCategory('Dining');closeFilterDrawer()">Dining <span class="cat-count" id="dCountDining">0</span></li>
-                <li onclick="filterByCategory('homeappliances');closeFilterDrawer()">Home Appliances <span class="cat-count" id="dCountHA">0</span></li>
-                <li onclick="filterByCategory('homeessentials');closeFilterDrawer()">Home Essentials <span class="cat-count" id="dCountHE">0</span></li>
-                <li onclick="filterByCategory('kitchenappliances');closeFilterDrawer()">Kitchen Appliances <span class="cat-count" id="dCountKA">0</span></li>
-                <li onclick="filterByCategory('kitchenessentials');closeFilterDrawer()">Kitchen Essentials <span class="cat-count" id="dCountKE">0</span></li>
+                <li class="active" onclick="filterByCategory('all');closeFilterDrawer()" data-cat="all">All Products <span class="cat-count" id="dCountAll">0</span></li>
             </ul>
         </div>
     </div>
@@ -1482,15 +1469,8 @@
 
             <div class="sidebar-section">
       <div class="sidebar-title">Product Categories</div>
-      <ul class="cat-list">
-        <li class="active" onclick="filterByCategory('all')"             id="catAll">All Products <span class="cat-count" id="sCountAll">0</span></li>
-        <li onclick="filterByCategory('Audio')"                          id="catAudio">Audio Devices <span class="cat-count" id="sCountAudio">0</span></li>
-        <li onclick="filterByCategory('businessessentials')"             id="catBiz">Business Essentials <span class="cat-count" id="sCountBiz">0</span></li>
-        <li onclick="filterByCategory('Dining')"                         id="catDining">Dining <span class="cat-count" id="sCountDining">0</span></li>
-        <li onclick="filterByCategory('homeappliances')"                 id="catHA">Home Appliances <span class="cat-count" id="sCountHA">0</span></li>
-        <li onclick="filterByCategory('homeessentials')"                 id="catHE">Home Essentials <span class="cat-count" id="sCountHE">0</span></li>
-        <li onclick="filterByCategory('kitchenappliances')"              id="catKA">Kitchen Appliances <span class="cat-count" id="sCountKA">0</span></li>
-        <li onclick="filterByCategory('kitchenessentials')"              id="catKE">Kitchen Essentials <span class="cat-count" id="sCountKE">0</span></li>
+      <ul class="cat-list" id="sidebarCatList">
+        <li class="active" onclick="filterByCategory('all')" data-cat="all">All Products <span class="cat-count" id="sCountAll">0</span></li>
       </ul>
     </div>
 
@@ -1876,68 +1856,90 @@
             renderActiveFilters();
             updateResultCount();
             renderPagination();
-            fetchCategoryCounts(); // async category counts
+            if (!shopCategoriesLoaded) {
+                fetchShopCategories();
+            } else {
+                highlightActiveCategory();
+            }
         }
 
-        /* fetch category counts separately (one call per category) */
-        async function fetchCategoryCounts() {
-            const categories = [{
-                key: 'all',
-                id: 'sCountAll',
-                label: ''
-            }, {
-                key: 'Audio',
-                id: 'sCountAudio',
-                label: 'Audio'
-            }, {
-                key: 'businessessentials',
-                id: 'sCountBiz',
-                label: 'businessessentials'
-            }, {
-                key: 'Dining',
-                id: 'sCountDining',
-                label: 'Dining'
-            }, {
-                key: 'homeappliances',
-                id: 'sCountHA',
-                label: 'homeappliances'
-            }, {
-                key: 'homeessentials',
-                id: 'sCountHE',
-                label: 'homeessentials'
-            }, {
-                key: 'kitchenappliances',
-                id: 'sCountKA',
-                label: 'kitchenappliances'
-            }, {
-                key: 'kitchenessentials',
-                id: 'sCountKE',
-                label: 'kitchenessentials'
-            }, ];
-            const drawerMap = {
-                sCountAll: 'dCountAll',
-                sCountAudio: 'dCountAudio',
-                sCountBiz: 'dCountBiz',
-                sCountDining: 'dCountDining',
-                sCountHA: 'dCountHA',
-                sCountHE: 'dCountHE',
-                sCountKA: 'dCountKA',
-                sCountKE: 'dCountKE'
-            };
+        /* ── DYNAMIC CATEGORIES: fetch list once from API, build sidebar/drawer/mobile pills, then fetch counts ── */
+        let shopCategoriesLoaded = false;
 
-            await Promise.all(categories.map(async cat => {
+        function slugify(cat) {
+            return cat.toString().trim().toLowerCase().replace(/\s+/g, '-');
+        }
+
+        async function fetchShopCategories() {
+            try {
+                const res = await fetch(`${BASE_URL}/api/products/categories`);
+                const data = await res.json();
+                if (data.status === 'success' && Array.isArray(data.data)) {
+                    renderCategoryLists(data.data);
+                }
+            } catch (e) {
+                console.error('[Shop] Failed to load categories:', e);
+            }
+            shopCategoriesLoaded = true;
+            highlightActiveCategory();
+            fetchCategoryCounts();
+        }
+
+        function renderCategoryLists(categories) {
+            const sidebar = document.getElementById('sidebarCatList');
+            const drawer = document.getElementById('drawerCatList');
+            const mobile = document.getElementById('mobileCatPills');
+
+            const sidebarItems = categories.map(cat => {
+                const slug = slugify(cat);
+                return `<li onclick="filterByCategory('${cat}')" data-cat="${cat}">${cat} <span class="cat-count" id="sCount_${slug}">0</span></li>`;
+            }).join('');
+            if (sidebar) sidebar.insertAdjacentHTML('beforeend', sidebarItems);
+
+            const drawerItems = categories.map(cat => {
+                const slug = slugify(cat);
+                return `<li onclick="filterByCategory('${cat}');closeFilterDrawer()" data-cat="${cat}">${cat} <span class="cat-count" id="dCount_${slug}">0</span></li>`;
+            }).join('');
+            if (drawer) drawer.insertAdjacentHTML('beforeend', drawerItems);
+
+            const mobileItems = categories.map(cat =>
+                `<button class="filter-pill" data-cat="${cat}" onclick="filterByCategory('${cat}')">${cat}</button>`
+            ).join('');
+            if (mobile) mobile.insertAdjacentHTML('beforeend', mobileItems);
+        }
+
+        function highlightActiveCategory() {
+            document.querySelectorAll('.cat-list li, .mobile-filter-bar .filter-pill[data-cat]').forEach(el => {
+                el.classList.toggle('active', el.getAttribute('data-cat') === S.selectedCategory);
+            });
+        }
+
+        async function fetchCategoryCounts() {
+            try {
+                const res = await fetch(`${BASE_URL}/api/products?size=1`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const count = data.total_products || 0;
+                    const totalEl = document.getElementById('sCountAll');
+                    const totalDrawerEl = document.getElementById('dCountAll');
+                    if (totalEl) totalEl.textContent = count;
+                    if (totalDrawerEl) totalDrawerEl.textContent = count;
+                }
+            } catch (e) {}
+
+            const catEls = document.querySelectorAll('#sidebarCatList li[data-cat]:not([data-cat="all"])');
+            await Promise.all(Array.from(catEls).map(async li => {
+                const cat = li.getAttribute('data-cat');
+                const slug = slugify(cat);
                 try {
-                    const qs = cat.key === 'all' ?
-                        'size=1' :
-                        `category=${encodeURIComponent(cat.label)}&size=1`;
-                    const res = await fetch(`${BASE_URL}/api/products?${qs}`);
+                    const res = await fetch(`${BASE_URL}/api/products?category=${encodeURIComponent(cat)}&size=1`);
                     const data = await res.json();
                     if (data.status === 'success') {
                         const count = data.total_products || 0;
-                        const el = document.getElementById(cat.id);
-                        if (el) el.textContent = count;
-                        const del = document.getElementById(drawerMap[cat.id]);
-                        if (del) del.textContent = count;
+                        const sEl = document.getElementById(`sCount_${slug}`);
+                        const dEl = document.getElementById(`dCount_${slug}`);
+                        if (sEl) sEl.textContent = count;
+                        if (dEl) dEl.textContent = count;
                     }
                 } catch (e) {}
             }));
@@ -1966,57 +1968,7 @@
         function filterByCategory(cat) {
             S.selectedCategory = cat;
             S.page = 1;
-
-            // Sidebar
-            document.querySelectorAll('.cat-list li').forEach(li => li.classList.remove('active'));
-            const map = {
-                all: 'catAll',
-                Audio: 'catAudio',
-                businessessentials: 'catBiz',
-                Dining: 'catDining',
-                homeappliances: 'catHA',
-                homeessentials: 'catHE',
-                kitchenappliances: 'catKA',
-                kitchenessentials: 'catKE'
-            };
-            const el = document.getElementById(map[cat]);
-            if (el) el.classList.add('active');
-
-            // Mobile pills
-            const pillMap = {
-                all: 'mpillAll',
-                Audio: 'mpillAudio',
-                homeappliances: 'mpillHA',
-                homeessentials: 'mpillHE',
-                kitchenappliances: 'mpillKA',
-                Dining: 'mpillDining',
-                businessessentials: 'mpillBiz'
-            };
-            document.querySelectorAll('.mobile-filter-bar .filter-pill').forEach(p => p.classList.remove('active'));
-            const pill = document.getElementById(pillMap[cat]);
-            if (pill) pill.classList.add('active');
-
-            // Breadcrumb
-            const catNames = {
-                Audio: 'Audio Devices',
-                businessessentials: 'Business Essentials',
-                Dining: 'Dining',
-                homeappliances: 'Home Appliances',
-                homeessentials: 'Home Essentials',
-                kitchenappliances: 'Kitchen Appliances',
-                kitchenessentials: 'Kitchen Essentials'
-            };
-            const bcCat = document.getElementById('breadcrumbCat');
-            const bcName = document.getElementById('breadcrumbCatName');
-            if (bcCat && bcName) {
-                if (cat !== 'all') {
-                    bcCat.style.display = 'inline';
-                    bcName.textContent = catNames[cat] || cat;
-                } else {
-                    bcCat.style.display = 'none';
-                }
-            }
-
+            highlightActiveCategory();
             document.getElementById('catDropdown').classList.remove('open');
             fetchProducts();
         }

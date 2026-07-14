@@ -8,6 +8,177 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ---- Small additions, kept in the same visual language as style.css ---- */
+        .cat-loader-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+        }
+        .cat-spinner {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            animation: cat-spin 0.8s linear infinite;
+        }
+        @keyframes cat-spin {
+            to { transform: rotate(360deg); }
+        }
+        .cat-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            cursor: pointer;
+            transition: border-color .15s ease, transform .15s ease;
+            background: var(--card-bg, #fff);
+        }
+        .cat-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .cat-error, .cat-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13.5px;
+        }
+        .cat-retry-btn {
+            margin-top: 10px;
+            border: 1px solid var(--border);
+            background: var(--accent-light);
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 12.5px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* ---- Product drill-down panel ---- */
+        #cat-panel-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.35);
+            z-index: 999;
+        }
+        #cat-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: min(560px, 100%);
+            background: #fff;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            box-shadow: -8px 0 24px rgba(0,0,0,.12);
+        }
+        .cat-panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .cat-panel-title {
+            font-weight: 700;
+            font-size: 15px;
+        }
+        .cat-panel-close {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            color: var(--text-muted);
+        }
+        .cat-panel-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .cat-panel-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .cat-panel-controls select, .cat-panel-controls input {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12.5px;
+            font-family: inherit;
+        }
+        .cat-product-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .cat-product-row img {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--accent-light);
+            flex-shrink: 0;
+        }
+        .cat-product-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .cat-product-meta {
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+        .cat-product-price {
+            margin-left: auto;
+            text-align: right;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .cat-product-mrp {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-decoration: line-through;
+            font-weight: 400;
+        }
+        .cat-stock-badge {
+            display: inline-block;
+            margin-top: 2px;
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 5px;
+        }
+        .cat-stock-in { background: #e6f6ea; color: #1a8a3e; }
+        .cat-stock-out { background: #fdeaea; color: #c93b3b; }
+        .cat-panel-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 14px;
+            font-size: 12.5px;
+        }
+        .cat-panel-pagination button {
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+        }
+        .cat-panel-pagination button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 
 <body>
@@ -82,68 +253,315 @@
             <main id="content">
                 <div class="page-title">Categories</div>
                 <div class="page-sub">Categories currently used across your catalog</div>
-                <div class="card" style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
-                    <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
-                        <div class="flex" style="align-items:center;gap:8px;margin-bottom:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
-                            <div style="font-weight:700;font-size:13.5px;">Dining</div>
-                        </div>
-                        <div style="font-size:12px;color:var(--text-muted);">12 products</div>
-                    </div>
-                    <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
-                        <div class="flex" style="align-items:center;gap:8px;margin-bottom:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
-                            <div style="font-weight:700;font-size:13.5px;">Glassware</div>
-                        </div>
-                        <div style="font-size:12px;color:var(--text-muted);">8 products</div>
-                    </div>
-                    <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
-                        <div class="flex" style="align-items:center;gap:8px;margin-bottom:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
-                            <div style="font-weight:700;font-size:13.5px;">Kitchenware</div>
-                        </div>
-                        <div style="font-size:12px;color:var(--text-muted);">15 products</div>
-                    </div>
-                    <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
-                        <div class="flex" style="align-items:center;gap:8px;margin-bottom:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
-                            <div style="font-weight:700;font-size:13.5px;">Decor</div>
-                        </div>
-                        <div style="font-size:12px;color:var(--text-muted);">10 products</div>
-                    </div>
-                    <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
-                        <div class="flex" style="align-items:center;gap:8px;margin-bottom:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
-                            <div style="font-weight:700;font-size:13.5px;">Furniture</div>
-                        </div>
-                        <div style="font-size:12px;color:var(--text-muted);">6 products</div>
-                    </div>
-                    <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
-                        <div class="flex" style="align-items:center;gap:8px;margin-bottom:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
-                            <div style="font-weight:700;font-size:13.5px;">Lighting</div>
-                        </div>
-                        <div style="font-size:12px;color:var(--text-muted);">5 products</div>
-                    </div>
-                    <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
-                        <div class="flex" style="align-items:center;gap:8px;margin-bottom:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
-                            <div style="font-weight:700;font-size:13.5px;">Bedding</div>
-                        </div>
-                        <div style="font-size:12px;color:var(--text-muted);">4 products</div>
-                    </div>
-                    <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
-                        <div class="flex" style="align-items:center;gap:8px;margin-bottom:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
-                            <div style="font-weight:700;font-size:13.5px;">Outdoor</div>
-                        </div>
-                        <div style="font-size:12px;color:var(--text-muted);">3 products</div>
+
+                <!-- Categories grid — populated dynamically via JS -->
+                <div class="card" style="padding:16px 20px;">
+                    <div id="categories-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+                        <!-- loader shown here initially -->
                     </div>
                 </div>
-
             </main>
         </div>
     </div>
+
+    <!-- ---------- PRODUCT DRILL-DOWN PANEL ---------- -->
+    <div id="cat-panel-overlay"></div>
+    <div id="cat-panel">
+        <div class="cat-panel-header">
+            <div class="cat-panel-title" id="cat-panel-title">Category</div>
+            <button class="cat-panel-close" id="cat-panel-close">&#10005;</button>
+        </div>
+        <div class="cat-panel-body">
+            <div class="cat-panel-controls">
+                <select id="cat-sortBy">
+                    <option value="productName">Name</option>
+                    <option value="offerPrice">Price</option>
+                    <option value="mrp">MRP</option>
+                </select>
+                <select id="cat-sortDir">
+                    <option value="asc">Asc</option>
+                    <option value="desc">Desc</option>
+                </select>
+                <input type="number" id="cat-minPrice" placeholder="Min price" style="width:100px;">
+                <input type="number" id="cat-maxPrice" placeholder="Max price" style="width:100px;">
+            </div>
+            <div id="cat-panel-content"><!-- products / loader / empty / error --></div>
+            <div class="cat-panel-pagination" id="cat-panel-pagination" style="display:none;">
+                <button id="cat-page-prev">&larr; Prev</button>
+                <span id="cat-page-info"></span>
+                <button id="cat-page-next">Next &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= CONFIG =================
+        const BASE_URL = "https://api.stanvee.com";
+
+        function getAdminToken() {
+            // Adjust key name if your login flow stores it differently
+            return localStorage.getItem("adminToken") || "";
+        }
+
+        function authHeaders() {
+            return { "Authorization": getAdminToken() };
+        }
+
+        // ================= CATEGORY SUMMARY =================
+        const gridEl = document.getElementById("categories-grid");
+
+        function categoryIconSVG() {
+            return `<svg class="icon" width="15" height="15" viewBox="0 0 24 24">
+                <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>
+                <circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>
+            </svg>`;
+        }
+
+        function showGridLoader() {
+            gridEl.style.display = "block";
+            gridEl.innerHTML = `<div class="cat-loader-wrap" style="grid-column:1/-1;"><div class="cat-spinner"></div></div>`;
+        }
+
+        function showGridError(message, onRetry) {
+            gridEl.style.display = "block";
+            gridEl.innerHTML = `
+                <div class="cat-error" style="grid-column:1/-1;">
+                    ${message}
+                    <div><button class="cat-retry-btn" id="cat-retry-btn">Retry</button></div>
+                </div>`;
+            document.getElementById("cat-retry-btn").addEventListener("click", onRetry);
+        }
+
+        function showGridEmpty() {
+            gridEl.style.display = "block";
+            gridEl.innerHTML = `<div class="cat-empty" style="grid-column:1/-1;">No categories found yet.</div>`;
+        }
+
+        async function loadCategorySummary() {
+            showGridLoader();
+            try {
+                const res = await fetch(`${BASE_URL}/api/admin/products/categories/summary`, {
+                    method: "GET",
+                    headers: authHeaders()
+                });
+
+                if (res.status === 401) {
+                    showGridError("Session expired. Please log in again.", loadCategorySummary);
+                    return;
+                }
+
+                if (!res.ok) {
+                    showGridError("Something went wrong while loading categories.", loadCategorySummary);
+                    return;
+                }
+
+                const json = await res.json();
+
+                if (json.status !== "success" || !Array.isArray(json.data)) {
+                    showGridError("Unexpected response from server.", loadCategorySummary);
+                    return;
+                }
+
+                if (json.data.length === 0) {
+                    showGridEmpty();
+                    return;
+                }
+
+                renderCategoryGrid(json.data);
+            } catch (err) {
+                console.error("Category summary fetch failed:", err);
+                showGridError("Could not reach the server. Check your connection.", loadCategorySummary);
+            }
+        }
+
+        function renderCategoryGrid(categories) {
+            gridEl.style.display = "grid";
+            gridEl.innerHTML = "";
+            categories.forEach(cat => {
+                const card = document.createElement("div");
+                card.className = "cat-card";
+                card.innerHTML = `
+                    <div class="flex" style="align-items:center;gap:8px;margin-bottom:8px;">
+                        <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;">
+                            ${categoryIconSVG()}
+                        </div>
+                        <div style="font-weight:700;font-size:13.5px;">${escapeHTML(cat.category)}</div>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-muted);">${cat.product_count} products</div>
+                `;
+                card.addEventListener("click", () => openCategoryPanel(cat.category));
+                gridEl.appendChild(card);
+            });
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement("div");
+            div.textContent = str ?? "";
+            return div.innerHTML;
+        }
+
+        // ================= CATEGORY PRODUCT PANEL =================
+        const panelOverlay = document.getElementById("cat-panel-overlay");
+        const panel = document.getElementById("cat-panel");
+        const panelTitle = document.getElementById("cat-panel-title");
+        const panelContent = document.getElementById("cat-panel-content");
+        const panelPagination = document.getElementById("cat-panel-pagination");
+        const pageInfo = document.getElementById("cat-page-info");
+        const prevBtn = document.getElementById("cat-page-prev");
+        const nextBtn = document.getElementById("cat-page-next");
+        const sortByEl = document.getElementById("cat-sortBy");
+        const sortDirEl = document.getElementById("cat-sortDir");
+        const minPriceEl = document.getElementById("cat-minPrice");
+        const maxPriceEl = document.getElementById("cat-maxPrice");
+
+        let currentCategory = null;
+        let currentPage = 0;
+        const pageSize = 10;
+
+        function openCategoryPanel(category) {
+            currentCategory = category;
+            currentPage = 0;
+            panelTitle.textContent = category;
+            panelOverlay.style.display = "block";
+            panel.style.display = "flex";
+            fetchCategoryProducts();
+        }
+
+        function closeCategoryPanel() {
+            panelOverlay.style.display = "none";
+            panel.style.display = "none";
+            currentCategory = null;
+        }
+
+        document.getElementById("cat-panel-close").addEventListener("click", closeCategoryPanel);
+        panelOverlay.addEventListener("click", closeCategoryPanel);
+
+        [sortByEl, sortDirEl].forEach(el => el.addEventListener("change", () => {
+            currentPage = 0;
+            fetchCategoryProducts();
+        }));
+
+        let priceDebounce;
+        [minPriceEl, maxPriceEl].forEach(el => el.addEventListener("input", () => {
+            clearTimeout(priceDebounce);
+            priceDebounce = setTimeout(() => {
+                currentPage = 0;
+                fetchCategoryProducts();
+            }, 400);
+        }));
+
+        prevBtn.addEventListener("click", () => {
+            if (currentPage > 0) {
+                currentPage--;
+                fetchCategoryProducts();
+            }
+        });
+        nextBtn.addEventListener("click", () => {
+            currentPage++;
+            fetchCategoryProducts();
+        });
+
+        function showPanelLoader() {
+            panelContent.innerHTML = `<div class="cat-loader-wrap"><div class="cat-spinner"></div></div>`;
+            panelPagination.style.display = "none";
+        }
+
+        function showPanelError(message) {
+            panelContent.innerHTML = `
+                <div class="cat-error">
+                    ${message}
+                    <div><button class="cat-retry-btn" id="cat-panel-retry-btn">Retry</button></div>
+                </div>`;
+            panelPagination.style.display = "none";
+            document.getElementById("cat-panel-retry-btn").addEventListener("click", fetchCategoryProducts);
+        }
+
+        function showPanelEmpty() {
+            panelContent.innerHTML = `<div class="cat-empty">No products found in this category${(minPriceEl.value || maxPriceEl.value) ? " for the selected price range" : ""}.</div>`;
+            panelPagination.style.display = "none";
+        }
+
+        async function fetchCategoryProducts() {
+            if (!currentCategory) return;
+            showPanelLoader();
+
+            const params = new URLSearchParams({
+                page: currentPage,
+                size: pageSize,
+                sortBy: sortByEl.value,
+                sortDir: sortDirEl.value
+            });
+            if (minPriceEl.value) params.set("minPrice", minPriceEl.value);
+            if (maxPriceEl.value) params.set("maxPrice", maxPriceEl.value);
+
+            try {
+                const res = await fetch(
+                    `${BASE_URL}/api/admin/products/categories/${encodeURIComponent(currentCategory)}?${params.toString()}`,
+                    { method: "GET", headers: authHeaders() }
+                );
+
+                if (res.status === 401) {
+                    showPanelError("Session expired. Please log in again.");
+                    return;
+                }
+
+                if (!res.ok) {
+                    showPanelError("Something went wrong while loading products.");
+                    return;
+                }
+
+                const json = await res.json();
+
+                if (json.status !== "success" || !Array.isArray(json.data)) {
+                    showPanelError("Unexpected response from server.");
+                    return;
+                }
+
+                if (json.data.length === 0) {
+                    showPanelEmpty();
+                    return;
+                }
+
+                renderPanelProducts(json.data);
+                renderPagination(json.current_page, json.total_pages, json.total_products);
+            } catch (err) {
+                console.error("Category products fetch failed:", err);
+                showPanelError("Could not reach the server. Check your connection.");
+            }
+        }
+
+        function renderPanelProducts(products) {
+            panelContent.innerHTML = products.map(p => {
+                const inStock = (p.stock_status || "").toLowerCase() === "in_stock";
+                return `
+                    <div class="cat-product-row">
+                        <img src="${escapeHTML(p.image || '')}" alt="" onerror="this.style.visibility='hidden'">
+                        <div>
+                            <div class="cat-product-name">${escapeHTML(p.product_name)}</div>
+                            <div class="cat-product-meta">${escapeHTML(p.product_id || '')}</div>
+                            <span class="cat-stock-badge ${inStock ? 'cat-stock-in' : 'cat-stock-out'}">
+                                ${inStock ? 'In stock' : 'Out of stock'}${p.stock_quantity ? ' · ' + escapeHTML(p.stock_quantity) : ''}
+                            </span>
+                        </div>
+                        <div class="cat-product-price">
+                            ₹${escapeHTML(p.offer_price)}
+                            ${p.mrp && p.mrp !== p.offer_price ? `<div class="cat-product-mrp">₹${escapeHTML(p.mrp)}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderPagination(current, totalPages, totalProducts) {
+            panelPagination.style.display = totalPages > 1 ? "flex" : "none";
+            pageInfo.textContent = `Page ${current + 1} of ${totalPages} · ${totalProducts} total`;
+            prevBtn.disabled = current <= 0;
+            nextBtn.disabled = current >= totalPages - 1;
+        }
+
+        // ================= INIT =================
+        document.addEventListener("DOMContentLoaded", loadCategorySummary);
+    </script>
 
 </body>
 
