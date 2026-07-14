@@ -9,8 +9,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const res = await fetch("includes/header.html");
         header.innerHTML = await res.text();
     }
-    restoreStanveeSession();
+restoreStanveeSession();
     refreshCartCount();
+    fetchAndRenderCategories();
 
     // Let page-specific scripts (e.g. cart.html) know the header DOM now
     // exists, so they can safely paint live wallet balances into it. Fixes
@@ -247,6 +248,42 @@ function showToastFallback(msg, isError) {
 
 const STANVEE_API_TOKEN = "abUnMar5489pidlAewUF4875brlstangwewera4i5n6";
 const STANVEE_CART_BASE = "https://api.stanvee.com/api/cart";
+const STANVEE_CATEGORIES_API = "http://localhost:8080/api/products/categories";
+
+// ── CATEGORIES DROPDOWN (dynamic) ──
+async function fetchAndRenderCategories() {
+    const dropdown = document.getElementById("catDropdown");
+    if (!dropdown) return; // header not injected yet
+
+    try {
+        const res = await fetch(STANVEE_CATEGORIES_API);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        if (data.status === "success" && Array.isArray(data.data) && data.data.length > 0) {
+            renderCategoryDropdown(dropdown, data.data);
+        } else {
+            dropdown.innerHTML = `<div class="cat-dropdown-empty">No categories found</div>`;
+        }
+    } catch (err) {
+        console.error("[Categories] Failed to fetch categories:", err);
+        dropdown.innerHTML = `<div class="cat-dropdown-empty">Couldn't load categories</div>`;
+    }
+}
+
+function renderCategoryDropdown(container, categories) {
+    container.innerHTML = categories.map(cat => {
+        const slug = slugifyCategory(cat);
+        return `<a href="javascript:void(0)" data-category="${cat}" data-slug="${slug}">${cat}</a>`;
+    }).join("");
+
+    container.querySelectorAll("a[data-category]").forEach(link => {
+        link.addEventListener("click", () => {
+            const category = link.getAttribute("data-category");
+            window.location.href = `shop.html?category=${encodeURIComponent(category)}`;
+        });
+    });
+}
 
 // ── CART COUNT ──
 function setCartBadge(count) {
