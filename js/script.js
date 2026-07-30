@@ -3,7 +3,7 @@
 // ── BASE URL ──
 const BASE_URL = 'https://api.stanvee.com';
 
-// const BASE_URL = 'http://localhost:8080';
+// const BASE_URL = 'https://api.stanvee.com';
 
 
 
@@ -128,25 +128,29 @@ function starsHTML(rating) {
 // ── PRODUCT CARD HTML ──
 // ── CART PRODUCT IDs (string ids added this session) ──
 const cartedProducts = new Set();
-let cartedNumericIds = []; // raw numeric ids from API, resolved after productIdMap is built
+let cartedNumericIds = []; // kept for backward-compat, holds product_id strings now
 
 // ── PRODUCT STRING-ID → NUMERIC DB ID MAP (built when products load) ──
-const productIdMap = {}; // e.g. { "KAIROS-AF-15L": 1, "KAIROS-OTG-12L": 2 }
+const productIdMap = {}; // e.g. { "802205": 134 }
 
 function resolveCartedProducts() {
-    if (!cartedNumericIds.length) return;
-    cartedNumericIds.forEach(numericId => {
-        for (const [stringId, mappedId] of Object.entries(productIdMap)) {
-            if (mappedId === numericId) {
-                cartedProducts.add(stringId);
-            }
-        }
-    });
+    // Reset first — otherwise removed items stay stuck as "Go to Cart"
+    cartedProducts.clear();
+
+    if (cartedNumericIds.length) {
+        cartedNumericIds.forEach(pid => {
+            cartedProducts.add(String(pid));
+        });
+    }
     updateCartButtons();
 }
 
 // ── FETCH USER'S EXISTING CART ON PAGE LOAD ──
 async function fetchUserCart() {
+    // Always reset local cart state before re-checking, so removed items
+    // don't stay stuck as "Go to Cart" when we come back to this page.
+    cartedProducts.clear();
+    cartedNumericIds = [];
     const raw = localStorage.getItem('stanveeUser');
     if (!raw) return; // guest — nothing to mark
 
@@ -214,13 +218,13 @@ function productCardHTML(p, currency) {
         <img src="${img}" alt="${p.product_name}" loading="lazy"/>
       </div>
       <div class="product-card-body">
-        <div class="product-stars">${starsHTML(4)}</div>
+       
         <p class="product-name">${p.product_name}</p>
         <div class="product-price-row">
           <span class="offer-price">${currency}${p.offer_price}</span>
           <span class="orig-price">${currency}${p.mrp}</span>
         </div>
-        ${p.max_points_utilization > 0 ? `<div class="points-badge">Avail up to ${currency}${p.max_points_utilization} off</div>` : ''}
+        ${p.max_points_utilization > 0 ? `<div class="points-badge">Discount Point ${p.max_points_utilization}</div>` : ''}
         ${btnHTML}
       </div>
     </div>`;
@@ -233,13 +237,13 @@ async function loadProducts() {
         const allGrid = document.getElementById('allProductsGrid');
         const homeGrid = document.getElementById('homeEssGrid');
 
-        // Fetch all products (best sellers) — sorted by name, page 0, size 10
+        // "All Products" now shows featured products; Home Essentials unchanged (same BASE_URL)
         const [allRes, homeRes] = await Promise.all([
-            fetch(`${BASE_URL}/api/products?sortBy=productName&sortDir=asc&page=0&size=10`, {
+            fetch(`${BASE_URL}/api/products/featured?sortBy=productName&sortDir=asc&page=0&size=10`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             }),
-            fetch(`${BASE_URL}/api/products?category=homeessentials&sortBy=productName&sortDir=asc&page=0&size=10`, {
+            fetch(`${BASE_URL}/api/products/categories/Home%20Essentials/products?size=10`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             })
@@ -279,30 +283,51 @@ async function loadProducts() {
 loadProducts();
 fetchUserCart();
 
+// ── ALWAYS REFETCH WHEN THIS PAGE IS SHOWN (fresh load OR back/forward) ──
+// Not gating on event.persisted: some browsers silently disable bfcache
+// (e.g. if any script on the page has an unload listener), in which case
+// persisted is false even on a Back navigation, and the refetch would
+// never fire. Always refetching here costs one harmless extra call on
+// the very first load, but guarantees it works on every Back/Forward.
+window.addEventListener('pageshow', function() {
+    loadProducts();
+    fetchUserCart();
+});
+
 // ── ADD TO CART ──
+// Returns a Promise so callers (like the post-login flow) can `await` it
+// instead of navigating away while the request is still in flight.
 function addToCart(productStringId) {
     // Stanvee login stores the user object (with loginid) in localStorage
     const raw = localStorage.getItem('stanveeUser');
-    if (!raw) { showToast('Login to add to cart', true); openLoginModal(); return; }
+    if (!raw) {
+        // remember which product the guest wanted, so we can auto-add it
+        // right after they log in from this same modal
+        sessionStorage.setItem('sv_pending_cart_product', productStringId);
+        sessionStorage.setItem('sv_redirect_to_cart', '1');
+        showToast('Login to add to cart', true);
+        openLoginModal();
+        return Promise.resolve();
+    }
 
     let userId;
     try { userId = JSON.parse(raw).loginid; } catch (e) { userId = null; }
-    if (!userId) { showToast('Login to add to cart', true); openLoginModal(); return; }
-
-    // Look up numeric DB id from the map built during loadProducts()
-    const numericId = productIdMap[productStringId];
-    if (!numericId) {
-        showToast('Product not found – try again', true);
-        console.error('No numeric DB id mapped for product_id:', productStringId);
-        return;
+    if (!userId) {
+        sessionStorage.setItem('sv_pending_cart_product', productStringId);
+        sessionStorage.setItem('sv_redirect_to_cart', '1');
+        showToast('Login to add to cart', true);
+        openLoginModal();
+        return Promise.resolve();
     }
 
-    fetch(BASE_URL + '/api/cart/add', {
+// productStringId is sent directly to the API, so no map lookup needed.
+
+    return fetch(BASE_URL + '/api/cart/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 userId: userId,       // ✅ Stanvee loginid (e.g. "SV4189392")
-                productId: numericId, // ✅ numeric DB id (Long)
+                productId: productStringId, // ✅ numeric DB id (Long)
                 quantity: 1,
                 couponSelected: false
             })
@@ -323,7 +348,13 @@ function addToCart(productStringId) {
                 const badge = document.getElementById('cartCount');
                 if (badge) badge.textContent = (d.cartItems || []).length;
                 saveCartCache({ count: (d.cartItems || []).length });
-                showToast('Added to cart ✓');
+        if (sessionStorage.getItem('sv_redirect_to_cart')) {
+                    sessionStorage.removeItem('sv_redirect_to_cart');
+                    sessionStorage.setItem('sv_going_to_cart', '1');
+                    setTimeout(() => { window.location.href = 'cart.html'; }, 800);
+                } else {
+                    showToast('Added to cart ✓');
+                }
             } else {
                 showToast(d.message || 'Could not add to cart', true);
             }

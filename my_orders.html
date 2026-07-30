@@ -493,7 +493,7 @@
 
         function renderOrders(orders) {
             document.getElementById('moOrdersList').innerHTML = orders.map(order => `
-                <div class="mo-order-card" onclick="viewOrder('${order.orderId}')">
+                <div class="mo-order-card" onclick="viewOrder('${order.orderNumber}')">
                     <div class="mo-order-top">
                         <div>
                             <p class="mo-order-number">${order.orderNumber}</p>
@@ -510,10 +510,9 @@
             `).join('');
         }
 
-function viewOrder(orderId) {
-            window.location.href = `order-details.html?orderId=${orderId}`;
-        }
-
+function viewOrder(orderNumber) {
+    window.location.href = `order-details.html?orderNumber=${orderNumber}`;
+}
         function renderPendingOrders(pendingOrders) {
             document.getElementById('moOrdersList').innerHTML = pendingOrders.map(po => `
                 <div class="mo-order-card">
@@ -650,23 +649,33 @@ function viewOrder(orderId) {
             }
         }
 
+        function openLoginModalWhenReady(retries = 20) {
+            const overlay = document.getElementById('loginModalOverlay');
+            if (overlay) {
+                openLoginModal();
+                return;
+            }
+            if (retries <= 0) return;
+            setTimeout(() => openLoginModalWhenReady(retries - 1), 100);
+        }
+
         async function init() {
             // ── Auth check (same pattern as cart.html / order-confirmation.html) ──
             const raw = localStorage.getItem('stanveeUser');
             if (!raw) {
                 showToast('Please login to view your orders', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                openLoginModalWhenReady();
                 return;
             }
             let user;
             try { user = JSON.parse(raw); } catch (e) {
                 showToast('Session expired, please login again', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                openLoginModalWhenReady();
                 return;
             }
             if (!user || !user.loginid) {
                 showToast('Session expired, please login again', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                openLoginModalWhenReady();
                 return;
             }
 

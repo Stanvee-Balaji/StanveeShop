@@ -1348,7 +1348,7 @@
     <!-- ══════════════════ JAVASCRIPT ══════════════════ -->
     <script>
         /* ── STATE ── */
-        const BASE_URL = 'http://localhost:8080';
+        const BASE_URL = 'https://api.stanvee.com';
 
         const PD = {
             product: null, // current product detail object (normalized)
@@ -1787,7 +1787,7 @@ function addToCartFromPd() {
   const raw = localStorage.getItem('sv_user');
   if (!raw) {
     toast('Please login to add to cart', 'error');
-    setTimeout(() => window.location.href = 'login_page.html', 800);
+    setTimeout(() => window.location.href = 'index.html', 800);
     return;
   }
   let userId;
@@ -1921,7 +1921,7 @@ function quickAddRelated(productId, btnEl) {
   const raw = localStorage.getItem('sv_user');
   if (!raw) {
     toast('Please login to add to cart', 'error');
-    setTimeout(() => window.location.href = 'login_page.html', 800);
+    setTimeout(() => window.location.href = 'index.html', 800);
     return;
   }
   // related cards carry string product_id, not the numeric cart id — for a

@@ -555,18 +555,18 @@
             const raw = localStorage.getItem('stanveeUser');
             if (!raw) {
                 showToast('Please login to view your order', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
             let user;
             try { user = JSON.parse(raw); } catch (e) {
                 showToast('Session expired, please login again', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
             if (!user || !user.loginid) {
                 showToast('Session expired, please login again', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
 

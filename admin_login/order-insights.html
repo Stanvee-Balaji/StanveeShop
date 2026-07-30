@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Insights — Stanvee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ---------- Reused from pending-checkouts.html so both pages look/feel identical ---------- */
+        .sv-toast {
+            position: fixed; top: 20px; right: 20px; z-index: 1100; padding: 12px 16px; border-radius: 10px;
+            font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none;
+        }
+        .sv-toast.success { background: #eafaf0; color: #1a7a3d; border: 1px solid #b7ecc9; }
+        .sv-toast.error { background: #fdeced; color: #b8232f; border: 1px solid #f5c2c7; }
+
+        .badge-status {
+            display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px;
+            font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em;
+        }
+        .badge-status.PLACED             { background: #eef0ff; color: #4338ca; }
+        .badge-status.CONFIRMED          { background: #eafaf0; color: #1a7a3d; }
+        .badge-status.SHIPPED            { background: #e6f4ff; color: #0a5a92; }
+        .badge-status.OUT_FOR_DELIVERY   { background: #fff4e0; color: #92600a; }
+        .badge-status.DELIVERED          { background: #eafaf0; color: #1a7a3d; }
+        .badge-status.CANCELLED          { background: #fdeced; color: #b8232f; }
+        .badge-status.PAID               { background: #eafaf0; color: #1a7a3d; }
+        .badge-status.PENDING            { background: #fff4e0; color: #92600a; }
+        .badge-status.FAILED             { background: #fdeced; color: #b8232f; }
+        .badge-status.HASH_MISMATCH      { background: #fdeced; color: #b8232f; }
+        .badge-status.TOKEN_FAILED       { background: #fdeced; color: #b8232f; }
+        .badge-status.ERROR              { background: #fdeced; color: #b8232f; }
+        .badge-status.ADMIN_MANUAL_REJECTED { background: #f1eafd; color: #5b21b6; }
+
+        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .stat-card { background: #fff; border: 1px solid #eef0f5; border-radius: 12px; padding: 14px 16px; }
+        .stat-card .stat-label { font-size: 11.5px; color: #8b92a5; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 6px; }
+        .stat-card .stat-value { font-size: 20px; font-weight: 800; color: #1a1d29; }
+
+        #content-loader {
+            position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+            gap: 14px; background: rgba(255, 255, 255, 0.85); z-index: 50; border-radius: 8px;
+        }
+        #content-loader.show { display: flex; }
+        @keyframes prod-spin { to { transform: rotate(360deg); } }
+
+        /* ---------- Page-specific: tabs ---------- */
+        .oi-tabs {
+            display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid #eef0f5; overflow-x: auto;
+        }
+        .oi-tab {
+            appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px; font-size: 13.5px;
+            font-weight: 600; color: #8b92a5; white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px;
+        }
+        .oi-tab:hover { color: #4b5163; }
+        .oi-tab.active { color: #6366f1; border-bottom-color: #6366f1; }
+
+        .oi-panel { display: none; }
+        .oi-panel.active { display: block; }
+
+        .oi-note {
+            background: #f2f3f7; border: 1px solid #e2e5f1; color: #5b6272; font-size: 12.5px;
+            padding: 8px 10px; border-radius: 8px; margin-bottom: 14px; line-height: 1.5;
+        }
+
+        .oi-badge-ok { color: #1a7a3d; font-weight: 700; font-size: 12px; }
+        .oi-badge-warn { color: #b8232f; font-weight: 700; font-size: 12px; }
+
+        .oi-empty-hint { text-align: center; padding: 30px; color: #9aa4b8; font-size: 13.5px; }
+
+        .oi-log-row { border-left: 2px solid #eef0f5; padding: 10px 0 10px 14px; margin-left: 4px; position: relative; }
+        .oi-log-row::before {
+            content: ""; position: absolute; left: -5px; top: 16px; width: 8px; height: 8px; border-radius: 50%;
+            background: #6366f1;
+        }
+        .oi-log-type { font-weight: 700; font-size: 12.5px; color: #1a1d29; }
+        .oi-log-time { font-size: 11.5px; color: #9aa4b8; margin-left: 8px; }
+        .oi-log-remarks { font-size: 12.5px; color: #5b6272; margin-top: 3px; }
+        .oi-log-payload {
+            margin-top: 6px; background: #14162066; background: #f6f7fb; border: 1px solid #eef0f5; border-radius: 8px;
+            padding: 8px 10px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #4b5163;
+            white-space: pre-wrap; word-break: break-word; max-height: 160px; overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app-shell">
+        <input type="checkbox" id="sb-toggle">
+        <label for="sb-toggle" class="sb-overlay"></label>
+
+        <!-- ---------- SIDEBAR (shared component, injected by components/layout.js) ---------- -->
+        <div id="sidebar-mount"></div>
+
+        <div id="main-wrap">
+            <main id="content" style="position:relative;min-height:400px;">
+
+                <div class="page-head-row">
+                    <div>
+                        <div class="page-title">Order Insights</div>
+                        <div class="page-sub">Customer order history, cancellations, rejected payments &amp; audit trails</div>
+                    </div>
+                </div>
+
+                <div id="page-message" style="display:none;margin-bottom:16px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
+
+                <!-- ---------- TABS ---------- -->
+                <div class="oi-tabs" id="oi-tabs">
+                    <button type="button" class="oi-tab active" data-tab="history">User Order History</button>
+                    <button type="button" class="oi-tab" data-tab="cancelled">Cancelled Orders</button>
+                    <button type="button" class="oi-tab" data-tab="rejected">Rejected Payments</button>
+                    <button type="button" class="oi-tab" data-tab="rejected-admin">Admin-Rejected</button>
+                    <button type="button" class="oi-tab" data-tab="audit">Audit Logs</button>
+                </div>
+
+                <!-- =========================================================
+                     TAB 1: USER ORDER HISTORY  (GET /user/{userId})
+                ========================================================== -->
+                <div class="oi-panel active" id="panel-history">
+                    <div class="card" style="margin-bottom:18px;">
+                        <form class="filter-bar" id="history-form">
+                            <div class="filter-item">
+                                <label for="h-userid">User ID</label>
+                                <input class="input" type="text" id="h-userid" placeholder="e.g. SV1476734">
+                            </div>
+                            <div class="filter-item">
+                                <label for="h-status">Order Status</label>
+                                <select class="input" id="h-status">
+                                    <option value="">All</option>
+                                    <option value="PLACED">Placed</option>
+                                    <option value="CONFIRMED">Confirmed</option>
+                                    <option value="SHIPPED">Shipped</option>
+                                    <option value="OUT_FOR_DELIVERY">Out for delivery</option>
+                                    <option value="DELIVERED">Delivered</option>
+                                    <option value="CANCELLED">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="filter-actions">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="stat-cards" id="history-stats" style="display:none;">
+                        <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value" id="hs-total">—</div></div>
+                        <div class="stat-card"><div class="stat-label">Current Page</div><div class="stat-value" id="hs-page">—</div></div>
+                        <div class="stat-card"><div class="stat-label">Total Pages</div><div class="stat-value" id="hs-pages">—</div></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order Number</th>
+                                        <th>Status</th>
+                                        <th>Payment</th>
+                                        <th>Method</th>
+                                        <th>Amount</th>
+                                        <th>Items</th>
+                                        <th>Cancel Reason</th>
+                                        <th>Placed</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-body">
+                                    <tr><td colspan="8" class="oi-empty-hint">Enter a User ID and search to view order history.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-bar">
+                            <div class="pg-info" id="history-pg-info"></div>
+                            <div class="filter-actions">
+                                <button type="button" class="btn btn-secondary" id="history-prev">Prev</button>
+                                <button type="button" class="btn btn-secondary" id="history-next">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========================================================
+                     TAB 2: CANCELLED ORDERS  (GET /cancelled)
+                ========================================================== -->
+                <div class="oi-panel" id="panel-cancelled">
+                    <div class="card" style="margin-bottom:18px;">
+                        <form class="filter-bar" id="cancelled-form">
+                            <div class="filter-item">
+                                <label for="c-userid">User ID (optional)</label>
+                                <input class="input" type="text" id="c-userid" placeholder="Scope to a user">
+                            </div>
+                            <div class="filter-item">
+                                <label for="c-from">From</label>
+                                <input class="input" type="date" id="c-from">
+                            </div>
+                            <div class="filter-item">
+                                <label for="c-to">To</label>
+                                <input class="input" type="date" id="c-to">
+                            </div>
+                            <div class="filter-actions">
+                                <button type="submit" class="btn btn-primary">Apply</button>
+                                <button type="button" class="btn btn-secondary" id="cancelled-reset">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order Number</th>
+                                        <th>Customer</th>
+                                        <th>User ID</th>
+                                        <th>Payment</th>
+                                        <th>Method</th>
+                                        <th>Amount</th>
+                                        <th>Items</th>
+                                        <th>Placed</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cancelled-body">
+                                    <tr><td colspan="8" class="oi-empty-hint">Loading…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-bar">
+                            <div class="pg-info" id="cancelled-pg-info"></div>
+                            <div class="filter-actions">
+                                <button type="button" class="btn btn-secondary" id="cancelled-prev">Prev</button>
+                                <button type="button" class="btn btn-secondary" id="cancelled-next">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========================================================
+                     TAB 3: REJECTED PAYMENTS  (GET /rejected-payments)
+                ========================================================== -->
+                <div class="oi-panel" id="panel-rejected">
+                    <div class="oi-note">Payment attempts that never became an order — failed, hash-mismatched, token-failed or errored. <b>orderExists: true</b> is flagged as a reconciliation issue.</div>
+                    <div class="card">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order Number</th>
+                                        <th>Buyer Email</th>
+                                        <th>Txn Status</th>
+                                        <th>Hash Status</th>
+                                        <th>Amount</th>
+                                        <th>Retries</th>
+                                        <th>Order Exists?</th>
+                                        <th>Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rejected-body">
+                                    <tr><td colspan="8" class="oi-empty-hint">Loading…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-bar">
+                            <div class="pg-info" id="rejected-pg-info"></div>
+                            <div class="filter-actions">
+                                <button type="button" class="btn btn-secondary" id="rejected-prev">Prev</button>
+                                <button type="button" class="btn btn-secondary" id="rejected-next">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========================================================
+                     TAB 4: ADMIN-REJECTED PAYMENTS  (GET /rejected-payments/admin-only)
+                ========================================================== -->
+                <div class="oi-panel" id="panel-rejected-admin">
+                    <div class="oi-note">Only transactions an admin explicitly rejected via <b>Reject Order</b> on the Pending Checkouts page.</div>
+                    <div class="card">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order Number</th>
+                                        <th>Buyer Email</th>
+                                        <th>Message</th>
+                                        <th>Amount</th>
+                                        <th>Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rejected-admin-body">
+                                    <tr><td colspan="5" class="oi-empty-hint">Loading…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-bar">
+                            <div class="pg-info" id="rejected-admin-pg-info"></div>
+                            <div class="filter-actions">
+                                <button type="button" class="btn btn-secondary" id="rejected-admin-prev">Prev</button>
+                                <button type="button" class="btn btn-secondary" id="rejected-admin-next">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========================================================
+                     TAB 5: AUDIT LOGS  (GET /by-number/{orderNumber}/audit-logs)
+                ========================================================== -->
+                <div class="oi-panel" id="panel-audit">
+                    <div class="card" style="margin-bottom:18px;">
+                        <form class="filter-bar" id="audit-form">
+                            <div class="filter-item">
+                                <label for="a-order-number">Order Number</label>
+                                <input class="input" type="text" id="a-order-number" placeholder="e.g. ORD17532210001234">
+                            </div>
+                            <div class="filter-actions">
+                                <button type="submit" class="btn btn-primary">Look up</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div id="audit-log-list" style="padding:16px 18px;">
+                            <div class="oi-empty-hint">Enter an order number to view its audit trail.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-loader">
+                    <div style="width:38px;height:38px;border:4px solid #e2e5f1;border-top-color:#6366f1;border-radius:50%;animation:prod-spin 0.8s linear infinite;"></div>
+                    <div style="font-size:13.5px;font-weight:600;color:#5b6272;">Loading…</div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <div class="sv-toast" id="sv-toast"></div>
+
+    <script>
+        window.API_BASE = "https://api.stanvee.com";
+    </script>
+    <script src="components/layout.js"></script>
+    <script>
+        // ------------------------------------------------------------------
+        // Auth — same pattern as pending-checkouts.html / orders.html
+        // ------------------------------------------------------------------
+        window.__adminAuth = { token: localStorage.getItem("adminSessionToken") };
+        if (!window.__adminAuth.token) {
+            window.location.href = "index.html";
+        }
+
+        const API_BASE = "https://api.stanvee.com";
+
+        function authHeaders(extra) {
+            return Object.assign({ "Authorization": window.__adminAuth.token }, extra || {});
+        }
+
+        function handleUnauthorized() {
+            window.__adminAuth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            showMessage("Your session has expired. Redirecting to sign in…", "error");
+            setTimeout(function () { window.location.href = "index.html"; }, 900);
+        }
+
+        const msgBox = document.getElementById("page-message");
+        function showMessage(text, type) {
+            msgBox.textContent = text;
+            msgBox.style.display = "block";
+            msgBox.style.background = type === "error" ? "rgba(220,53,69,0.12)" : "rgba(40,167,69,0.12)";
+            msgBox.style.border = "1px solid " + (type === "error" ? "rgba(220,53,69,0.4)" : "rgba(40,167,69,0.4)");
+            msgBox.style.color = type === "error" ? "#dc3545" : "#28a745";
+        }
+        function clearMessage() { msgBox.style.display = "none"; msgBox.textContent = ""; }
+
+        function showToast(text, type) {
+            const t = document.getElementById("sv-toast");
+            t.textContent = text;
+            t.className = "sv-toast " + type;
+            t.style.display = "block";
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(function () { t.style.display = "none"; }, 3500);
+        }
+
+        function showLoader() { document.getElementById("content-loader").classList.add("show"); }
+        function hideLoader() { document.getElementById("content-loader").classList.remove("show"); }
+
+        function escapeHtml(str) {
+            return String(str == null ? "" : str)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function formatRupees(value) {
+            if (value == null || value === "") return "—";
+            var num = Number(value);
+            if (isNaN(num)) return "₹" + value;
+            return "₹" + num.toLocaleString("en-IN");
+        }
+
+        function formatDate(iso) {
+            if (!iso) return "—";
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return iso;
+            return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) +
+                   " " + d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+        }
+
+        function statusBadge(value) {
+            var v = (value || "—").toUpperCase();
+            return '<span class="badge-status ' + v + '">' + v.replace(/_/g, " ") + '</span>';
+        }
+
+        async function fetchWithTimeout(url, options, timeoutMs) {
+            const controller = new AbortController();
+            const timer = setTimeout(function () { controller.abort(); }, timeoutMs || 30000);
+            try {
+                const res = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+                clearTimeout(timer);
+                return res;
+            } catch (err) {
+                clearTimeout(timer);
+                if (err.name === "AbortError") throw new Error("Request timed out: " + url);
+                throw err;
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Tabs
+        // ------------------------------------------------------------------
+        const tabButtons = document.querySelectorAll(".oi-tab");
+        const panels = { history: "panel-history", cancelled: "panel-cancelled", rejected: "panel-rejected", "rejected-admin": "panel-rejected-admin", audit: "panel-audit" };
+        const loaded = {};
+
+        tabButtons.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                const tab = btn.getAttribute("data-tab");
+                tabButtons.forEach(function (b) { b.classList.remove("active"); });
+                btn.classList.add("active");
+                Object.values(panels).forEach(function (id) { document.getElementById(id).classList.remove("active"); });
+                document.getElementById(panels[tab]).classList.add("active");
+                clearMessage();
+
+                if (tab === "cancelled" && !loaded.cancelled) { loaded.cancelled = true; loadCancelled(); }
+                if (tab === "rejected" && !loaded.rejected) { loaded.rejected = true; loadRejected(); }
+                if (tab === "rejected-admin" && !loaded.rejectedAdmin) { loaded.rejectedAdmin = true; loadRejectedAdmin(); }
+            });
+        });
+
+        // ------------------------------------------------------------------
+        // TAB 1: User order history — GET /api/admin/orders/user/{userId}
+        // ------------------------------------------------------------------
+        let historyState = { userId: "", orderStatus: "", page: 0, size: 20 };
+
+        document.getElementById("history-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            historyState.userId = document.getElementById("h-userid").value.trim();
+            historyState.orderStatus = document.getElementById("h-status").value;
+            historyState.page = 0;
+            if (!historyState.userId) {
+                showMessage("Enter a User ID to search.", "error");
+                return;
+            }
+            loadHistory();
+        });
+        document.getElementById("history-prev").addEventListener("click", function () {
+            if (historyState.page > 0) { historyState.page--; loadHistory(); }
+        });
+        document.getElementById("history-next").addEventListener("click", function () {
+            historyState.page++; loadHistory();
+        });
+
+        async function loadHistory() {
+            clearMessage();
+            showLoader();
+            const tbody = document.getElementById("history-body");
+            try {
+                const params = new URLSearchParams();
+                params.set("page", historyState.page);
+                params.set("size", historyState.size);
+                if (historyState.orderStatus) params.set("orderStatus", historyState.orderStatus);
+
+                const res = await fetchWithTimeout(
+                    API_BASE + "/api/admin/orders/user/" + encodeURIComponent(historyState.userId) + "?" + params.toString(),
+                    { headers: authHeaders() }, 30000
+                );
+                if (res.status === 401) { hideLoader(); handleUnauthorized(); return; }
+                const body = await res.json();
+                hideLoader();
+
+                if (!body || body.success === false) {
+                    showMessage((body && body.message) || "Failed to load order history.", "error");
+                    tbody.innerHTML = '<tr><td colspan="8" class="oi-empty-hint">Could not load order history.</td></tr>';
+                    document.getElementById("history-stats").style.display = "none";
+                    return;
+                }
+
+                const orders = body.orders || [];
+                document.getElementById("history-stats").style.display = "grid";
+                document.getElementById("hs-total").textContent = body.totalOrders != null ? body.totalOrders : orders.length;
+                document.getElementById("hs-page").textContent = (body.currentPage != null ? body.currentPage : historyState.page) + 1;
+                document.getElementById("hs-pages").textContent = body.totalPages != null ? body.totalPages : 1;
+
+                if (!orders.length) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="oi-empty-hint">No orders found for this user.</td></tr>';
+                } else {
+                    tbody.innerHTML = orders.map(function (o) {
+                        return '<tr>' +
+                            '<td class="prod-id">' + escapeHtml(o.orderNumber || "—") + '</td>' +
+                            '<td>' + statusBadge(o.orderStatus) + '</td>' +
+                            '<td>' + statusBadge(o.paymentStatus) + '</td>' +
+                            '<td>' + escapeHtml(o.paymentMethod || "—") + '</td>' +
+                            '<td>' + escapeHtml(formatRupees(o.totalAmount)) + '</td>' +
+                            '<td>' + escapeHtml(o.totalItems != null ? o.totalItems : "—") + '</td>' +
+                            '<td style="font-size:12.5px;color:#5b6272;">' + escapeHtml(o.cancelReason || "—") + '</td>' +
+                            '<td style="font-size:12.5px;color:#5b6272;">' + escapeHtml(formatDate(o.createdAt)) + '</td>' +
+                        '</tr>';
+                    }).join("");
+                }
+
+                document.getElementById("history-pg-info").textContent =
+                    "Page " + ((body.currentPage != null ? body.currentPage : historyState.page) + 1) + " of " + (body.totalPages || 1) +
+                    " · " + (body.totalOrders != null ? body.totalOrders : orders.length) + " total orders";
+            } catch (err) {
+                hideLoader();
+                showMessage("Could not reach the server. Check your connection and try again.", "error");
+                tbody.innerHTML = '<tr><td colspan="8" class="oi-empty-hint">Could not load order history.</td></tr>';
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // TAB 2: Cancelled orders — GET /api/admin/orders/cancelled
+        // ------------------------------------------------------------------
+        let cancelledState = { userId: "", fromDate: "", toDate: "", page: 0, size: 20 };
+
+        document.getElementById("cancelled-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            cancelledState.userId = document.getElementById("c-userid").value.trim();
+            cancelledState.fromDate = document.getElementById("c-from").value;
+            cancelledState.toDate = document.getElementById("c-to").value;
+            cancelledState.page = 0;
+            loadCancelled();
+        });
+        document.getElementById("cancelled-reset").addEventListener("click", function () {
+            document.getElementById("c-userid").value = "";
+            document.getElementById("c-from").value = "";
+            document.getElementById("c-to").value = "";
+            cancelledState = { userId: "", fromDate: "", toDate: "", page: 0, size: 20 };
+            loadCancelled();
+        });
+        document.getElementById("cancelled-prev").addEventListener("click", function () {
+            if (cancelledState.page > 0) { cancelledState.page--; loadCancelled(); }
+        });
+        document.getElementById("cancelled-next").addEventListener("click", function () {
+            cancelledState.page++; loadCancelled();
+        });
+
+        async function loadCancelled() {
+            clearMessage();
+            showLoader();
+            const tbody = document.getElementById("cancelled-body");
+            try {
+                const params = new URLSearchParams();
+                params.set("page", cancelledState.page);
+                params.set("size", cancelledState.size);
+                if (cancelledState.userId) params.set("userId", cancelledState.userId);
+                if (cancelledState.fromDate) params.set("fromDate", cancelledState.fromDate);
+                if (cancelledState.toDate) params.set("toDate", cancelledState.toDate);
+
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/orders/cancelled?" + params.toString(), { headers: authHeaders() }, 30000);
+                if (res.status === 401) { hideLoader(); handleUnauthorized(); return; }
+                const body = await res.json();
+                hideLoader();
+
+                if (!body || body.success === false) {
+                    showMessage((body && body.message) || "Failed to load cancelled orders.", "error");
+                    tbody.innerHTML = '<tr><td colspan="8" class="oi-empty-hint">Could not load cancelled orders.</td></tr>';
+                    return;
+                }
+
+                const orders = body.orders || [];
+                if (!orders.length) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="oi-empty-hint">No cancelled orders in this range.</td></tr>';
+                } else {
+                    tbody.innerHTML = orders.map(function (o) {
+                        return '<tr>' +
+                            '<td class="prod-id">' + escapeHtml(o.orderNumber || "—") + '</td>' +
+                            '<td>' + escapeHtml(o.customerName || "—") + '</td>' +
+                            '<td>' + escapeHtml(o.userId || "—") + '</td>' +
+                            '<td>' + statusBadge(o.paymentStatus) + '</td>' +
+                            '<td>' + escapeHtml(o.paymentMethod || "—") + '</td>' +
+                            '<td>' + escapeHtml(formatRupees(o.totalAmount)) + '</td>' +
+                            '<td>' + escapeHtml(o.totalItems != null ? o.totalItems : "—") + '</td>' +
+                            '<td style="font-size:12.5px;color:#5b6272;">' + escapeHtml(formatDate(o.createdAt)) + '</td>' +
+                        '</tr>';
+                    }).join("");
+                }
+
+                document.getElementById("cancelled-pg-info").textContent =
+                    "Page " + ((body.currentPage != null ? body.currentPage : cancelledState.page) + 1) + " of " + (body.totalPages || 1) +
+                    " · " + (body.totalOrders != null ? body.totalOrders : orders.length) + " total";
+            } catch (err) {
+                hideLoader();
+                showMessage("Could not reach the server. Check your connection and try again.", "error");
+                tbody.innerHTML = '<tr><td colspan="8" class="oi-empty-hint">Could not load cancelled orders.</td></tr>';
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // TAB 3: Rejected payments — GET /api/admin/orders/rejected-payments
+        // ------------------------------------------------------------------
+        let rejectedState = { page: 0, size: 20 };
+
+        document.getElementById("rejected-prev").addEventListener("click", function () {
+            if (rejectedState.page > 0) { rejectedState.page--; loadRejected(); }
+        });
+        document.getElementById("rejected-next").addEventListener("click", function () {
+            rejectedState.page++; loadRejected();
+        });
+
+        async function loadRejected() {
+            clearMessage();
+            showLoader();
+            const tbody = document.getElementById("rejected-body");
+            try {
+                const params = new URLSearchParams();
+                params.set("page", rejectedState.page);
+                params.set("size", rejectedState.size);
+
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/orders/rejected-payments?" + params.toString(), { headers: authHeaders() }, 30000);
+                if (res.status === 401) { hideLoader(); handleUnauthorized(); return; }
+                const body = await res.json();
+                hideLoader();
+
+                if (!body || body.success === false) {
+                    showMessage((body && body.message) || "Failed to load rejected payments.", "error");
+                    tbody.innerHTML = '<tr><td colspan="8" class="oi-empty-hint">Could not load rejected payments.</td></tr>';
+                    return;
+                }
+
+                const payments = body.payments || [];
+                if (!payments.length) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="oi-empty-hint">No rejected payments found.</td></tr>';
+                } else {
+                    tbody.innerHTML = payments.map(function (p) {
+                        return '<tr>' +
+                            '<td class="prod-id">' + escapeHtml(p.orderId || "—") + '</td>' +
+                            '<td>' + escapeHtml(p.buyerEmail || "—") + '</td>' +
+                            '<td>' + statusBadge(p.transactionStatus) + '</td>' +
+                            '<td>' + escapeHtml(p.secureHashStatus || "—") + '</td>' +
+                            '<td>' + escapeHtml(formatRupees(p.amount)) + '</td>' +
+                            '<td>' + escapeHtml(p.retryCount != null ? p.retryCount : 0) + '</td>' +
+                            '<td>' + (p.orderExists ? '<span class="oi-badge-warn">Yes — check</span>' : '<span class="oi-badge-ok">No</span>') + '</td>' +
+                            '<td style="font-size:12.5px;color:#5b6272;">' + escapeHtml(formatDate(p.createdAt)) + '</td>' +
+                        '</tr>';
+                    }).join("");
+                }
+
+                document.getElementById("rejected-pg-info").textContent =
+                    "Page " + ((body.currentPage != null ? body.currentPage : rejectedState.page) + 1) + " of " + (body.totalPages || 1) +
+                    " · " + (body.total != null ? body.total : payments.length) + " total";
+            } catch (err) {
+                hideLoader();
+                showMessage("Could not reach the server. Check your connection and try again.", "error");
+                tbody.innerHTML = '<tr><td colspan="8" class="oi-empty-hint">Could not load rejected payments.</td></tr>';
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // TAB 4: Admin-rejected payments — GET /api/admin/orders/rejected-payments/admin-only
+        // ------------------------------------------------------------------
+        let rejectedAdminState = { page: 0, size: 20 };
+
+        document.getElementById("rejected-admin-prev").addEventListener("click", function () {
+            if (rejectedAdminState.page > 0) { rejectedAdminState.page--; loadRejectedAdmin(); }
+        });
+        document.getElementById("rejected-admin-next").addEventListener("click", function () {
+            rejectedAdminState.page++; loadRejectedAdmin();
+        });
+
+        async function loadRejectedAdmin() {
+            clearMessage();
+            showLoader();
+            const tbody = document.getElementById("rejected-admin-body");
+            try {
+                const params = new URLSearchParams();
+                params.set("page", rejectedAdminState.page);
+                params.set("size", rejectedAdminState.size);
+
+                const res = await fetchWithTimeout(API_BASE + "/api/admin/orders/rejected-payments/admin-only?" + params.toString(), { headers: authHeaders() }, 30000);
+                if (res.status === 401) { hideLoader(); handleUnauthorized(); return; }
+                const body = await res.json();
+                hideLoader();
+
+                if (!body || body.success === false) {
+                    showMessage((body && body.message) || "Failed to load admin-rejected payments.", "error");
+                    tbody.innerHTML = '<tr><td colspan="5" class="oi-empty-hint">Could not load admin-rejected payments.</td></tr>';
+                    return;
+                }
+
+                const payments = body.payments || [];
+                if (!payments.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="oi-empty-hint">No admin-rejected payments yet.</td></tr>';
+                } else {
+                    tbody.innerHTML = payments.map(function (p) {
+                        return '<tr>' +
+                            '<td class="prod-id">' + escapeHtml(p.orderId || "—") + '</td>' +
+                            '<td>' + escapeHtml(p.buyerEmail || "—") + '</td>' +
+                            '<td style="font-size:12.5px;color:#5b6272;">' + escapeHtml(p.message || p.errorMessage || "—") + '</td>' +
+                            '<td>' + escapeHtml(formatRupees(p.amount)) + '</td>' +
+                            '<td style="font-size:12.5px;color:#5b6272;">' + escapeHtml(formatDate(p.createdAt)) + '</td>' +
+                        '</tr>';
+                    }).join("");
+                }
+
+                document.getElementById("rejected-admin-pg-info").textContent =
+                    "Page " + ((body.currentPage != null ? body.currentPage : rejectedAdminState.page) + 1) + " of " + (body.totalPages || 1) +
+                    " · " + (body.total != null ? body.total : payments.length) + " total";
+            } catch (err) {
+                hideLoader();
+                showMessage("Could not reach the server. Check your connection and try again.", "error");
+                tbody.innerHTML = '<tr><td colspan="5" class="oi-empty-hint">Could not load admin-rejected payments.</td></tr>';
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // TAB 5: Audit logs — GET /api/admin/orders/by-number/{orderNumber}/audit-logs
+        // ------------------------------------------------------------------
+        document.getElementById("audit-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const orderNumber = document.getElementById("a-order-number").value.trim();
+            if (!orderNumber) {
+                showMessage("Enter an order number to look up.", "error");
+                return;
+            }
+            loadAuditLogs(orderNumber);
+        });
+
+        async function loadAuditLogs(orderNumber) {
+            clearMessage();
+            showLoader();
+            const list = document.getElementById("audit-log-list");
+            try {
+                const res = await fetchWithTimeout(
+                    API_BASE + "/api/admin/orders/by-number/" + encodeURIComponent(orderNumber) + "/audit-logs",
+                    { headers: authHeaders() }, 30000
+                );
+                if (res.status === 401) { hideLoader(); handleUnauthorized(); return; }
+                const body = await res.json();
+                hideLoader();
+
+                if (!Array.isArray(body)) {
+                    showMessage("Failed to load audit logs.", "error");
+                    list.innerHTML = '<div class="oi-empty-hint">Could not load audit logs.</div>';
+                    return;
+                }
+
+                if (!body.length) {
+                    list.innerHTML = '<div class="oi-empty-hint">No audit log entries found for this order number.</div>';
+                    return;
+                }
+
+                list.innerHTML = body.map(function (log) {
+                    var payload = "";
+                    try { payload = JSON.stringify(JSON.parse(log.payload), null, 2); } catch (e) { payload = log.payload || ""; }
+                    return '<div class="oi-log-row">' +
+                        '<div><span class="oi-log-type">' + escapeHtml(log.eventType || "EVENT") + '</span>' +
+                        '<span class="oi-log-time">' + escapeHtml(formatDate(log.createdAt)) + '</span></div>' +
+                        (log.remarks ? '<div class="oi-log-remarks">' + escapeHtml(log.remarks) + '</div>' : '') +
+                        (payload ? '<div class="oi-log-payload">' + escapeHtml(payload) + '</div>' : '') +
+                        '</div>';
+                }).join("");
+            } catch (err) {
+                hideLoader();
+                showMessage("Could not reach the server. Check your connection and try again.", "error");
+                list.innerHTML = '<div class="oi-empty-hint">Could not load audit logs.</div>';
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Init — first visible tab (User Order History) needs no auto-load,
+        // it waits for a User ID. Nothing else to kick off here.
+        // ------------------------------------------------------------------
+    </script>
+
+</body>
+
+</html>

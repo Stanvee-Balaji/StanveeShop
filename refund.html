@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy - StanveeProducts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/app.css" />
+
+    <style>
+        /* ==========================
+   ABOUT / POLICY SECTION
+========================== */
+        
+        .about-section {
+            padding: 70px 15px;
+            background: #f6f7f9;
+        }
+        
+        .about-title {
+            text-align: center;
+            color: #42b649;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        
+        .about-card {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .about-card h3 {
+            color: #42b649;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .about-card h4 {
+            color: #42b649;
+            font-size: 26px;
+            font-weight: 700;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        
+        .about-card p {
+            color: #444;
+            font-size: 17px;
+            line-height: 1.9;
+            margin-bottom: 18px;
+        }
+        
+        .about-card ul {
+            margin: 0 0 18px 22px;
+            color: #444;
+            font-size: 17px;
+            line-height: 1.9;
+        }
+        
+        .about-card ul li {
+            margin-bottom: 8px;
+        }
+        
+        .about-card strong {
+            font-weight: 700;
+        }
+        
+        .about-card .updated-note {
+            font-size: 15px;
+            color: #777;
+            margin-bottom: 30px;
+        }
+        /* Responsive */
+        
+        @media (max-width:768px) {
+            .about-section {
+                padding: 50px 15px;
+            }
+            .about-card {
+                padding: 25px;
+            }
+            .about-title {
+                font-size: 32px;
+            }
+            .about-card h3 {
+                font-size: 26px;
+            }
+            .about-card h4 {
+                font-size: 22px;
+            }
+            .about-card p,
+            .about-card ul {
+                font-size: 16px;
+                line-height: 1.8;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="header"></div>
+
+    <!-- PRIVACY POLICY SECTION START -->
+    <section class="about-section">
+        <div class="container">
+            <h2 class="about-title">Cancellation & Refunds</h2>
+
+            <div class="about-card">
+                <h3>Cancellation & Refunds</h3>
+                <ul>
+                    <li>
+                        There may be certain orders that we might be unable to process due to certain reasons. STANVEE SERVICES INDIA LIMITED Inventory Products solely reserves the right to refuse or cancel any order. Certain criteria for cancellation of order includes that
+                        may result in your order being cancelled include limitations on quantities available for purchase, inaccuracy or errors in product or pricing information, or problems identified by our credit and fraud avoidance department. In
+                        such case if customer has placed the order and payment is made and if we are unable to Provide the product/products, full paid amount will be refunded to customer.
+                    </li>
+
+                    <li>
+                        Also if the order is cancelled by the customer after being processed, the amount of that order won't be refunded.
+                    </li>
+
+                    <li>
+                        The recipient, upon signing the delivery receipt, acknowledges the receipt of the product in terms of the order placed with the Company. The Company is not liable to the Customer / recipient for any refund / replacement, under any circumstances, for any
+                        subsequent complaints with respect to such deliveries If the recipient is not available at the time of delivery, the Company / courier agent shall try and deliver the item thrice before returning the same to . All costs for re-shipment
+                        and handling in the case of non-delivery to the Member shall be chargeable to the Member. In such case the order will be cancelled and the voucher amount of such product will not be refundable.
+                    </li>
+
+                </ul>
+
+            </div>
+        </div>
+    </section>
+    <!-- PRIVACY POLICY SECTION END -->
+
+    <div id="footer"></div>
+
+    <script>
+        function toggleFaq(element) {
+            const faqItem = element.parentElement;
+            const isActive = faqItem.classList.contains('active');
+
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Open clicked item if it wasn't already open
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        }
+    </script>
+
+    <script src="js/script.js"></script>
+    <script src="js/app-data.js"></script>
+    <script src="js/include.js"></script>
+
+</body>
+
+</html>

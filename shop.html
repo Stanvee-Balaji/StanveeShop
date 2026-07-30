@@ -316,39 +316,7 @@
             border-radius: 50%
         }
         
-        .profile-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 44px;
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
-            border-radius: 8px;
-            width: 144px;
-            font-size: 14px;
-            z-index: 100
-        }
-        
-        .profile-dropdown.open {
-            display: block
-        }
-        
-        .profile-dropdown li {
-            list-style: none;
-            padding: 8px 12px;
-            cursor: pointer;
-            transition: background .15s
-        }
-        
-        .profile-dropdown li:hover {
-            background: var(--primary-light)
-        }
-        
-        .profile-dropdown li.red {
-            color: #ef4444
-        }
-        
+     
         .mobile-search-row {
             display: none;
             padding: 0 16px 8px;
@@ -1131,6 +1099,17 @@
             padding: 2px 6px;
             border-radius: 4px
         }
+
+        .discount-point-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-top: 8px
+        }
         /* Discount badge on the product image — green, circular, like the live reference site */
         
         .img-discount {
@@ -1163,7 +1142,7 @@
             width: 100%;
             margin-top: 10px;
             padding: 7px 12px;
-            background: #1a3c5e;
+            background: var(--primary);
             color: #fff;
             border: none;
             border-radius: 6px;
@@ -1174,20 +1153,19 @@
         }
 
         .product-add-btn:hover {
-            background: #163452
+            background: var(--primary-dull)
         }
-        
-        .product-add-btn.go-to-cart-btn {
-            background: #1a3c5e !important;
-            color: #fff !important;
-        }
-        
-        .product-add-btn.go-to-cart-btn:hover {
-            background: #163452 !important;
-        }
-        
+
+        .product-add-btn.go-to-cart-btn,
         .product-add-btn.added {
-            background: #1a3c5e
+            background: #fff;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+        }
+
+        .product-add-btn.go-to-cart-btn:hover,
+        .product-add-btn.added:hover {
+            background: var(--primary-light);
         }
         /* List view overrides */
         
@@ -1720,12 +1698,12 @@
         }
 
         function resolveCartedProducts() {
-            if (!cartedNumericIds.length) return;
-            cartedNumericIds.forEach(numericId => {
-                for (const [stringId, mappedId] of Object.entries(productIdMap)) {
-                    if (mappedId === numericId) cartedProducts.add(stringId);
-                }
-            });
+            // Reset first — otherwise a product removed from the cart stays
+            // stuck showing "Go to Cart" when we come back to this page.
+            cartedProducts.clear();
+            if (cartedNumericIds.length) {
+                cartedNumericIds.forEach(pid => cartedProducts.add(String(pid)));
+            }
             renderProducts();
         }
 
@@ -1761,9 +1739,12 @@
                 params.set('minPrice', 0);
                 params.set('maxPrice', S.maxPrice);
             }
-
-            // sort
+// sort
             const sortMap = {
+                'default': {
+                    sortBy: 'priority',
+                    sortDir: 'asc'
+                },
                 'price-asc': {
                     sortBy: 'offerPrice',
                     sortDir: 'asc'
@@ -1822,7 +1803,8 @@
                         offerPrice: Number(p.offer_price) || 0,
                         image: p.image ? [p.image] : [],
                         category: Array.isArray(p.category) ? (p.category[0] || '') : (p.category || ''),
-                        inStock: p.stock_status === 'instock'
+                        inStock: p.stock_status === 'instock',
+                        maxPoints: Number(p.max_points_utilization) || 0
                     }));
 
                     // build productId map for cart: string product_id -> real DB primary key.
@@ -2092,6 +2074,7 @@
             ${original > price ? `<span class="orig-price">₹${original.toLocaleString('en-IN')}</span>` : ''}
             ${discount > 0 ? `<span class="discount-badge">${discount}% OFF</span>` : ''}
           </div>
+          ${p.maxPoints > 0 ? `<div class="discount-point-badge">Discount Point ${p.maxPoints.toLocaleString('en-IN')}</div>` : ''}
           ${inCart
             ? `<button class="product-add-btn added"
                  onclick="event.stopPropagation();window.location.href='cart.html'"
@@ -2110,35 +2093,52 @@
     }
 
     /* ── ADD TO CART ── */
+    function openLoginModalWhenReady(retries = 20) {
+        const overlay = document.getElementById('loginModalOverlay');
+        if (overlay) {
+            openLoginModal();
+            return;
+        }
+        if (retries <= 0) return;
+        setTimeout(() => openLoginModalWhenReady(retries - 1), 100);
+    }
+
+    // Returns a Promise so the post-login flow (js/include.js) can await it
+    // before redirecting — otherwise the fetch gets cancelled mid-flight.
     function addToCart(productId) {
       const raw = localStorage.getItem('stanveeUser');
       if (!raw) {
+        // remember which product the guest wanted so we can auto-add it
+        // right after they log in from this same modal
+        sessionStorage.setItem('sv_pending_cart_product', productId);
+        sessionStorage.setItem('sv_redirect_to_cart', '1');
         toast('Please login to add to cart', 'error');
-        setTimeout(() => window.location.href = 'login_page.html', 800);
-        return;
+        openLoginModalWhenReady();
+        return Promise.resolve();
       }
       let userId;
       try { userId = JSON.parse(raw).loginid; } catch (e) {
         toast('Please login to add to cart', 'error');
-        return;
+        return Promise.resolve();
       }
       if (!userId) {
+        sessionStorage.setItem('sv_pending_cart_product', productId);
+        sessionStorage.setItem('sv_redirect_to_cart', '1');
         toast('Please login to add to cart', 'error');
-        return;
+        openLoginModalWhenReady();
+        return Promise.resolve();
       }
 
-      const numericId = productIdMap[productId];
-      if (!numericId) {
-        toast('Product not found – try again', 'error');
-        return;
-      }
+      // productId is sent directly to the API, no map lookup needed.
 
-      fetch(BASE_URL + '/api/cart/add', {
+      const btn = document.getElementById(`atcBtn_${productId}`);
+if (btn) { btn.textContent = '⏳ Adding...'; btn.disabled = true; btn.className = 'product-add-btn'; }
+return fetch(BASE_URL + '/api/cart/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userId,
-          productId: numericId,
+          productId: productId,
           quantity: 1,
           couponSelected: true
         })
@@ -2147,20 +2147,30 @@
         .then(d => {
           if (d.success) {
             cartedProducts.add(productId);
-            const btn = document.getElementById(`atcBtn_${productId}`);
-            if (btn) { btn.textContent = '✓ Added'; btn.className = 'product-add-btn added'; }
+const btn = document.getElementById(`atcBtn_${productId}`);
+            if (btn) { btn.textContent = '🛒 Go to Cart'; btn.disabled = false; btn.className = 'product-add-btn added'; btn.onclick = (e) => { e.stopPropagation(); location.replace('cart.html'); }; }
             document.getElementById('cartCount').textContent = (d.cartItems || []).length;
             if (d.walletBalance != null) {
               S.walletBalance = d.walletBalance;
               document.getElementById('walletAmt').textContent = d.walletBalance;
             }
             saveCartCache({ count: (d.cartItems || []).length, walletBalance: d.walletBalance });
-            toast('Added to cart ✓');
+            if (sessionStorage.getItem('sv_redirect_to_cart')) {
+                sessionStorage.removeItem('sv_redirect_to_cart');
+                sessionStorage.setItem('sv_going_to_cart', '1');
+                setTimeout(() => { location.replace('cart.html'); }, 800);
+            } else {
+                toast('Added to cart ✓');
+            }
           } else {
             toast(d.message || 'Could not add to cart', 'error');
           }
         })
-        .catch(() => toast('Network error – try again', 'error'));
+        .catch(() => {
+    const btn = document.getElementById(`atcBtn_${productId}`);
+    if (btn) { btn.textContent = 'Add to Cart'; btn.disabled = false; btn.className = 'product-add-btn'; }
+    toast('Network error – try again', 'error');
+  });
     }
 
     /* ── CATEGORY COUNTS — now handled by fetchCategoryCounts() ── */
@@ -2219,7 +2229,8 @@
         tags.push(`<span class="filter-tag">"${S.searchQuery}" <button onclick="handleSearch('')">×</button></span>`);
       if (tags.length > 0) {
         wrap.style.display = 'flex';
-        wrap.innerHTML = tags.join('') + `<button class="clear-all-btn" onclick="resetFilters()">Clear All</button>`;
+        // wrap.innerHTML = tags.join('') + `<button class="clear-all-btn" onclick="resetFilters()">Clear All</button>`;
+        wrap.innerHTML = tags.join('');
       } else {
         wrap.style.display = 'none';
       }
@@ -2272,6 +2283,17 @@
       await fetchProducts();
     }
     document.addEventListener('DOMContentLoaded', init);
+
+    // ── FORCE REFRESH WHEN COMING BACK TO THIS PAGE (e.g. after removing from cart) ──
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            // Page was restored from bfcache (Back/Forward button) — re-check
+            // cart state and re-render products so removed items reset to
+            // "Add to Cart" instead of staying stuck as "Go to Cart".
+            checkAuth();
+            fetchProducts();
+        }
+    });
     </script>
     <div id="footer"></div>
 

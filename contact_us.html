@@ -69,6 +69,25 @@ CONTACT SECTION
         .contact-info a:hover {
             text-decoration: underline;
         }
+
+        /* Required field marker */
+        .required-mark {
+            color: #e74c3c;
+            font-weight: 700;
+            margin-left: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
         
         .contact-form input,
         .contact-form textarea {
@@ -76,16 +95,22 @@ CONTACT SECTION
             border: 1px solid #dcdcdc;
             border-radius: 4px;
             padding: 14px 16px;
-            margin-bottom: 16px;
             font-size: 16px;
             outline: none;
             transition: .3s;
+            box-sizing: border-box;
         }
         
         .contact-form input:focus,
         .contact-form textarea:focus {
             border-color: #45b649;
             box-shadow: 0 0 0 2px rgba(69, 182, 73, .15);
+        }
+
+        .contact-form input.field-error,
+        .contact-form textarea.field-error {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 2px rgba(231, 76, 60, .12);
         }
         
         .contact-form textarea {
@@ -104,11 +129,121 @@ CONTACT SECTION
             border-radius: 4px;
             cursor: pointer;
             transition: .3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         
         .contact-form button:hover {
             background: #35963a;
         }
+
+        .contact-form button:disabled {
+            background: #9bcf9d;
+            cursor: not-allowed;
+        }
+
+        .btn-spinner {
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255,255,255,.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            display: none;
+            animation: spin .7s linear infinite;
+        }
+
+        .contact-form button.loading .btn-spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /*==============================
+TOAST NOTIFICATIONS
+==============================*/
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 360px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            border-radius: 6px;
+            box-shadow: 0 6px 20px rgba(0,0,0,.15);
+            padding: 14px 16px;
+            font-size: 15px;
+            opacity: 0;
+            transform: translateX(40px);
+            animation: toast-in .3s ease forwards;
+        }
+
+        /* SUCCESS = solid green */
+        .toast.toast-success {
+            background: #45b649;
+            color: #fff;
+            border-left: 5px solid #2e8c33;
+        }
+
+        /* ERROR = solid red */
+        .toast.toast-error {
+            background: #e74c3c;
+            color: #fff;
+            border-left: 5px solid #c0392b;
+        }
+
+        /* WARNING = solid amber */
+        .toast.toast-warning {
+            background: #f39c12;
+            color: #fff;
+            border-left: 5px solid #c9800a;
+        }
+
+        .toast.hide {
+            animation: toast-out .3s ease forwards;
+        }
+
+        @keyframes toast-in {
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes toast-out {
+            to { opacity: 0; transform: translateX(40px); }
+        }
+
+        .toast-icon {
+            font-weight: 700;
+            font-size: 16px;
+            line-height: 1;
+            color: #fff;
+        }
+
+        .toast-msg {
+            flex: 1;
+            line-height: 1.4;
+            color: #fff;
+        }
+
+        .toast-close {
+            cursor: pointer;
+            color: rgba(255,255,255,.85);
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .toast-close:hover { color: #fff; }
+
         /* Responsive */
         
         @media(max-width:768px) {
@@ -130,6 +265,11 @@ CONTACT SECTION
             .contact-info p {
                 font-size: 15px;
             }
+            #toast-container {
+                left: 15px;
+                right: 15px;
+                max-width: none;
+            }
         }
     </style>
 </head>
@@ -137,6 +277,9 @@ CONTACT SECTION
 <body>
 
     <div id="header"></div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
 
     <!-- CONTACT SECTION START -->
     <section class="contact-section">
@@ -154,7 +297,7 @@ CONTACT SECTION
                     </p>
 
                     <p>
-                        <strong>MOBILE NO:</strong><br> +91 92705 21515 (Time: 10:30 AM to 7:00 PM)<br> +91 92705 11515 (24x6)
+                        <strong>MOBILE NO:</strong><br> +91 92705 11515 (Time: 10:30 AM to 7:00 PM)<br> +91 92705 11515 (24x6)
                     </p>
 
                     <p>
@@ -170,17 +313,42 @@ CONTACT SECTION
 
                 <h4>Get in Touch</h4>
 
-                <form action="#" method="post" class="contact-form">
+                <form id="contactForm" class="contact-form" novalidate>
 
-                    <input type="text" name="name" placeholder="Your Name" required>
+                    <div class="form-group">
+                        <label class="form-label" for="cf-name">Your Name<span class="required-mark">*</span></label>
+                        <input type="text" id="cf-name" name="name" placeholder="Your Name" required>
+                    </div>
 
-                    <input type="email" name="email" placeholder="Your Email" required>
+                    <div class="form-group">
+                        <label class="form-label" for="cf-userid">User ID<span class="required-mark">*</span></label>
+                        <input type="text" id="cf-userid" name="user_id" placeholder="User ID" required>
+                    </div>
 
-                    <textarea name="message" rows="6" placeholder="Your Message" required></textarea>
+                    <div class="form-group">
+                        <label class="form-label" for="cf-orderid">Order ID <em style="color:#999; font-weight:400;">(optional)</em></label>
+                        <input type="text" id="cf-orderid" name="order_id" placeholder="Order ID (if applicable)">
+                    </div>
 
-                    <button type="submit">
-                    Send Message
-                </button>
+                    <div class="form-group">
+                        <label class="form-label" for="cf-email">Your Email<span class="required-mark">*</span></label>
+                        <input type="email" id="cf-email" name="email" placeholder="Your Email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="cf-mobile">Mobile Number<span class="required-mark">*</span></label>
+                        <input type="tel" id="cf-mobile" name="mobile" placeholder="Mobile Number" pattern="[0-9]{10}" maxlength="10" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="cf-message">Your Message<span class="required-mark">*</span></label>
+                        <textarea id="cf-message" name="message" rows="6" placeholder="Your Message" required></textarea>
+                    </div>
+
+                    <button type="submit" id="cf-submit-btn">
+                        <span class="btn-spinner"></span>
+                        <span class="btn-text">Send Message</span>
+                    </button>
 
                 </form>
 
@@ -191,6 +359,169 @@ CONTACT SECTION
 
 
     <script>
+        // ==========================================================
+        // CONFIG — switch BASE_URL when moving to staging/production
+        // ==========================================================
+        const API_CONFIG = {
+            BASE_URL: "https://api.stanvee.com", // TODO: replace with actual environment host later
+            CONTACT_SUBMIT_ENDPOINT: "/api/contact/submit"
+        };
+
+        // ==========================================================
+        // TOAST HELPER
+        // ==========================================================
+        function showToast(message, type = "success", duration = 4000) {
+            const container = document.getElementById("toast-container");
+
+            const toast = document.createElement("div");
+            toast.className = `toast toast-${type}`;
+
+            const icon = type === "success" ? "✓" : type === "error" ? "✕" : "!";
+
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <span class="toast-msg"></span>
+                <span class="toast-close">&times;</span>
+            `;
+            // set message via textContent to avoid HTML injection
+            toast.querySelector(".toast-msg").textContent = message;
+
+            const removeToast = () => {
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 300);
+            };
+
+            toast.querySelector(".toast-close").addEventListener("click", removeToast);
+            container.appendChild(toast);
+
+            setTimeout(removeToast, duration);
+        }
+
+        // ==========================================================
+        // FORM VALIDATION + SUBMIT
+        // ==========================================================
+        (function () {
+            const form = document.getElementById("contactForm");
+            const submitBtn = document.getElementById("cf-submit-btn");
+
+            const fields = {
+                name: document.getElementById("cf-name"),
+                user_id: document.getElementById("cf-userid"),
+                order_id: document.getElementById("cf-orderid"), // optional
+                email: document.getElementById("cf-email"),
+                mobile: document.getElementById("cf-mobile"),
+                message: document.getElementById("cf-message")
+            };
+
+            function clearFieldErrors() {
+                Object.values(fields).forEach(el => el.classList.remove("field-error"));
+            }
+
+            function validateForm() {
+                clearFieldErrors();
+
+                // Order ID is intentionally excluded — it's optional per API
+                const requiredChecks = [
+                    { el: fields.name, label: "Your Name" },
+                    { el: fields.user_id, label: "User ID" },
+                    { el: fields.email, label: "Your Email" },
+                    { el: fields.mobile, label: "Mobile Number" },
+                    { el: fields.message, label: "Your Message" }
+                ];
+
+                for (const check of requiredChecks) {
+                    if (!check.el.value.trim()) {
+                        check.el.classList.add("field-error");
+                        showToast(`${check.label} is required.`, "warning");
+                        check.el.focus();
+                        return false;
+                    }
+                }
+
+                // basic email format check
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(fields.email.value.trim())) {
+                    fields.email.classList.add("field-error");
+                    showToast("Please enter a valid email address.", "warning");
+                    fields.email.focus();
+                    return false;
+                }
+
+                // basic mobile number check (10 digits)
+                const mobilePattern = /^[0-9]{10}$/;
+                if (!mobilePattern.test(fields.mobile.value.trim())) {
+                    fields.mobile.classList.add("field-error");
+                    showToast("Please enter a valid 10-digit mobile number.", "warning");
+                    fields.mobile.focus();
+                    return false;
+                }
+
+                return true;
+            }
+
+            function setLoading(isLoading) {
+                submitBtn.disabled = isLoading;
+                submitBtn.classList.toggle("loading", isLoading);
+                submitBtn.querySelector(".btn-text").textContent = isLoading ? "Sending..." : "Send Message";
+            }
+
+            async function submitContactForm(payload) {
+                const url = API_CONFIG.BASE_URL + API_CONFIG.CONTACT_SUBMIT_ENDPOINT;
+
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error("Unexpected response from server. Please try again later.");
+                }
+
+                if (!response.ok || !data.success) {
+                    // API returns { success:false, message, data:null } on validation errors (400)
+                    throw new Error(data.message || "Something went wrong. Please try again.");
+                }
+
+                return data;
+            }
+
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                if (!validateForm()) return;
+
+                const payload = {
+                    name: fields.name.value.trim(),
+                    userId: fields.user_id.value.trim(),
+                    orderId: fields.order_id.value.trim() || null, // optional field
+                    email: fields.email.value.trim(),
+                    mobileNumber: fields.mobile.value.trim(),
+                    message: fields.message.value.trim()
+                };
+
+                setLoading(true);
+
+                try {
+                    const result = await submitContactForm(payload);
+                    showToast(
+                        result.message || "Your message has been received. Our team will get back to you shortly.",
+                        "success"
+                    );
+                    form.reset();
+                } catch (err) {
+                    showToast(err.message || "Failed to send your message. Please try again.", "error");
+                } finally {
+                    setLoading(false);
+                }
+            });
+        })();
+
         function toggleFaq(element) {
             const faqItem = element.parentElement;
             const isActive = faqItem.classList.contains('active');
