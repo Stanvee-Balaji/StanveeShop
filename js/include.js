@@ -21,9 +21,12 @@ restoreStanveeSession();
 
     // ── Highlight active nav link based on current page ──
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    document.querySelectorAll('.desktop-nav-links a, .mobile-nav-menu a').forEach(link => {
+document.querySelectorAll('.desktop-nav-links a, .mobile-nav-menu a').forEach(link => {
         const href = link.getAttribute('href');
-        if (href === currentPage) {
+        const onclick = link.getAttribute('onclick') || '';
+        const matchesHref = href === currentPage;
+        const matchesOnclick = onclick.includes(currentPage);
+        if (matchesHref || matchesOnclick) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
@@ -36,24 +39,32 @@ restoreStanveeSession();
         const res = await fetch("includes/footer.html");
         footer.innerHTML = await res.text();
     }
-
-    // ── Topbar hide-on-scroll (must run AFTER header is injected) ──
+// ── Topbar hide-on-scroll (must run AFTER header is injected) ──
     const topbar = document.querySelector('.topbar');
     if (topbar) {
+        let topbarTicking = false;
         window.addEventListener('scroll', () => {
-            const current = window.scrollY || document.documentElement.scrollTop;
-            if (current > 60) {
-                topbar.classList.add('topbar-hidden');
-            } else {
-                topbar.classList.remove('topbar-hidden');
-            }
+            if (topbarTicking) return;
+            topbarTicking = true;
+            requestAnimationFrame(() => {
+                const current = window.scrollY || document.documentElement.scrollTop;
+                // Hysteresis band (80 / 40) instead of one fixed line at 60 —
+                // stops the class from flip-flopping when scrollY hovers
+                // right at the boundary during momentum/slow scrolling.
+                if (current > 80) {
+                    topbar.classList.add('topbar-hidden');
+                } else if (current < 40) {
+                    topbar.classList.remove('topbar-hidden');
+                }
+                topbarTicking = false;
+            });
         }, { passive: true });
     }
 
-    // NOW load script.js
-    const script = document.createElement("script");
-    script.src = "js/script.js";
-    document.body.appendChild(script);
+    // script.js is already loaded via a direct <script> tag in the HTML —
+    // injecting it again here caused "Identifier 'BASE_URL' has already
+    // been declared", which silently killed script.js entirely on every
+    // page load.
 
     // ── If we just redirected here after a successful login, show the toast ──
     const justLoggedIn = sessionStorage.getItem("stanveeJustLoggedIn");
@@ -222,9 +233,98 @@ function restoreStanveeSession() {
     }
 }
 
+// ── LIVE WALLET REFRESH (runs on every page, every refresh) ──
+document.addEventListener('stanveeHeaderReady', () => {
+    if (localStorage.getItem("stanveeLoggedIn") === "true") {
+        refreshWalletBalancesGlobal();
+    }
+});
+// Same endpoint + logic cart.html already uses successfully — one call
+// per wallet type, since CheckLogin.aspx's GetBalance action is scoped
+// to a single Wallertype per request, not both at once.
+const STANVEE_WALLET_BALANCE_API = "https://stanveeservices.com/CheckLogin.aspx";
+const WALLET_TYPE_SHOPPING_G = "S";
+const WALLET_TYPE_WOW_G = "O";
+
+async function fetchWalletBalanceGlobal(loginid, walletType) {
+    try {
+        const url = `${STANVEE_WALLET_BALANCE_API}?token=${STANVEE_API_TOKEN}` +
+            `&UserName=${encodeURIComponent(loginid)}` +
+            `&Password=123&Wallertype=${walletType}&action=GetBalance`;
+
+        const res = await fetch(url);
+        const rawText = await res.text();
+
+        let result;
+        try {
+            result = JSON.parse(rawText);
+        } catch (e) {
+            console.error(`[Wallet:${walletType}] JSON parse failed:`, e, rawText);
+            return null;
+        }
+
+        // Real response shape (confirmed from console):
+        // { loginid, response: "OK", walletBalance: "0", msg: "success", wallettype: "S" }
+        // — flat, no "status" field, no "data" wrapper.
+        const isSuccess = result.response === "OK" && result.walletBalance != null;
+        if (!isSuccess) {
+            console.error(`[Wallet:${walletType}] Failed:`, result);
+            return null;
+        }
+
+        return Number(result.walletBalance);
+    } catch (err) {
+        console.error(`[Wallet:${walletType}] Request failed:`, err);
+        return null;
+    }
+}
+
+async function refreshWalletBalancesGlobal() {
+    const savedUser = localStorage.getItem("stanveeUser");
+    if (!savedUser) return;
+
+    let user;
+    try {
+        user = JSON.parse(savedUser);
+    } catch (e) {
+        return;
+    }
+    if (!user.loginid) return;
+
+    const [shopping, wow] = await Promise.all([
+        fetchWalletBalanceGlobal(user.loginid, WALLET_TYPE_SHOPPING_G),
+        fetchWalletBalanceGlobal(user.loginid, WALLET_TYPE_WOW_G)
+    ]);
+
+    // Only overwrite if the live call actually succeeded — never blank
+    // a good cached value with a failed fetch.
+    if (shopping == null && wow == null) {
+        console.warn("[Wallet] Live refresh failed for both wallets, keeping cached values");
+        return;
+    }
+
+    const rwallet = shopping != null ? shopping : Number(user.rwallet || 0);
+    const owallet = wow != null ? wow : Number(user.owallet || 0);
+
+    const walletR = document.getElementById("walletR");
+    const walletO = document.getElementById("walletO");
+    const walletAmt = document.getElementById("walletAmt");
+
+    if (walletR) walletR.textContent = "₹" + rwallet.toLocaleString("en-IN");
+    if (walletO) walletO.textContent = "₹" + owallet.toLocaleString("en-IN");
+    if (walletAmt) walletAmt.textContent = (rwallet + owallet).toLocaleString("en-IN");
+
+    user.rwallet = rwallet;
+    user.owallet = owallet;
+    localStorage.setItem("stanveeUser", JSON.stringify(user));
+
+    console.log("[Wallet] Live balance refreshed:", { rwallet, owallet });
+}
+
 function logout() {
     localStorage.removeItem("stanveeUser");
     localStorage.removeItem("stanveeLoggedIn");
+    localStorage.removeItem("stanveeToken");
     setCartBadge(0);
     location.reload();
 }
@@ -248,7 +348,7 @@ function showToastFallback(msg, isError) {
 
 const STANVEE_API_TOKEN = "abUnMar5489pidlAewUF4875brlstangwewera4i5n6";
 const STANVEE_CART_BASE = "https://api.stanvee.com/api/cart";
-const STANVEE_CATEGORIES_API = "http://localhost:8080/api/products/categories";
+const STANVEE_CATEGORIES_API = "https://api.stanvee.com/api/products/categories";
 
 // ── CATEGORIES DROPDOWN (dynamic) ──
 async function fetchAndRenderCategories() {
@@ -280,7 +380,7 @@ function renderCategoryDropdown(container, categories) {
     container.querySelectorAll("a[data-category]").forEach(link => {
         link.addEventListener("click", () => {
             const category = link.getAttribute("data-category");
-            window.location.href = `shop.html?category=${encodeURIComponent(category)}`;
+            location.replace(`shop.html?category=${encodeURIComponent(category)}`);
         });
     });
 }
@@ -338,14 +438,19 @@ document.addEventListener("submit", async (e) => {
     const submitBtn = e.target.querySelector(".login-modal-submit");
 
     if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Logging in...";
+       submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="login-btn-spinner"></span> Logging in...';
     }
 
     try {
-        const url = `https://stanveeservices.com/CheckLogin.aspx?token=${STANVEE_API_TOKEN}&Username=${encodeURIComponent(username)}&Password=${encodeURIComponent(password)}&action=login`;
-        const res = await fetch(url);
-
+        // const url = `https://stanveeservices.com/CheckLogin.aspx?token=${STANVEE_API_TOKEN}&Username=${encodeURIComponent(username)}&Password=${encodeURIComponent(password)}&action=login`;
+        // const res = await fetch(url);
+const url = `https://api.stanvee.com/api/auth/login`;
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
         if (!res.ok) {
             console.error("[Login] HTTP error:", res.status, res.statusText);
             showLoginError("Server error. Please try again later.");
@@ -372,8 +477,9 @@ document.addEventListener("submit", async (e) => {
             const user = result.data;
 
             try {
-                localStorage.setItem("stanveeUser", JSON.stringify(user));
-                localStorage.setItem("stanveeLoggedIn", "true");
+    localStorage.setItem("stanveeUser", JSON.stringify(user));
+            localStorage.setItem("stanveeLoggedIn", "true");
+            localStorage.setItem("stanveeToken", result.token || "");
                 // flag so index.html knows to show the welcome toast after redirect
                 sessionStorage.setItem("stanveeJustLoggedIn", user.name || user.loginid);
             } catch (storageErr) {
@@ -384,14 +490,35 @@ document.addEventListener("submit", async (e) => {
             updateHeaderForLoggedInUser(user);
             refreshCartCount();
 
-            // Show toast right away as well (visible briefly before redirect)
-            showToastFallback(`Welcome, ${user.name || user.loginid}! Login successful ✓`);
+            // If the user got here because they clicked "Add to cart" while
+            // logged out, retry that add now that login succeeded. We MUST
+            // wait for this to finish before redirecting — otherwise the
+            // page navigates away mid-request, the browser cancels the
+            // fetch, and the product silently never makes it into the cart.
+            const pendingProductId = sessionStorage.getItem("sv_pending_cart_product");
 
-            closeLoginModal();
+            if (pendingProductId && typeof addToCart === "function") {
+                sessionStorage.removeItem("sv_pending_cart_product");
+                showToastFallback(`Welcome, ${user.name || user.loginid}! Adding item to cart...`);
 
-            setTimeout(() => {
+                // Race against a timeout so a slow/cold backend can't freeze
+                // the login flow forever — worst case we just redirect anyway.
+                await Promise.race([
+                    addToCart(pendingProductId).catch(err => console.error('[Login] Pending add-to-cart failed:', err)),
+                    new Promise(resolve => setTimeout(resolve, 8000))
+                ]);
+            } else {
+                // Show toast right away as well (visible briefly before redirect)
+                showToastFallback(`Welcome, ${user.name || user.loginid}! Login successful ✓`);
+            }
+
+         closeLoginModal();
+            if (sessionStorage.getItem('sv_going_to_cart')) {
+                sessionStorage.removeItem('sv_going_to_cart');
+                // addToCart is already redirecting to cart.html — do nothing
+            } else {
                 window.location.href = "index.html";
-            }, 600); // slightly longer so the toast is visible before navigating
+            }
 
         } else {
             const errMsg =
@@ -407,8 +534,8 @@ document.addEventListener("submit", async (e) => {
         showLoginError("Something went wrong. Please check your connection and try again.");
     } finally {
         if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Login";
+          submitBtn.disabled = false;
+            submitBtn.innerHTML = "Login";
         }
     }
 });
