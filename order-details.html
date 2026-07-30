@@ -818,28 +818,28 @@
             const raw = localStorage.getItem('stanveeUser');
             if (!raw) {
                 showToast('Please login to view order details', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
             let user;
             try { user = JSON.parse(raw); } catch (e) {
                 showToast('Session expired, please login again', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
             if (!user || !user.loginid) {
                 showToast('Session expired, please login again', 'error');
-                setTimeout(() => window.location.href = 'login_page.html', 1500);
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
 
             currentUser = { loginid: user.loginid, name: user.name };
 
             const params = new URLSearchParams(window.location.search);
-            currentOrderId = params.get('orderId');
+            currentOrderId = params.get('orderNumber');
 
             if (!currentOrderId) {
-                document.getElementById('odErrorMessage').textContent = 'No order ID was provided in the link.';
+                document.getElementById('odErrorMessage').textContent = 'No order number was provided in the link.';
                 showState('odErrorState');
                 return;
             }

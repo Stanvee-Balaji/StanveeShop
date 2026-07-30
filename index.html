@@ -20,11 +20,13 @@
         <div class="slider-outer" id="sliderOuter">
             <div class="slider-desktop">
                 <img src="src/assets/banner_2.jpg" alt="" class="slider-ghost" />
-                <img src="src/assets/banner_2.jpg" alt="banner 1" class="slider-slide active" data-index="0" />
-                <img src="src/assets/banner_1.png" alt="banner 2" class="slider-slide" data-index="1" />
-                <img src="src/assets/banner_5.jpg" alt="banner 3" class="slider-slide" data-index="2" />
-                <img src="src/assets/banner_3.jpg" alt="banner 4" class="slider-slide" data-index="3" />
-                <img src="src/assets/banner_4.jpg" alt="banner 5" class="slider-slide" data-index="4" />
+                <img src="src/assets/banner_3.jpg" alt="banner 1" class="slider-slide active" data-index="0" />
+                <!-- <img src="src/assets/banner_4.png" alt="banner 2" class="slider-slide" data-index="5" /> -->
+                <img src="src/assets/banner_5.jpg" alt="banner 3" class="slider-slide" data-index="1" />
+                <img src="src/assets/banner_3.jpg" alt="banner 4" class="slider-slide" data-index="2" />
+                <img src="src/assets/banner_4.jpg" alt="banner 5" class="slider-slide" data-index="3" />
+                    <img src="src/assets/banner_3.jpg" alt="banner 4" class="slider-slide" data-index="4" />
+                
                 <button class="slider-prev" onclick="prevSlide()">&#8249;</button>
                 <button class="slider-next" onclick="nextSlide()">&#8250;</button>
                 <!-- <div class="slider-dots" id="sliderDots">
@@ -42,71 +44,35 @@
         </div>
 
         <!-- Services bar -->
-        <div class="services-bar">
-            <div class="service-item">
-                <img src="src/assets/warranty.png" alt="Warranty" />
-                <div>
-                    <h3>Warranty</h3>
-                    <p>One Year</p>
-                </div>
-            </div>
-            <div class="service-item">
-                <img src="src/assets/freeshipping.png" alt="Free Shipping" />
-                <div>
-                    <h3>Free Shipping</h3>
-                    <p>Free shipping on all order</p>
-                </div>
-            </div>
-            <div class="service-item">
-                <img src="src/assets/onlinesupport.png" alt="Online Support" />
-                <div>
-                    <h3>Online Support</h3>
-                    <p>10:30 AM to 5:30 PM • Monday to Saturday</p>
-                </div>
-            </div>
-            <div class="service-item">
-                <img src="src/assets/securitypayment.png" alt="Secure Payment" />
-                <div>
-                    <h3>Secure Payment</h3>
-                    <p>We Value Your Security</p>
-                </div>
-            </div>
-            <div class="service-item">
-                <img src="src/assets/newmemberdiscount.png" alt="New Member Discount" />
-                <div>
-                    <h3>New Member Discount</h3>
-                    <p>Get 5000 shopping points</p>
-                </div>
-            </div>
-        </div>
+    
     </div>
 
     <!-- CATEGORY BANNERS -->
-    <div class="cat-banners">
-        <a href="products_audio.html" class="cat-banner-card">
-            <img src="src/assets/home-audiodevice.jpg" alt="Audio Device" />
-            <div class="cat-banner-overlay">
-                <h2>Audio Device</h2>
-                <p>Bringing Music to life</p>
-                <span class="cat-banner-btn">Shop now</span>
-            </div>
-        </a>
-        <a href="products_homeappliances.html" class="cat-banner-card">
-            <img src="src/assets/home-homeappliances.jpg" alt="Home Appliances" />
-            <div class="cat-banner-overlay">
-                <h2>Home Appliances</h2>
-                <p>Smart Solutions for Modern Living</p>
-                <span class="cat-banner-btn">Shop now</span>
-            </div>
-        </a>
-        <div class="cat-banner-card" style="cursor:default">
-            <img src="src/assets/home-qualityguarented.jpg" alt="Quality Guaranteed" />
-            <div class="cat-banner-overlay">
-                <h2>Quality Guaranteed</h2>
-                <p>Enjoy One Year of Worry Free Usage</p>
-            </div>
+<div class="cat-banners">
+    <a href="javascript:void(0)" class="cat-banner-card" onclick="window.location.href='shop.html?category=' + encodeURIComponent('Audio Device')">
+        <img src="src/assets/home-audiodevice.jpg" alt="Audio Device" />
+        <div class="cat-banner-overlay">
+            <h2>Audio Device</h2>
+            <p>Bringing Music to life</p>
+            <span class="cat-banner-btn">Shop now</span>
+        </div>
+    </a>
+    <a href="javascript:void(0)" class="cat-banner-card" onclick="window.location.href='shop.html?category=' + encodeURIComponent('Home Essentials')">
+        <img src="src/assets/home-homeappliances.jpg" alt="Home Appliances" />
+        <div class="cat-banner-overlay">
+            <h2>Home Appliances</h2>
+            <p>Smart Solutions for Modern Living</p>
+            <span class="cat-banner-btn">Shop now</span>
+        </div>
+    </a>
+    <div class="cat-banner-card" style="cursor:default">
+        <img src="src/assets/home-qualityguarented.jpg" alt="Quality Guaranteed" />
+        <div class="cat-banner-overlay">
+            <h2>Quality Guaranteed</h2>
+            <p>Enjoy One Year of Worry Free Usage</p>
         </div>
     </div>
+</div>
 
     <!-- ALL PRODUCTS -->
     <div class="products-section">
@@ -207,6 +173,45 @@
     <div class="gifting-banner">
         <img src="src/assets/gifting.jpg" alt="banner" />
     </div>
+
+    <div class="services-bar">
+            <div class="service-item">
+                <img src="src/assets/warranty.png" alt="Warranty" />
+                <div>
+                    <h3>Warranty</h3>
+                    <p>One Year</p>
+                </div>
+            </div>
+            <div class="service-item">
+                <img src="src/assets/freeshipping.png" alt="Free Shipping" />
+                <div>
+                    <h3>Free Shipping</h3>
+                    <p>Free shipping on all order</p>
+                </div>
+            </div>
+            <div class="service-item">
+                <img src="src/assets/onlinesupport.png" alt="Online Support" />
+                <div>
+                    <h3>Online Support</h3>
+                    <p>10:30 AM to 5:30 PM • Monday to Saturday</p>
+                </div>
+            </div>
+            <div class="service-item">
+                <img src="src/assets/securitypayment.png" alt="Secure Payment" />
+                <div>
+                    <h3>Secure Payment</h3>
+                    <p>We Value Your Security</p>
+                </div>
+            </div>
+            <div class="service-item">
+                <img src="src/assets/newmemberdiscount.png" alt="New Member Discount" />
+                <div>
+                    <h3>New Member Discount</h3>
+                    <p>Get 5000 shopping points</p>
+                </div>
+            </div>
+        </div>
+    
     <div id="footer"></div>
 
 

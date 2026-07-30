@@ -1538,10 +1538,9 @@
             localStorage.removeItem('stanveeLoggedIn');
             window.location.href = 'index.html';
         }
-
-        function checkIfInCart(cartItems) {
-            if (!numericProductId) return;
-            inCart = cartItems.some(item => item.productId === numericProductId);
+function checkIfInCart(cartItems) {
+            if (!PD.product) return;
+            inCart = cartItems.some(item => String(item.productId) === String(PD.product.product_id));
             renderActionButtons();
         }
 
@@ -1573,13 +1572,13 @@
             const categoryArr = Array.isArray(raw.category) ? raw.category : (raw.category ? [raw.category] : []);
 
             return {
-                // product_id: String(raw.product_id ? ? raw.id ? ? ''),
-                // numericId: raw.id ? ? null,
+                product_id: String(raw.product_id ?? raw.id ?? ''),
+                numericId: raw.id ?? null,
                 name: raw.product_name || 'Unnamed Product',
                 sku: raw.sku || '—',
                 mrp: Number(raw.mrp) || 0,
                 offerPrice: Number(raw.offer_price) || Number(raw.mrp) || 0,
-                inStock: raw.stock_status ? raw.stock_status === 'instock' : true,
+                inStock: raw.stock_status ? raw.stock_status === 'in_stock' : true,
                 category: categoryArr,
                 categoryKey: (categoryArr[0] || '').toLowerCase().replace(/\s+/g, ''),
                 gallery,
@@ -1707,9 +1706,7 @@
 
         <div class="pd-actions" id="pdActions"></div>
 
-        <button class="pd-wishlist-btn" id="pdWishlistBtn" onclick="toggleWishlist()">
-          <i class="fa fa-heart"></i> Add to Wishlist
-        </button>
+        
 
         ${Object.keys(p.specs).length ? `
           <div class="pd-meta">
@@ -1722,19 +1719,24 @@
       document.getElementById('pdTabsWrap').style.display = 'block';
     }
 
-    function renderActionButtons() {
+    function renderActionButtons(state) {
+      // state: undefined (default) | 'adding' | 'buying'
       const p = PD.product;
       if (!p) return;
       const wrap = document.getElementById('pdActions');
       if (!wrap) return;
 
-      wrap.innerHTML = `
-    ${inCart
-          ? `<button class="pd-add-btn added" id="pdAddBtn" onclick="window.location.href='cart.html'">🛒 Go to Cart</button>`
-          : `<button class="pd-add-btn" id="pdAddBtn" onclick="addToCartFromPd()" ${p.inStock ? '' : 'disabled'}>Add to Cart</button>`
-        }
-    <button class="pd-buy-btn" onclick="buyNowFromPd()" ${p.inStock ? '' : 'disabled'}>Buy Now</button>
-  `;
+      const addBtnHtml = inCart
+        ? `<button class="pd-add-btn added" id="pdAddBtn" onclick="window.location.href='cart.html'">🛒 Go to Cart</button>`
+        : state === 'adding'
+          ? `<button class="pd-add-btn" id="pdAddBtn" disabled>⏳ Adding...</button>`
+          : `<button class="pd-add-btn" id="pdAddBtn" onclick="addToCartFromPd()" ${p.inStock ? '' : 'disabled'}>Add to Cart</button>`;
+
+      const buyBtnHtml = state === 'buying'
+        ? `<button class="pd-buy-btn" id="pdBuyBtn" disabled>⏳ Placing order...</button>`
+        : `<button class="pd-buy-btn" id="pdBuyBtn" onclick="buyNowFromPd()" ${p.inStock ? '' : 'disabled'}>Buy Now</button>`;
+
+      wrap.innerHTML = addBtnHtml + buyBtnHtml;
     }
 
     function setPdImage(i) {
@@ -1784,27 +1786,41 @@
     }
 
     /* ── ADD TO CART / BUY NOW ── */
-    function addToCartFromPd() {
+   function addToCartFromPd() {
+      // returns a Promise<boolean> — true only if the item is confirmed in the cart
       const raw = localStorage.getItem('stanveeUser');
       if (!raw) {
+        if (PD.product) sessionStorage.setItem('sv_pending_cart_product', PD.product.product_id);
+        sessionStorage.setItem('sv_redirect_to_cart', '1');
         toast('Please login to add to cart', 'error');
-        setTimeout(() => window.location.href = 'login_page.html', 800);
-        return;
+        openLoginModal();
+        return Promise.resolve(false);
       }
       let userId;
       try { userId = JSON.parse(raw).loginid; } catch (e) {
         toast('Please login to add to cart', 'error');
-        return;
+        return Promise.resolve(false);
       }
-      if (!userId) { toast('Please login to add to cart', 'error'); return; }
-      if (!numericProductId) { toast('Product not found – try again', 'error'); return; }
+      if (!userId) {
+        if (PD.product) sessionStorage.setItem('sv_pending_cart_product', PD.product.product_id);
+        sessionStorage.setItem('sv_redirect_to_cart', '1');
+        toast('Please login to add to cart', 'error');
+        openLoginModal();
+        return Promise.resolve(false);
+      }
+      if (!PD.product) { toast('Product not found – try again', 'error'); return Promise.resolve(false); }
 
-      fetch(BASE_URL + '/api/cart/add', {
+      // already in cart — nothing to do, safe to proceed
+      if (inCart) return Promise.resolve(true);
+
+      renderActionButtons('adding'); // show "Adding..." immediately on click
+
+      return fetch(BASE_URL + '/api/cart/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userId,
-          productId: numericProductId,
+          productId: PD.product.product_id,
           quantity: PD.qty,
           couponSelected: false
         })
@@ -1813,7 +1829,7 @@
         .then(d => {
           if (d.success) {
             inCart = true;
-            renderActionButtons();
+            renderActionButtons(); // resets to "Go to Cart"
             document.getElementById('cartCount').textContent = (d.cartItems || []).length;
             if (d.walletBalance != null) {
               PD.walletBalance = d.walletBalance;
@@ -1821,16 +1837,30 @@
             }
             saveCartCache({ count: (d.cartItems || []).length, walletBalance: d.walletBalance });
             toast('Added to cart ✓');
+            return true;
           } else {
+            renderActionButtons(); // resets to "Add to Cart" so user can retry
             toast(d.message || 'Could not add to cart', 'error');
+            return false;
           }
         })
-        .catch(() => toast('Network error – try again', 'error'));
+        .catch(() => {
+          renderActionButtons(); // resets to "Add to Cart" so user can retry
+          toast('Network error – try again', 'error');
+          return false;
+        });
     }
 
     function buyNowFromPd() {
-      addToCartFromPd();
-      setTimeout(() => window.location.href = 'cart.html', 500);
+      renderActionButtons('buying'); // disable Buy Now + show "Placing order..." right away
+      addToCartFromPd().then(success => {
+        if (success) {
+          window.location.href = 'cart.html';
+        } else {
+          // if not successful, restore normal buttons so user can retry — toast already shown the reason
+          renderActionButtons();
+        }
+      });
     }
 
     /* ── RELATED PRODUCTS (same API as shop.html, filtered by category) ── */
@@ -1922,13 +1952,41 @@
       const raw = localStorage.getItem('stanveeUser');
       if (!raw) {
         toast('Please login to add to cart', 'error');
-        setTimeout(() => window.location.href = 'login_page.html', 800);
+        openLoginModal();
         return;
       }
       // related cards carry string product_id, not the numeric cart id — for a
       // live backend you'd resolve this the same way shop.html's productIdMap does.
       toast('Opening product to add to cart…', 'info');
       setTimeout(() => window.location.href = `product_details.html?id=${productId}`, 500);
+    }
+
+    // Alias so include.js can call addToCart(productId) after login,
+    // same as index.html and shop.html — without this, include.js sees
+    // typeof addToCart === "undefined" and falls through to index.html.
+    function addToCart(productId) {
+        // If this page's product matches, use the full PD flow directly.
+        // Otherwise just do a direct cart API call and redirect to cart.
+        if (PD.product && String(PD.product.product_id) === String(productId)) {
+            return addToCartFromPd();
+        }
+        // Fallback: direct API call for a product not currently loaded
+        const raw = localStorage.getItem('stanveeUser');
+        if (!raw) return Promise.resolve(false);
+        let userId;
+        try { userId = JSON.parse(raw).loginid; } catch (e) { return Promise.resolve(false); }
+        return fetch(BASE_URL + '/api/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, productId, quantity: 1, couponSelected: false })
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                sessionStorage.setItem('sv_going_to_cart', '1');
+                setTimeout(() => { window.location.href = 'cart.html'; }, 800);
+                return true;
+            }
+            return false;
+        }).catch(() => false);
     }
 
     /* ── INIT ── */

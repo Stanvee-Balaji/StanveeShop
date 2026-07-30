@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Airpay v4 — Integration Tester</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f0f2f5;color:#1a1a1a;padding:20px 16px;min-height:100vh}
+h1{font-size:20px;font-weight:700;margin-bottom:3px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+
+.page{max-width:1060px;margin:0 auto}
+.cols{display:grid;grid-template-columns:380px 1fr;gap:16px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:18px}
+.card-title{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555;margin-bottom:13px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#1a73e8;color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+
+.config-bar{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.config-bar label{font-size:12px;font-weight:600;color:#555;white-space:nowrap}
+.config-bar input{flex:1;min-width:180px;padding:6px 10px;font-size:12px;font-family:monospace;border:1px solid #ccc;border-radius:5px}
+.dot{width:9px;height:9px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background .3s}
+.dot.ok{background:#4caf50}
+.dot.err{background:#f44336}
+
+.field{margin-bottom:10px}
+label{display:block;font-size:12px;font-weight:500;color:#444;margin-bottom:3px}
+.req{color:#e53935}
+input,select{width:100%;padding:7px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:#1a73e8;box-shadow:0 0 0 3px rgba(26,115,232,.1)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.btn{width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;transition:background .15s;margin-top:4px}
+.btn:hover:not(:disabled){background:#1557b0}
+.btn:disabled{background:#bbb;cursor:not-allowed}
+.btn.secondary{background:#fff;color:#1a73e8;border:1px solid #1a73e8}
+.btn.secondary:hover:not(:disabled){background:#eaf1fd}
+.btn.small{width:auto;padding:6px 12px;font-size:12px;margin:0}
+.btn.green{background:#2e7d32}
+.btn.green:hover:not(:disabled){background:#1b5e20}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;display:none}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;margin-bottom:9px}
+.pill-idle{background:#f0f0f0;color:#666}
+.pill-load{background:#fff3e0;color:#e65100}
+.pill-ok{background:#e8f5e9;color:#2e7d32}
+.pill-err{background:#ffebee;color:#c62828}
+
+.log{background:#111;border-radius:7px;padding:12px;min-height:65px;font-family:'Courier New',monospace;font-size:11.5px;line-height:1.75;overflow-x:auto;white-space:pre-wrap;word-break:break-all;color:#777}
+.log.green{color:#4caf50}
+.log.red{color:#f44336}
+.log.yellow{color:#ffb300}
+
+.kv .kv-row{display:grid;grid-template-columns:120px 1fr;gap:6px;border-bottom:1px solid #f0f0f0;padding:5px 0;align-items:start}
+.kv .kv-row:last-child{border-bottom:none}
+.kv-k{font-size:11px;font-weight:700;color:#888;padding-top:2px}
+.kv-v{font-size:11.5px;font-family:'Courier New',monospace;word-break:break-all;cursor:pointer}
+.kv-v.trunc{max-height:36px;overflow:hidden;position:relative}
+.kv-v.trunc::after{content:'▼';position:absolute;bottom:0;right:0;font-size:10px;color:#1a73e8;background:linear-gradient(to right,transparent,#fff 30%);padding-left:14px}
+.kv-v.trunc.open{max-height:none}
+.kv-v.trunc.open::after{display:none}
+
+.tabs{display:flex;gap:4px;margin-bottom:9px}
+.tab{padding:4px 11px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #ddd;background:#f7f7f7;color:#555}
+.tab.on{background:#1a73e8;color:#fff;border-color:#1a73e8}
+.tp{display:none}
+.tp.on{display:block}
+
+.cmp-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.cmp-table th{background:#f5f5f5;padding:6px 8px;text-align:left;font-size:11px;font-weight:700;color:#555;border:1px solid #e0e0e0}
+.cmp-table td{padding:6px 8px;border:1px solid #e8e8e8;vertical-align:top}
+.cmp-table tr:hover td{background:#fafafa}
+.ok-chip{background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:10px;font-size:10.5px;font-weight:600}
+.warn-chip{background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:10px;font-size:10.5px;font-weight:600}
+.err-chip{background:#ffebee;color:#c62828;padding:1px 6px;border-radius:10px;font-size:10.5px;font-weight:600}
+
+.iframe-section{margin-top:16px}
+.iframe-wrap{border:2px solid #1a73e8;border-radius:8px;overflow:hidden;display:none}
+.iframe-wrap.show{display:block}
+iframe.airpay{width:100%;height:620px;border:none;display:block}
+.iframe-header{background:#1a73e8;color:#fff;padding:7px 12px;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.close-btn{cursor:pointer;font-size:16px;line-height:1;padding:0 4px}
+
+.notice{background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;padding:9px 12px;font-size:12px;color:#0d47a1;margin-bottom:12px}
+.notice strong{font-weight:700}
+hr.div{border:none;border-top:1px solid #efefef;margin:12px 0}
+
+/* Flow tracker */
+.flow{display:flex;align-items:center;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.flow-step{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#f0f0f0;color:#999;border:1px solid #e0e0e0}
+.flow-step.active{background:#fff3e0;color:#e65100;border-color:#ffcc80}
+.flow-step.done{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
+.flow-step.fail{background:#ffebee;color:#c62828;border-color:#ef9a9a}
+.flow-arrow{color:#ccc;font-size:12px}
+
+/* Session log panel */
+.session-count{font-size:10.5px;font-weight:600;color:#999;background:#f0f0f0;padding:2px 8px;border-radius:10px}
+.entry-list{max-height:260px;overflow-y:auto;border:1px solid #eee;border-radius:6px}
+.entry{padding:8px 10px;border-bottom:1px solid #f2f2f2;font-size:11.5px;cursor:pointer}
+.entry:last-child{border-bottom:none}
+.entry:hover{background:#fafafa}
+.entry-head{display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.entry-status{font-size:10px;padding:1px 7px;border-radius:9px}
+.entry-status.ok{background:#e8f5e9;color:#2e7d32}
+.entry-status.err{background:#ffebee;color:#c62828}
+.entry-time{color:#aaa;font-size:10px;font-weight:400}
+.entry-body{display:none;margin-top:6px;background:#111;color:#8bc34a;border-radius:5px;padding:8px;font-family:'Courier New',monospace;font-size:10.5px;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow:auto}
+.entry.open .entry-body{display:block}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>Airpay v4 — Integration Tester</h1>
+<p class="subtitle">Mirrors official Java JSP kit · iframe checkout · status polling · full session log with export</p>
+
+<!-- Server bar -->
+<div class="config-bar">
+  <span class="dot" id="dot"></span>
+  <label>Backend</label>
+  <input id="serverUrl" value="https://api.stanvee.com"/>
+  <button class="btn small" onclick="pingServer()">Ping</button>
+</div>
+
+<!-- End-to-end flow tracker -->
+<div class="card" style="margin-bottom:14px">
+  <div class="card-title">Flow</div>
+  <div class="flow" id="flowTracker">
+    <div class="flow-step" data-step="fill">1 · Fill form</div><span class="flow-arrow">→</span>
+    <div class="flow-step" data-step="initiate">2 · Initiate</div><span class="flow-arrow">→</span>
+    <div class="flow-step" data-step="redirect">3 · Airpay checkout</div><span class="flow-arrow">→</span>
+    <div class="flow-step" data-step="callback">4 · Airpay callback</div><span class="flow-arrow">→</span>
+    <div class="flow-step" data-step="status">5 · Status check</div>
+  </div>
+</div>
+
+<div class="notice">
+  <strong>Iframe mode (official kit):</strong> After initiate, the payment form auto-submits to Airpay inside an <code>airpayiframe</code> iframe. Once you complete/cancel payment inside the iframe, Airpay calls your backend's <code>/api/payment/response</code> directly (server-to-server) — this tester can't see that call, which is why step 5 exists: click <strong>Check Status</strong> to pull the final result from your backend's <code>/api/payment/status/{orderId}</code>.
+</div>
+
+<div class="cols">
+
+  <!-- LEFT: Form -->
+  <div>
+    <div class="card">
+      <div class="card-title"><span class="badge">1</span> Order Details</div>
+
+      <div class="field-row">
+        <div class="field"><label>Order ID <span class="req">*</span></label><input id="orderid"/></div>
+        <div class="field"><label>Amount <span class="req">*</span> <small style="color:#999">e.g. 10.00</small></label><input id="amount" value="10.00"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>First Name <span class="req">*</span></label><input id="buyer_firstname" value="John"/></div>
+        <div class="field"><label>Last Name <span class="req">*</span></label><input id="buyer_lastname" value="Doe"/></div>
+      </div>
+      <div class="field"><label>Email <span class="req">*</span></label><input id="buyer_email" value="test@example.com"/></div>
+      <div class="field"><label>Phone <span class="req">*</span></label><input id="buyer_phone" value="9999999999"/></div>
+      <div class="field"><label>Address</label><input id="buyer_address" value="123 Main Street"/></div>
+      <div class="field-row">
+        <div class="field"><label>City</label><input id="buyer_city" value="Mumbai"/></div>
+        <div class="field"><label>State</label><input id="buyer_state" value="Maharashtra"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Country</label><input id="buyer_country" value="India"/></div>
+        <div class="field"><label>Pincode</label><input id="buyer_pincode" value="400001"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Payment Mode (chmod)</label>
+          <select id="chmod">
+            <option value="">All modes</option>
+            <option value="pg">pg — Payment Gateway</option>
+            <option value="pgcc">pgcc — Credit Card</option>
+            <option value="pgdc">pgdc — Debit Card</option>
+            <option value="nb">nb — Net Banking</option>
+            <option value="upi">upi — UPI</option>
+            <option value="emi">emi — EMI</option>
+          </select>
+        </div>
+        <div class="field"><label>Custom Var</label><input id="customvar" placeholder="optional"/></div>
+      </div>
+
+      <button class="btn" id="payBtn" onclick="runFlow()">
+        <div class="spin" id="spin"></div>
+        <span id="btnTxt">🚀 Initiate Payment</span>
+      </button>
+
+      <button class="btn secondary" id="statusBtn" onclick="checkStatus()" style="margin-top:8px">
+        🔄 Check Status (poll backend)
+      </button>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">📋 Official Kit vs Your Code — Key Differences</div>
+      <table class="cmp-table">
+        <tr><th>Aspect</th><th>Official Java JSP</th><th>Status</th></tr>
+        <tr><td><strong>Checksum fields</strong></td><td><code>checksumcal(dataMap)</code> — full 16-field map</td><td><span class="ok-chip">✓ Fixed</span></td></tr>
+        <tr><td><strong>Payment encryption</strong></td><td><code>encrypt(jsonString, secretKey)</code></td><td><span class="ok-chip">✓ Fixed</span></td></tr>
+        <tr><td><strong>Token encryption</strong></td><td><code>encrypt(requestJson, secretKey)</code></td><td><span class="ok-chip">✓ Match</span></td></tr>
+        <tr><td><strong>Private key</strong></td><td>SHA256(secret+"@"+user+":|:"+pass)</td><td><span class="ok-chip">✓ Match</span></td></tr>
+        <tr><td><strong>Form target</strong></td><td><code>target="airpayiframe"</code></td><td><span class="ok-chip">✓ Added</span></td></tr>
+        <tr><td><strong>Response URL</strong></td><td>server-to-server callback (not browser-visible)</td><td><span class="warn-chip">⚠ use Check Status</span></td></tr>
+        <tr><td><strong>apyVer field</strong></td><td>PHP kit has it, Java JSP does NOT</td><td><span class="ok-chip">✓ Excluded</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- RIGHT: Responses -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <div class="card">
+      <div class="card-title"><span class="badge">2</span> Backend Response <small style="font-weight:400;font-size:10px;margin-left:4px">POST /api/payment/initiate</small></div>
+      <div class="pill pill-idle" id="pill2">● Waiting</div>
+      <div class="tabs">
+        <div class="tab on" onclick="switchTab('tp-parsed','tab-p')">Parsed fields</div>
+        <div class="tab" id="tab-r" onclick="switchTab('tp-raw','tab-r')">Raw JSON</div>
+      </div>
+      <div class="tp on" id="tp-parsed">
+        <div class="kv" id="parsedKV">
+          <div class="kv-row"><span class="kv-k">paymentUrl</span><span class="kv-v" style="color:#aaa">—</span></div>
+          <div class="kv-row"><span class="kv-k">merchantId</span><span class="kv-v" style="color:#aaa">—</span></div>
+          <div class="kv-row"><span class="kv-k">privateKey</span><span class="kv-v" style="color:#aaa">—</span></div>
+          <div class="kv-row"><span class="kv-k">encdata</span><span class="kv-v" style="color:#aaa">—</span></div>
+          <div class="kv-row"><span class="kv-k">checksum</span><span class="kv-v" style="color:#aaa">—</span></div>
+          <div class="kv-row"><span class="kv-k">kittype</span><span class="kv-v" style="color:#aaa">—</span></div>
+          <div class="kv-row"><span class="kv-k">chmod</span><span class="kv-v" style="color:#aaa">—</span></div>
+        </div>
+      </div>
+      <div class="tp" id="tp-raw"><div class="log" id="rawJson">No response yet</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="badge">3</span> Form POST → Airpay <small style="font-weight:400;font-size:10px;margin-left:4px">(target=airpayiframe)</small></div>
+      <div class="pill pill-idle" id="pill3">● Waiting</div>
+      <div class="log" id="formLog">Form fields will appear here before submission</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="badge">4</span> Payment Status <small style="font-weight:400;font-size:10px;margin-left:4px">GET /api/payment/status/{orderId}</small></div>
+      <div class="pill pill-idle" id="pill4">● Not checked yet</div>
+      <div class="log" id="statusLog">Click "Check Status" after completing payment in the iframe below.</div>
+    </div>
+
+    <div class="iframe-section">
+      <div class="iframe-wrap" id="iframeWrap">
+        <div class="iframe-header">
+          <span>🔒 Airpay Checkout (iframe)</span>
+          <span class="close-btn" onclick="closeIframe()" title="Close">✕</span>
+        </div>
+        <iframe name="airpayiframe" class="airpay" id="airpayIframe"></iframe>
+      </div>
+    </div>
+
+    <!-- Session log -->
+    <div class="card">
+      <div class="card-title">
+        📒 Session Log — every request/response this run
+        <span class="session-count" id="sessionCount">0 entries</span>
+      </div>
+      <div class="entry-list" id="entryList">
+        <div class="entry" style="color:#aaa;cursor:default">No calls made yet this session.</div>
+      </div>
+      <button class="btn green" style="margin-top:10px" onclick="downloadSession()">⬇ Download full session (JSON)</button>
+      <button class="btn secondary" style="margin-top:8px" onclick="clearSession()">🗑 Clear session log</button>
+    </div>
+
+  </div>
+</div>
+
+<form id="airpayForm" method="POST" target="airpayiframe" style="display:none">
+  <input type="hidden" name="privatekey"   id="f_privatekey"/>
+  <input type="hidden" name="merchant_id"  id="f_merchant_id"/>
+  <input type="hidden" name="kittype"      id="f_kittype"    value="iframe"/>
+  <input type="hidden" name="encdata"      id="f_encdata"/>
+  <input type="hidden" name="checksum"     id="f_checksum"/>
+  <input type="hidden" name="chmod"        id="f_chmod"/>
+</form>
+
+<script>
+document.getElementById('orderid').value = 'ORD' + Date.now();
+
+// ── Session log (every API call this run, in memory only — no storage APIs) ──
+const sessionLog = [];
+
+function logEntry(step, ok, request, response) {
+  sessionLog.push({
+    step, ok,
+    timestamp: new Date().toISOString(),
+    request: request ?? null,
+    response: response ?? null
+  });
+  renderEntryList();
+}
+
+function renderEntryList() {
+  const list = document.getElementById('entryList');
+  document.getElementById('sessionCount').textContent = sessionLog.length + ' entries';
+  if (!sessionLog.length) {
+    list.innerHTML = '<div class="entry" style="color:#aaa;cursor:default">No calls made yet this session.</div>';
+    return;
+  }
+  list.innerHTML = sessionLog.map((e, i) => {
+    const time = e.timestamp.split('T')[1].split('.')[0];
+    return `<div class="entry" onclick="this.classList.toggle('open')">
+      <div class="entry-head">
+        <span>${e.step}</span>
+        <span><span class="entry-time">${time}</span> <span class="entry-status ${e.ok?'ok':'err'}">${e.ok?'OK':'ERR'}</span></span>
+      </div>
+      <div class="entry-body">${escapeHtml(JSON.stringify({request:e.request, response:e.response}, null, 2))}</div>
+    </div>`;
+  }).reverse().join('');
+}
+
+function escapeHtml(s){return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+function downloadSession() {
+  const blob = new Blob([JSON.stringify(sessionLog, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'airpay-session-' + Date.now() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function clearSession() {
+  sessionLog.length = 0;
+  renderEntryList();
+}
+
+// ── Flow tracker ──────────────────────────────────────────────────────────
+function setFlow(step, state) {
+  // state: 'active' | 'done' | 'fail'
+  document.querySelectorAll('.flow-step').forEach(el => {
+    if (el.dataset.step === step) {
+      el.className = 'flow-step ' + state;
+    } else if (state === 'active') {
+      // leave others as-is
+    }
+  });
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+function setPill(id, cls, txt) {
+  const el = document.getElementById(id);
+  el.className = 'pill ' + cls;
+  el.textContent = txt;
+}
+
+function switchTab(showId, showTab) {
+  ['tp-parsed','tp-raw'].forEach(id => document.getElementById(id).classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById(showId).classList.add('on');
+  document.getElementById(showTab).classList.add('on');
+}
+
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('trunc')) e.target.classList.toggle('open');
+});
+
+function closeIframe() {
+  document.getElementById('iframeWrap').classList.remove('show');
+  document.getElementById('airpayIframe').src = 'about:blank';
+}
+
+async function pingServer() {
+  const url = document.getElementById('serverUrl').value.trim().replace(/\/$/,'');
+  const dot = document.getElementById('dot');
+  dot.className = 'dot';
+  try {
+    const r = await fetch(url + '/api/payment/health', {signal: AbortSignal.timeout(3000)});
+    dot.className = r.ok ? 'dot ok' : 'dot err';
+    logEntry('Ping /api/payment/health', r.ok, {url}, {status:r.status});
+  } catch(err) {
+    dot.className = 'dot err';
+    logEntry('Ping /api/payment/health', false, {url}, {error: err.toString()});
+  }
+}
+
+// ── Main flow: fill → initiate → redirect ──────────────────────────────────
+async function runFlow() {
+  const btn    = document.getElementById('payBtn');
+  const spin   = document.getElementById('spin');
+  const btnTxt = document.getElementById('btnTxt');
+
+  setFlow('fill','done');
+  btn.disabled = true;
+  spin.style.display = 'block';
+  btnTxt.textContent = 'Processing…';
+
+  setPill('pill2','pill-load','● Calling backend…');
+  setPill('pill3','pill-idle','● Waiting');
+  setPill('pill4','pill-idle','● Not checked yet');
+  document.getElementById('rawJson').textContent = 'Waiting…';
+  document.getElementById('rawJson').className   = 'log';
+  document.getElementById('formLog').textContent = 'Waiting…';
+  document.getElementById('formLog').className   = 'log';
+  document.getElementById('statusLog').textContent = 'Click "Check Status" after completing payment in the iframe below.';
+  document.getElementById('statusLog').className = 'log';
+  document.getElementById('iframeWrap').classList.remove('show');
+  setFlow('initiate','active');
+
+  const serverUrl = document.getElementById('serverUrl').value.trim().replace(/\/$/,'');
+
+  const payload = {
+    buyerEmail:     document.getElementById('buyer_email').value.trim(),
+    buyerPhone:     document.getElementById('buyer_phone').value.trim(),
+    buyerFirstName: document.getElementById('buyer_firstname').value.trim(),
+    buyerLastName:  document.getElementById('buyer_lastname').value.trim(),
+    orderid:        document.getElementById('orderid').value.trim(),
+    amount:         document.getElementById('amount').value.trim(),
+    buyerAddress:   document.getElementById('buyer_address').value.trim(),
+    buyerCity:      document.getElementById('buyer_city').value.trim(),
+    buyerState:     document.getElementById('buyer_state').value.trim(),
+    buyerCountry:   document.getElementById('buyer_country').value.trim(),
+    buyerPinCode:   document.getElementById('buyer_pincode').value.trim(),
+    customvar:      document.getElementById('customvar').value.trim(),
+    txnsubtype:     ''
+  };
+
+  const missing = ['buyerEmail','buyerPhone','buyerFirstName','buyerLastName','orderid','amount']
+    .filter(k => !payload[k]);
+  if (missing.length) {
+    setPill('pill2','pill-err','✗ Missing required fields');
+    document.getElementById('rawJson').textContent = 'Missing:\n' + missing.join('\n');
+    document.getElementById('rawJson').className = 'log red';
+    setFlow('initiate','fail');
+    logEntry('POST /api/payment/initiate', false, payload, {error:'missing fields', missing});
+    resetBtn(btn,spin,btnTxt); return;
+  }
+
+  if (!/^\d{1,6}\.\d{2}$/.test(payload.amount)) {
+    setPill('pill2','pill-err','✗ Invalid amount format');
+    document.getElementById('rawJson').textContent = 'Amount must be like: 100.00';
+    document.getElementById('rawJson').className = 'log red';
+    setFlow('initiate','fail');
+    logEntry('POST /api/payment/initiate', false, payload, {error:'invalid amount format'});
+    resetBtn(btn,spin,btnTxt); return;
+  }
+
+  let data;
+  try {
+    const res = await fetch(serverUrl + '/api/payment/initiate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const raw = await res.text();
+
+    if (!res.ok) {
+      setPill('pill2','pill-err','✗ HTTP ' + res.status);
+      document.getElementById('rawJson').textContent = 'HTTP ' + res.status + '\n\n' + raw;
+      document.getElementById('rawJson').className = 'log red';
+      setFlow('initiate','fail');
+      logEntry('POST /api/payment/initiate', false, payload, {status:res.status, body:raw});
+      resetBtn(btn,spin,btnTxt); return;
+    }
+
+    data = JSON.parse(raw);
+    document.getElementById('rawJson').textContent = JSON.stringify(data, null, 2);
+    document.getElementById('rawJson').className   = 'log green';
+    renderKV(data);
+    setPill('pill2','pill-ok','✓ 200 OK — fields received');
+    setFlow('initiate','done');
+    logEntry('POST /api/payment/initiate', true, payload, data);
+
+  } catch(err) {
+    setPill('pill2','pill-err','✗ Network / CORS error');
+    document.getElementById('rawJson').textContent =
+      err.toString() + '\n\nIs backend running at ' + serverUrl + '?\nCheck CORS if backend is remote.';
+    document.getElementById('rawJson').className = 'log red';
+    setFlow('initiate','fail');
+    logEntry('POST /api/payment/initiate', false, payload, {error: err.toString()});
+    resetBtn(btn,spin,btnTxt); return;
+  }
+
+  const needed = ['paymentUrl','privateKey','merchantId','encdata','checksum'];
+  const missingR = needed.filter(k => !data[k]);
+  if (missingR.length) {
+    setPill('pill3','pill-err','✗ Missing: ' + missingR.join(', '));
+    resetBtn(btn,spin,btnTxt); return;
+  }
+
+  const chmod = document.getElementById('chmod').value;
+  document.getElementById('airpayForm').action = data.paymentUrl;
+  document.getElementById('f_privatekey').value  = data.privateKey;
+  document.getElementById('f_merchant_id').value = data.merchantId;
+  document.getElementById('f_kittype').value      = 'iframe';
+  document.getElementById('f_encdata').value      = data.encdata;
+  document.getElementById('f_checksum').value     = data.checksum;
+  document.getElementById('f_chmod').value        = chmod || data.chmod || '';
+
+  let log = 'Form action:\n  ' + data.paymentUrl + '\n\nHidden fields:\n';
+  log += '  privatekey   = ' + truncate(data.privateKey, 50) + '\n';
+  log += '  merchant_id  = ' + data.merchantId + '\n';
+  log += '  kittype      = iframe\n';
+  log += '  encdata      = ' + truncate(data.encdata, 50) + '\n';
+  log += '  checksum     = ' + data.checksum + '\n';
+  log += '  chmod        = ' + (chmod || '(empty — all modes)') + '\n';
+  log += '\n→ Submitting into airpayiframe…';
+
+  document.getElementById('formLog').textContent = log;
+  document.getElementById('formLog').className   = 'log yellow';
+  setPill('pill3','pill-load','● Submitting form to iframe…');
+  setFlow('redirect','active');
+
+  await new Promise(r => setTimeout(r, 1200));
+
+  document.getElementById('iframeWrap').classList.add('show');
+  document.getElementById('airpayForm').submit();
+  logEntry('Form POST → Airpay (iframe)', true,
+    {action:data.paymentUrl, chmod:chmod||data.chmod||''}, {note:'submitted into airpayiframe, response not visible to this page'});
+
+  setPill('pill3','pill-ok','✓ Submitted → Airpay checkout loading in iframe');
+  setFlow('redirect','done');
+  setFlow('callback','active');
+  resetBtn(btn,spin,btnTxt);
+
+  setTimeout(() => {
+    document.getElementById('iframeWrap').scrollIntoView({behavior:'smooth', block:'start'});
+  }, 400);
+}
+
+// ── Status check — pulls the result of Airpay's server-to-server callback ──
+async function checkStatus() {
+  const orderId = document.getElementById('orderid').value.trim();
+  const serverUrl = document.getElementById('serverUrl').value.trim().replace(/\/$/,'');
+  const btn = document.getElementById('statusBtn');
+
+  if (!orderId) {
+    setPill('pill4','pill-err','✗ No orderId set');
+    return;
+  }
+
+  btn.disabled = true;
+  setPill('pill4','pill-load','● Checking…');
+
+  try {
+    const res = await fetch(serverUrl + '/api/payment/status/' + encodeURIComponent(orderId));
+    const raw = await res.text();
+
+    if (res.status === 404) {
+      setPill('pill4','pill-err','✗ Not found yet — callback may not have arrived');
+      document.getElementById('statusLog').textContent =
+        'No transaction record found for orderId=' + orderId +
+        '\n\nThis usually means Airpay has not called your /api/payment/response yet, or the payment is still in progress.';
+      document.getElementById('statusLog').className = 'log yellow';
+      logEntry('GET /api/payment/status/' + orderId, false, {orderId}, {status:404});
+      setFlow('callback','fail');
+      resetStatusBtn(btn); return;
+    }
+
+    if (!res.ok) {
+      setPill('pill4','pill-err','✗ HTTP ' + res.status);
+      document.getElementById('statusLog').textContent = raw;
+      document.getElementById('statusLog').className = 'log red';
+      logEntry('GET /api/payment/status/' + orderId, false, {orderId}, {status:res.status, body:raw});
+      resetStatusBtn(btn); return;
+    }
+
+    const data = JSON.parse(raw);
+    document.getElementById('statusLog').textContent = JSON.stringify(data, null, 2);
+    const isSuccess = (data.status || '').toUpperCase() === 'SUCCESS';
+    document.getElementById('statusLog').className = 'log ' + (isSuccess ? 'green' : 'yellow');
+    setPill('pill4', isSuccess ? 'pill-ok' : 'pill-err',
+      isSuccess ? '✓ SUCCESS' : ('● Status: ' + (data.status || 'UNKNOWN')));
+    setFlow('callback','done');
+    setFlow('status','done');
+    logEntry('GET /api/payment/status/' + orderId, true, {orderId}, data);
+
+  } catch(err) {
+    setPill('pill4','pill-err','✗ Network error');
+    document.getElementById('statusLog').textContent = err.toString();
+    document.getElementById('statusLog').className = 'log red';
+    logEntry('GET /api/payment/status/' + orderId, false, {orderId}, {error: err.toString()});
+  }
+  resetStatusBtn(btn);
+}
+
+function resetStatusBtn(btn){ btn.disabled = false; }
+
+function truncate(s, n) {
+  return s && s.length > n ? s.substring(0, n) + '…' : (s || '');
+}
+
+function resetBtn(btn, spin, btnTxt) {
+  btn.disabled = false;
+  spin.style.display = 'none';
+  btnTxt.textContent = '🚀 Initiate Payment';
+}
+
+function renderKV(data) {
+  const rows = [
+    ['paymentUrl', data.paymentUrl],
+    ['merchantId', data.merchantId],
+    ['privateKey', data.privateKey],
+    ['encdata',    data.encdata],
+    ['checksum',   data.checksum],
+    ['kittype',    data.kittype],
+    ['chmod',      data.chmod !== undefined ? (data.chmod || '(empty — all modes)') : '—']
+  ];
+  document.getElementById('parsedKV').innerHTML = rows.map(([k,v]) => {
+    const long = v && v.length > 55;
+    return `<div class="kv-row"><span class="kv-k">${k}</span><span class="kv-v${long?' trunc':''}">${v||'—'}</span></div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

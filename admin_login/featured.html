@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Featured Products — Stanvee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ---- Modal system (scoped, matches products.html) ---- */
+        .sv-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 18, 30, 0.55);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .sv-modal-overlay.open { display: flex; }
+
+        .sv-modal {
+            background: #fff;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 760px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            overflow: hidden;
+            animation: sv-modal-in 0.18s ease;
+        }
+        @keyframes sv-modal-in {
+            from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .sv-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #eef0f5;
+        }
+        .sv-modal-title { font-size: 16px; font-weight: 700; color: #1a1d29; }
+        .sv-modal-close {
+            border: none; background: #f2f3f7; width: 30px; height: 30px; border-radius: 8px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; color: #5b6272;
+        }
+        .sv-modal-close:hover { background: #e6e8f0; }
+
+        .sv-modal-body { padding: 22px; max-height: 72vh; overflow-y: auto; }
+        .sv-modal-footer {
+            padding: 16px 22px; border-top: 1px solid #eef0f5; display: flex; justify-content: flex-end; gap: 10px;
+        }
+
+        .sv-hint { font-size: 11.5px; color: #9aa4b8; margin-top: 3px; }
+        .sv-loading-inline { text-align: center; padding: 30px; color: #9aa4b8; font-size: 13.5px; }
+
+        .sv-toast {
+            position: fixed; top: 20px; right: 20px; z-index: 1100; padding: 12px 16px; border-radius: 10px;
+            font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none;
+        }
+        .sv-toast.success { background: #eafaf0; color: #1a7a3d; border: 1px solid #b7ecc9; }
+        .sv-toast.error { background: #fdeced; color: #b8232f; border: 1px solid #f5c2c7; }
+
+        /* ---- Star badge for featured ---- */
+        .featured-star {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: #fff7e0; color: #b8860b; border: 1px solid #f3e2a5;
+            padding: 3px 8px; border-radius: 20px; font-size: 11.5px; font-weight: 700;
+        }
+
+        /* ---- Row action buttons ---- */
+        .action-cell { display: flex; gap: 6px; }
+        .act-btn {
+            width: 30px; height: 30px; border-radius: 7px; border: 1px solid transparent;
+            display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .act-btn.danger { background: #fdeced; color: #dc3545; border-color: #f5c2c7; }
+        .act-btn.danger:hover { background: #f8d7da; }
+        .act-btn.star-add { background: #eef0ff; color: #6366f1; border-color: #dfe1fb; }
+        .act-btn.star-add:hover { background: #e2e5ff; }
+        .act-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+        /* ---- Search results list in Add modal ---- */
+        .search-result-row {
+            display: flex; align-items: center; gap: 12px; padding: 10px 8px;
+            border-bottom: 1px solid #f2f3f7;
+        }
+        .search-result-row img { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #eef0f5; flex-shrink: 0; }
+        .search-result-info { flex: 1; min-width: 0; }
+        .search-result-name { font-size: 13.5px; font-weight: 600; color: #1a1d29; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-result-meta { font-size: 12px; color: #8b92a5; margin-top: 2px; }
+
+        /* ---- Category browse (Add to Featured modal) ---- */
+        .feat-cat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+        }
+        .feat-cat-card {
+            border: 1px solid #eef0f5;
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: border-color .15s ease, transform .15s ease;
+        }
+        .feat-cat-card:hover { border-color: #6366f1; transform: translateY(-1px); }
+        .feat-cat-card-name { font-weight: 700; font-size: 13px; color: #1a1d29; }
+        .feat-cat-card-count { font-size: 11.5px; color: #8b92a5; margin-top: 4px; }
+        .feat-browse-crumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .feat-back-btn {
+            border: 1px solid #dfe2ea;
+            background: #f7f8fc;
+            color: #4b5163;
+            font-weight: 600;
+            font-size: 12.5px;
+            padding: 5px 10px;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+        .feat-back-btn:hover { background: #eef0ff; }
+        .feat-crumb-current { font-size: 12.5px; color: #8b92a5; }
+        .feat-cat-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 12px;
+            font-size: 12.5px;
+        }
+        .feat-cat-pagination button {
+            border: 1px solid #dfe2ea;
+            background: #fff;
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+        }
+        .feat-cat-pagination button:disabled { opacity: .4; cursor: not-allowed; }
+
+        /* ---- Loader scoped to content area only (sidebar stays usable while loading) ---- */
+
+        /* ---- Loader scoped to content area ---- */
+        #content-loader {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: 50;
+            border-radius: 8px;
+        }
+        #content-loader.show { display: flex; }
+        @keyframes prod-spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body>
+
+    <div id="app-shell">
+        <input type="checkbox" id="sb-toggle">
+        <label for="sb-toggle" class="sb-overlay"></label>
+
+        <!-- ---------- SIDEBAR (injected by layout.js) ---------- -->
+        <div id="sidebar-mount"></div>
+
+        <div id="main-wrap">
+            <!-- ---------- PAGE CONTENT ---------- -->
+            <main id="content" style="position:relative;min-height:400px;">
+
+                <div class="page-head-row">
+                    <div>
+                        <div class="page-title">Featured Products</div>
+                        <div class="page-sub">Manage which products appear in the storefront "Featured" section</div>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="open-add-modal"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add to Featured</button>
+                </div>
+
+                <div id="page-message" style="display:none;margin-bottom:16px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
+
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Image</th>
+                                    <th>Product Name</th>
+                                    <th>Product ID</th>
+                                    <th>MRP</th>
+                                    <th>Offer Price</th>
+                                    <th>Stock Status</th>
+                                    <th>Category</th>
+                                    <th>Priority</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="featured-body">
+                                <tr><td colspan="10" style="text-align:center;padding:24px;color:#9aa4b8;">Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar">
+                        <div class="flex" style="align-items:center;gap:8px;">
+                            <span class="pg-info">Rows per page</span>
+                            <select class="page-size-select" id="page-size-select">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="pg-info" id="pg-info-text">Showing 0 of 0 featured products</div>
+                        <div class="pg-btns">
+                            <button class="pg-btn" id="pg-prev" disabled>Previous</button>
+                            <span class="pg-info" id="pg-page-text">Page 1 of 1</span>
+                            <button class="pg-btn" id="pg-next" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loader scoped to this content area only (sidebar stays usable while loading) -->
+                <div id="content-loader">
+                    <div style="width:38px;height:38px;border:4px solid #e2e5f1;border-top-color:#6366f1;border-radius:50%;animation:prod-spin 0.8s linear infinite;"></div>
+                    <div style="font-size:13.5px;font-weight:600;color:#5b6272;">Loading featured products…</div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         REMOVE-FROM-FEATURED CONFIRMATION MODAL
+    ============================================================= -->
+    <div class="sv-modal-overlay" id="remove-modal-overlay">
+        <div class="sv-modal" style="max-width:440px;">
+            <div class="sv-modal-header">
+                <div class="sv-modal-title">Remove from Featured</div>
+                <button type="button" class="sv-modal-close" id="close-remove-modal">✕</button>
+            </div>
+            <div class="sv-modal-body">
+                <div style="display:flex;gap:14px;align-items:flex-start;">
+                    <div style="width:46px;height:46px;border-radius:50%;background:#fdeced;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 6-12 12"/><path d="m6 6 12 12"/></svg>
+                    </div>
+                    <div style="font-size:14px;color:#3a3f4d;line-height:1.55;">
+                        Remove <b id="remove-product-name" style="color:#1a1d29;"></b>
+                        (<span id="remove-product-id"></span>) from the featured list?
+                        It will no longer appear in the storefront's Featured section.
+                    </div>
+                </div>
+            </div>
+            <div class="sv-modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-remove-modal">Cancel</button>
+                <button type="button" class="btn-danger" id="confirm-remove-btn" style="background:#dc3545;color:#fff;border:1px solid #dc3545;padding:9px 16px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         ADD TO FEATURED MODAL (search all products, mark as featured)
+    ============================================================= -->
+    <div class="sv-modal-overlay" id="add-modal-overlay">
+        <div class="sv-modal">
+            <div class="sv-modal-header">
+                <div class="sv-modal-title">Add Product to Featured</div>
+                <button type="button" class="sv-modal-close" id="close-add-modal">✕</button>
+            </div>
+            <div class="sv-modal-body">
+                <div class="sv-field" style="margin-bottom:14px;">
+                    <label style="display:block;font-size:12.5px;font-weight:600;color:#4b5163;margin-bottom:5px;">Search products</label>
+                    <input class="input" type="text" id="search-input" placeholder="Search by product name or ID…" style="width:100%;padding:9px 11px;border-radius:8px;border:1px solid #dfe2ea;font-size:13.5px;box-sizing:border-box;">
+                    <div class="sv-hint">Type at least 2 characters to search all products, or browse by category below. Already-featured products are marked and can't be re-added.</div>
+                </div>
+                <div id="add-form-message" style="display:none;margin-bottom:12px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
+                <div class="feat-browse-crumb" id="feat-browse-crumb" style="display:none;">
+                    <button type="button" class="feat-back-btn" id="feat-back-to-cats">&larr; Categories</button>
+                    <span class="feat-crumb-current" id="feat-crumb-current"></span>
+                </div>
+                <div id="search-results"></div>
+                <div class="feat-cat-pagination" id="feat-cat-pagination" style="display:none;">
+                    <button type="button" id="feat-cat-page-prev">&larr; Prev</button>
+                    <span id="feat-cat-page-info"></span>
+                    <button type="button" id="feat-cat-page-next">Next &rarr;</button>
+                </div>
+            </div>
+            <div class="sv-modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-add-modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sv-toast" id="sv-toast"></div>
+
+    <script>
+        window.API_BASE = "https://api.stanvee.com";
+    </script>
+    <script src="components/layout.js"></script>
+    <script>
+    /* ================================================================
+       FEATURED PRODUCTS PAGE — clean rewrite
+       Single entry point: initFeatured()
+       Every request is logged to console with a "[featured]" prefix
+       so you can trace exactly which call fires / fails / hangs.
+    ================================================================ */
+
+    (function () {
+
+        // ------------------------------------------------------------
+        // Config
+        // ------------------------------------------------------------
+        const API_BASE = "https://api.stanvee.com"; // must match the domain used on products.html
+        const DEFAULT_TIMEOUT_MS = 1500000; // sane timeout so failures actually surface instead of hanging
+
+        // ------------------------------------------------------------
+        // Auth
+        // ------------------------------------------------------------
+        const auth = { token: localStorage.getItem("adminSessionToken") };
+
+        if (!auth.token) {
+            console.warn("[featured] No admin session token found. Redirecting to login.");
+            window.location.href = "index.html";
+        }
+
+        function authHeaders(extra) {
+            return Object.assign({ "Authorization": auth.token }, extra || {});
+        }
+
+        function handleUnauthorized() {
+            console.warn("[featured] 401 received — session expired.");
+            auth.token = null;
+            localStorage.removeItem("adminSessionToken");
+            localStorage.removeItem("adminEmail");
+            showMessage("Your session has expired. Redirecting to sign in…", "error");
+            setTimeout(function () { window.location.href = "index.html"; }, 900);
+        }
+
+        // ------------------------------------------------------------
+        // Small UI helpers
+        // ------------------------------------------------------------
+        const msgBox = document.getElementById("page-message");
+
+        function showMessage(text, type) {
+            msgBox.textContent = text;
+            msgBox.style.display = "block";
+            msgBox.style.background = type === "error" ? "rgba(220,53,69,0.12)" : "rgba(40,167,69,0.12)";
+            msgBox.style.border = "1px solid " + (type === "error" ? "rgba(220,53,69,0.4)" : "rgba(40,167,69,0.4)");
+            msgBox.style.color = type === "error" ? "#dc3545" : "#28a745";
+        }
+        function clearMessage() { msgBox.style.display = "none"; msgBox.textContent = ""; }
+
+        function showToast(text, type) {
+            const t = document.getElementById("sv-toast");
+            t.textContent = text;
+            t.className = "sv-toast " + type;
+            t.style.display = "block";
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(function () { t.style.display = "none"; }, 3500);
+        }
+
+        function showLoader() { document.getElementById("content-loader").classList.add("show"); }
+        function hideLoader() { document.getElementById("content-loader").classList.remove("show"); }
+
+        function escapeHtml(str) {
+            return String(str == null ? "" : str)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function formatRupees(value) {
+            if (value == null || value === "") return "—";
+            const num = Number(value);
+            if (isNaN(num)) return "₹" + value;
+            return "₹" + num.toLocaleString("en-IN");
+        }
+
+        function renderStockBadge(status) {
+            const s = (status || "").toLowerCase();
+            if (s === "out_of_stock" || s === "out of stock") {
+                return '<span class="badge badge-red"><svg class="icon" width="11" height="11" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Out of Stock</span>';
+            }
+            return '<span class="badge badge-green"><svg class="icon" width="11" height="11" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>In Stock</span>';
+        }
+
+        // ------------------------------------------------------------
+        // Network helper — logs every request/response/failure
+        // ------------------------------------------------------------
+        async function apiFetch(url, options, timeoutMs) {
+            const controller = new AbortController();
+            const timeout = timeoutMs || DEFAULT_TIMEOUT_MS;
+            const timer = setTimeout(function () { controller.abort(); }, timeout);
+
+            console.log("[featured] → " + (options && options.method ? options.method : "GET") + " " + url);
+
+            try {
+                const res = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+                clearTimeout(timer);
+                console.log("[featured] ← " + res.status + " " + url);
+                return res;
+            } catch (err) {
+                clearTimeout(timer);
+                if (err.name === "AbortError") {
+                    console.error("[featured] ✕ TIMEOUT after " + timeout + "ms: " + url);
+                    throw new Error("Request timed out: " + url);
+                }
+                // This branch fires for network failures, DNS errors, and
+                // requests blocked by CORS / CSP before they leave the browser.
+                console.error("[featured] ✕ Network/blocked error for " + url, err);
+                throw err;
+            }
+        }
+
+        // ------------------------------------------------------------
+        // State + list loading (admin featured list — all stock states)
+        // ------------------------------------------------------------
+        let state = { page: 0, size: 20 };
+
+        async function loadFeatured() {
+            clearMessage();
+            showLoader();
+            try {
+                const params = new URLSearchParams();
+                params.set("page", state.page);
+                params.set("size", state.size);
+
+                const url = API_BASE + "/api/admin/products/featured?" + params.toString();
+                const res = await apiFetch(url, { headers: authHeaders() }, DEFAULT_TIMEOUT_MS);
+
+                if (res.status === 401) { handleUnauthorized(); return; }
+
+                const body = await res.json();
+
+                if (body.status !== "success") {
+                    hideLoader();
+                    showMessage(typeof body.data === "string" ? body.data : "Failed to load featured products.", "error");
+                    renderEmptyTable("Could not load featured products.");
+                    return;
+                }
+
+                const products = Array.isArray(body.data) ? body.data : [];
+                renderTable(products, state.page * state.size);
+                renderPagination(body, products.length);
+                hideLoader();
+            } catch (err) {
+                console.error("[featured] loadFeatured failed:", err.message);
+                hideLoader();
+                showMessage("Could not reach the server. Check your connection and try again.", "error");
+                renderEmptyTable("Could not load featured products.");
+            }
+        }
+
+        function renderEmptyTable(message) {
+            document.getElementById("featured-body").innerHTML =
+                '<tr><td colspan="10" style="text-align:center;padding:24px;color:#9aa4b8;">' + escapeHtml(message) + '</td></tr>';
+        }
+
+        function renderTable(products, startIndex) {
+            const tbody = document.getElementById("featured-body");
+            if (products.length === 0) {
+                renderEmptyTable('No featured products yet. Click "Add to Featured" to get started.');
+                return;
+            }
+            tbody.innerHTML = products.map(function (p, i) {
+                const cat = Array.isArray(p.category) ? p.category.join(", ") : (p.category || "—");
+                const mrp = formatRupees(p.mrp);
+                const offer = formatRupees(p.offer_price);
+                const pid = escapeHtml(p.product_id || "");
+                return '<tr>' +
+                    '<td>' + (startIndex + i + 1) + '</td>' +
+                    '<td><img class="prod-thumb" src="' + escapeHtml(p.image || "https://picsum.photos/seed/" + (pid || "x") + "/80/80") + '" alt=""></td>' +
+                    '<td class="prod-name">' + escapeHtml(p.product_name || "Untitled") + '</td>' +
+                    '<td class="prod-id">' + pid + '</td>' +
+                    '<td>' + escapeHtml(mrp) + '</td>' +
+                    '<td>' + escapeHtml(offer) + '</td>' +
+                    '<td>' + renderStockBadge(p.stock_status) + '</td>' +
+                    '<td>' + escapeHtml(cat) + '</td>' +
+                    '<td>' +
+                        '<input type="number" min="0" step="1" class="priority-input" data-pid="' + pid + '" ' +
+                        'value="' + (p.featured_priority == null ? "" : p.featured_priority) + '" ' +
+                        'placeholder="—" style="width:64px;padding:6px 8px;border-radius:6px;border:1px solid #dfe2ea;font-size:13px;">' +
+                    '</td>' +
+                    '<td class="action-cell">' +
+                        '<button type="button" class="act-btn star-add" title="Save priority" data-save-priority="' + pid + '"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button>' +
+                        '<button type="button" class="act-btn danger" title="Remove from Featured" data-remove-id="' + pid + '" data-remove-name="' + escapeHtml(p.product_name || "") + '"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 6-12 12"/><path d="m6 6 12 12"/></svg></button>' +
+                    '</td>' +
+                '</tr>';
+            }).join("");
+
+            tbody.querySelectorAll(".act-btn.danger").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    openRemoveModal(btn.getAttribute("data-remove-id"), btn.getAttribute("data-remove-name"));
+                });
+            });
+
+            tbody.querySelectorAll("[data-save-priority]").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    const pid = btn.getAttribute("data-save-priority");
+                    const input = tbody.querySelector('.priority-input[data-pid="' + CSS.escape(pid) + '"]');
+                    savePriority(pid, input ? input.value : "", btn);
+                });
+            });
+        }
+
+        async function savePriority(productId, rawValue, btnEl) {
+            if (!productId) return;
+            const trimmed = String(rawValue).trim();
+            const params = new URLSearchParams();
+            if (trimmed !== "") params.set("priority", trimmed);
+
+            const originalHTML = btnEl.innerHTML;
+            btnEl.disabled = true;
+            try {
+                const url = API_BASE + "/api/admin/products/" + encodeURIComponent(productId) + "/featured/priority"
+                    + (params.toString() ? "?" + params.toString() : "");
+                const res = await apiFetch(url, { method: "PUT", headers: authHeaders() }, DEFAULT_TIMEOUT_MS);
+                if (res.status === 401) { handleUnauthorized(); return; }
+                const body = await res.json();
+                if (res.status === 200 && body.status === "success") {
+                    showToast(typeof body.data === "string" ? body.data : "Priority updated.", "success");
+                } else {
+                    showToast(typeof body.data === "string" ? body.data : "Failed to update priority.", "error");
+                }
+            } catch (err) {
+                console.error("[featured] savePriority failed:", err.message);
+                showToast("Could not reach the server.", "error");
+            } finally {
+                btnEl.disabled = false;
+                btnEl.innerHTML = originalHTML;
+            }
+        }
+
+        function renderPagination(body, visibleCount) {
+            const totalPages = body.total_pages || 1;
+            const currentPage = body.current_page ?? state.page;
+            const totalProducts = body.total_products ?? visibleCount;
+            document.getElementById("pg-info-text").textContent = "Showing " + visibleCount + " of " + totalProducts + " featured products";
+            document.getElementById("pg-page-text").textContent = "Page " + (currentPage + 1) + " of " + totalPages;
+            document.getElementById("pg-prev").disabled = currentPage <= 0;
+            document.getElementById("pg-next").disabled = currentPage + 1 >= totalPages;
+        }
+
+        // ------------------------------------------------------------
+        // REMOVE FROM FEATURED
+        // ------------------------------------------------------------
+        const removeOverlay = document.getElementById("remove-modal-overlay");
+        const confirmRemoveBtn = document.getElementById("confirm-remove-btn");
+        let pendingRemoveId = null;
+
+        function openModal(overlay) { overlay.classList.add("open"); document.body.style.overflow = "hidden"; }
+        function closeModal(overlay) { overlay.classList.remove("open"); document.body.style.overflow = ""; }
+
+        function openRemoveModal(productId, productName) {
+            if (!productId) return;
+            pendingRemoveId = productId;
+            document.getElementById("remove-product-name").textContent = productName || "this product";
+            document.getElementById("remove-product-id").textContent = productId;
+            openModal(removeOverlay);
+        }
+        function closeRemoveModal() { closeModal(removeOverlay); pendingRemoveId = null; }
+
+        document.getElementById("close-remove-modal").addEventListener("click", closeRemoveModal);
+        document.getElementById("cancel-remove-modal").addEventListener("click", closeRemoveModal);
+        removeOverlay.addEventListener("click", function (e) { if (e.target === removeOverlay) closeRemoveModal(); });
+
+        confirmRemoveBtn.addEventListener("click", async function () {
+            if (!pendingRemoveId) return;
+            const productId = pendingRemoveId;
+            confirmRemoveBtn.disabled = true;
+            confirmRemoveBtn.textContent = "Removing…";
+            try {
+                const res = await apiFetch(API_BASE + "/api/admin/products/" + encodeURIComponent(productId) + "/featured", {
+                    method: "DELETE", headers: authHeaders()
+                }, DEFAULT_TIMEOUT_MS);
+                if (res.status === 401) { closeRemoveModal(); handleUnauthorized(); return; }
+                const body = await res.json();
+                if (res.status === 200 && body.status === "success") {
+                    showToast(typeof body.data === "string" ? body.data : "Removed from featured.", "success");
+                    closeRemoveModal();
+                    // If we removed the last item on this page and it's not page 0, step back a page
+                    const rowsLeft = document.querySelectorAll("#featured-body tr").length;
+                    if (rowsLeft <= 1 && state.page > 0) { state.page -= 1; }
+                    loadFeatured();
+                } else {
+                    showToast(typeof body.data === "string" ? body.data : "Failed to remove product.", "error");
+                }
+            } catch (err) {
+                console.error("[featured] remove failed:", err.message);
+                showToast("Could not reach the server.", "error");
+            } finally {
+                confirmRemoveBtn.disabled = false;
+                confirmRemoveBtn.textContent = "Remove";
+            }
+        });
+
+        // ------------------------------------------------------------
+        // ADD TO FEATURED — search all products, mark as featured
+        // ------------------------------------------------------------
+        const addOverlay = document.getElementById("add-modal-overlay");
+        const searchInput = document.getElementById("search-input");
+        const searchResults = document.getElementById("search-results");
+        const addFormMsg = document.getElementById("add-form-message");
+        const browseCrumb = document.getElementById("feat-browse-crumb");
+        const crumbCurrent = document.getElementById("feat-crumb-current");
+        const backToCatsBtn = document.getElementById("feat-back-to-cats");
+        const catPagination = document.getElementById("feat-cat-pagination");
+        const catPageInfo = document.getElementById("feat-cat-page-info");
+        const catPagePrev = document.getElementById("feat-cat-page-prev");
+        const catPageNext = document.getElementById("feat-cat-page-next");
+        let searchDebounce = null;
+        let modalView = "categories"; // "categories" | "category-products" | "search"
+        let browseCategory = null;
+        let browsePage = 0;
+        const browsePageSize = 10;
+
+        function showAddFormMessage(text, type) {
+            addFormMsg.textContent = text;
+            addFormMsg.style.display = "block";
+            if (type === "error") {
+                addFormMsg.style.background = "rgba(220,53,69,0.12)";
+                addFormMsg.style.border = "1px solid rgba(220,53,69,0.4)";
+                addFormMsg.style.color = "#dc3545";
+            } else {
+                addFormMsg.style.background = "rgba(40,167,69,0.12)";
+                addFormMsg.style.border = "1px solid rgba(40,167,69,0.4)";
+                addFormMsg.style.color = "#28a745";
+            }
+        }
+        function clearAddFormMessage() { addFormMsg.style.display = "none"; addFormMsg.textContent = ""; }
+
+        document.getElementById("open-add-modal").addEventListener("click", function () {
+            searchInput.value = "";
+            clearAddFormMessage();
+            showCategoryBrowse();
+            openModal(addOverlay);
+            setTimeout(function () { searchInput.focus(); }, 50);
+        });
+        document.getElementById("close-add-modal").addEventListener("click", function () { closeModal(addOverlay); });
+        document.getElementById("cancel-add-modal").addEventListener("click", function () { closeModal(addOverlay); });
+        addOverlay.addEventListener("click", function (e) { if (e.target === addOverlay) closeModal(addOverlay); });
+
+        searchInput.addEventListener("input", function () {
+            clearTimeout(searchDebounce);
+            const term = searchInput.value.trim();
+            if (term.length < 2) {
+                showCategoryBrowse();
+                return;
+            }
+            modalView = "search";
+            browseCrumb.style.display = "none";
+            catPagination.style.display = "none";
+            searchResults.innerHTML = '<div class="sv-loading-inline">Searching…</div>';
+            searchDebounce = setTimeout(function () { runSearch(term); }, 350);
+        });
+
+        async function runSearch(term) {
+            try {
+                const params = new URLSearchParams();
+                params.set("page", 0);
+                params.set("size", 15);
+                params.set("keyword", term);
+                const res = await apiFetch(API_BASE + "/api/admin/products?" + params.toString(), { headers: authHeaders() }, DEFAULT_TIMEOUT_MS);
+                if (res.status === 401) { closeModal(addOverlay); handleUnauthorized(); return; }
+                const body = await res.json();
+                if (body.status !== "success" || !Array.isArray(body.data)) {
+                    searchResults.innerHTML = '<div class="sv-loading-inline">No results.</div>';
+                    return;
+                }
+                renderSearchResults(body.data);
+            } catch (err) {
+                console.error("[featured] search failed:", err.message);
+                searchResults.innerHTML = '<div class="sv-loading-inline">Search failed. Try again.</div>';
+            }
+        }
+
+        function renderSearchResults(products) {
+            if (products.length === 0) {
+                searchResults.innerHTML = '<div class="sv-loading-inline">No products match your search.</div>';
+                return;
+            }
+            searchResults.innerHTML = products.map(function (p) {
+                const pid = escapeHtml(p.product_id || "");
+                const isFeatured = !!p.featured;
+                const cat = Array.isArray(p.category) ? p.category.join(", ") : (p.category || "—");
+                return '<div class="search-result-row">' +
+                    '<img src="' + escapeHtml(p.image || "https://picsum.photos/seed/" + (pid || "x") + "/80/80") + '" alt="">' +
+                    '<div class="search-result-info">' +
+                        '<div class="search-result-name">' + escapeHtml(p.product_name || "Untitled") + '</div>' +
+                        '<div class="search-result-meta">' + pid + ' · ' + escapeHtml(cat) + ' · ' + escapeHtml(formatRupees(p.offer_price)) + '</div>' +
+                    '</div>' +
+                    (isFeatured
+                        ? '<span class="featured-star">★ Featured</span>'
+                        : '<button type="button" class="btn btn-primary" style="padding:7px 12px;font-size:12.5px;" data-mark-featured="' + pid + '">Mark Featured</button>') +
+                '</div>';
+            }).join("");
+
+            searchResults.querySelectorAll("[data-mark-featured]").forEach(function (btn) {
+                btn.addEventListener("click", function () { markFeatured(btn.getAttribute("data-mark-featured"), btn); });
+            });
+        }
+
+        // ------------------------------------------------------------
+        // BROWSE BY CATEGORY (default view in the Add modal)
+        // ------------------------------------------------------------
+        function showCategoryBrowse() {
+            modalView = "categories";
+            browseCategory = null;
+            browsePage = 0;
+            browseCrumb.style.display = "none";
+            catPagination.style.display = "none";
+            loadCategoriesForModal();
+        }
+
+        async function loadCategoriesForModal() {
+            searchResults.innerHTML = '<div class="sv-loading-inline">Loading categories…</div>';
+            try {
+                const res = await apiFetch(API_BASE + "/api/admin/products/categories/summary", { headers: authHeaders() }, DEFAULT_TIMEOUT_MS);
+                if (res.status === 401) { closeModal(addOverlay); handleUnauthorized(); return; }
+                const body = await res.json();
+                if (body.status !== "success" || !Array.isArray(body.data) || body.data.length === 0) {
+                    searchResults.innerHTML = '<div class="sv-loading-inline">No categories found.</div>';
+                    return;
+                }
+                renderCategoryGrid(body.data);
+            } catch (err) {
+                console.error("[featured] category summary failed:", err.message);
+                searchResults.innerHTML = '<div class="sv-loading-inline">Could not load categories. Try again.</div>';
+            }
+        }
+
+        function renderCategoryGrid(categories) {
+            searchResults.innerHTML = '<div class="feat-cat-grid">' + categories.map(function (cat) {
+                return '<div class="feat-cat-card" data-cat="' + escapeHtml(cat.category) + '">' +
+                    '<div class="feat-cat-card-name">' + escapeHtml(cat.category) + '</div>' +
+                    '<div class="feat-cat-card-count">' + cat.product_count + ' products</div>' +
+                '</div>';
+            }).join("") + '</div>';
+
+            searchResults.querySelectorAll("[data-cat]").forEach(function (card) {
+                card.addEventListener("click", function () {
+                    openCategoryBrowse(card.getAttribute("data-cat"));
+                });
+            });
+        }
+
+        function openCategoryBrowse(category) {
+            modalView = "category-products";
+            browseCategory = category;
+            browsePage = 0;
+            crumbCurrent.textContent = category;
+            browseCrumb.style.display = "flex";
+            loadCategoryProductsForModal();
+        }
+
+        backToCatsBtn.addEventListener("click", function () { showCategoryBrowse(); });
+
+        async function loadCategoryProductsForModal() {
+            searchResults.innerHTML = '<div class="sv-loading-inline">Loading products…</div>';
+            catPagination.style.display = "none";
+            try {
+                const params = new URLSearchParams({ page: browsePage, size: browsePageSize });
+                const url = API_BASE + "/api/admin/products/categories/" + encodeURIComponent(browseCategory) + "?" + params.toString();
+                const res = await apiFetch(url, { headers: authHeaders() }, DEFAULT_TIMEOUT_MS);
+                if (res.status === 401) { closeModal(addOverlay); handleUnauthorized(); return; }
+                const body = await res.json();
+                if (body.status !== "success" || !Array.isArray(body.data)) {
+                    searchResults.innerHTML = '<div class="sv-loading-inline">Could not load products for this category.</div>';
+                    return;
+                }
+                if (body.data.length === 0) {
+                    searchResults.innerHTML = '<div class="sv-loading-inline">No products found in this category.</div>';
+                    return;
+                }
+                renderSearchResults(body.data.map(function (p) {
+                    return {
+                        product_id: p.product_id,
+                        product_name: p.product_name,
+                        image: p.image,
+                        category: [browseCategory],
+                        offer_price: p.offer_price,
+                        featured: p.featured
+                    };
+                }));
+                if (body.total_pages > 1) {
+                    catPagination.style.display = "flex";
+                    catPageInfo.textContent = "Page " + (body.current_page + 1) + " of " + body.total_pages;
+                    catPagePrev.disabled = body.current_page <= 0;
+                    catPageNext.disabled = body.current_page + 1 >= body.total_pages;
+                }
+            } catch (err) {
+                console.error("[featured] category products failed:", err.message);
+                searchResults.innerHTML = '<div class="sv-loading-inline">Could not reach the server. Try again.</div>';
+            }
+        }
+
+        catPagePrev.addEventListener("click", function () {
+            if (browsePage > 0) { browsePage--; loadCategoryProductsForModal(); }
+        });
+        catPageNext.addEventListener("click", function () {
+            browsePage++; loadCategoryProductsForModal();
+        });
+
+        async function markFeatured(productId, btnEl) {
+            if (!productId) return;
+            clearAddFormMessage();
+            btnEl.disabled = true;
+            btnEl.textContent = "Adding…";
+            try {
+                const res = await apiFetch(API_BASE + "/api/admin/products/" + encodeURIComponent(productId) + "/featured", {
+                    method: "POST", headers: authHeaders()
+                }, DEFAULT_TIMEOUT_MS);
+                if (res.status === 401) { closeModal(addOverlay); handleUnauthorized(); return; }
+                const body = await res.json();
+                if (res.status === 200 && body.status === "success") {
+                    showAddFormMessage(typeof body.data === "string" ? body.data : "Product marked as featured.", "success");
+                    showToast("Added to featured.", "success");
+                    // flip this row's button to the "already featured" state
+                    btnEl.outerHTML = '<span class="featured-star">★ Featured</span>';
+                    state.page = 0;
+                    loadFeatured();
+                } else {
+                    showAddFormMessage(typeof body.data === "string" ? body.data : "Failed to mark as featured.", "error");
+                    btnEl.disabled = false;
+                    btnEl.textContent = "Mark Featured";
+                }
+            } catch (err) {
+                console.error("[featured] mark failed:", err.message);
+                showAddFormMessage("Could not reach the server. Check your connection and try again.", "error");
+                btnEl.disabled = false;
+                btnEl.textContent = "Mark Featured";
+            }
+        }
+
+        // ------------------------------------------------------------
+        // Pagination controls
+        // ------------------------------------------------------------
+        document.getElementById("page-size-select").addEventListener("change", function (e) {
+            state.size = parseInt(e.target.value, 10) || 20;
+            state.page = 0;
+            loadFeatured();
+        });
+        document.getElementById("pg-prev").addEventListener("click", function () {
+            if (state.page > 0) { state.page -= 1; loadFeatured(); }
+        });
+        document.getElementById("pg-next").addEventListener("click", function () {
+            state.page += 1; loadFeatured();
+        });
+
+        // Escape key closes any open modal
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closeModal(addOverlay);
+                closeRemoveModal();
+            }
+        });
+
+        // ------------------------------------------------------------
+        // Single entry point
+        // ------------------------------------------------------------
+        function initFeatured() {
+            if (!auth.token) {
+                console.warn("[featured] initFeatured() aborted — no auth token.");
+                return;
+            }
+            console.log("[featured] initFeatured() — API_BASE =", API_BASE);
+            loadFeatured();
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initFeatured);
+        } else {
+            initFeatured();
+        }
+
+    })();
+    </script>
+
+</body>
+
+</html>
