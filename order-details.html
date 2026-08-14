@@ -12,10 +12,22 @@
     <style>
         /* ── ORDER DETAILS PAGE STYLES ── */
 
-        .od-wrapper {
-            max-width: 760px;
-            margin: 48px auto 80px;
+.od-wrapper {
+            width: 100%;
+            max-width: 960px;
+            margin: 32px auto 60px;
             padding: 0 16px;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        *, *::before, *::after {
+            box-sizing: inherit;
         }
 
         .breadcrumb {
@@ -78,7 +90,8 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 14px;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
+            width: 100%;
         }
 
         .od-header h1 {
@@ -114,8 +127,10 @@
             background: #fff;
             border: 1px solid #e5e7eb;
             border-radius: 16px;
-            padding: 24px;
+            padding: 24px 28px;
             margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .od-card-title {
@@ -255,6 +270,8 @@
             gap: 12px;
             margin-top: 8px;
             flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
         }
 
         .od-btn {
@@ -473,7 +490,7 @@
         <div class="breadcrumb">
             <a href="index.html">Home</a>
             <span>›</span>
-            <a href="my-orders.html">My Orders</a>
+            <a href="my_orders.html">My Orders</a>
             <span>›</span>
             <span>Order Details</span>
         </div>
@@ -602,7 +619,7 @@
     <div id="footer"></div>
 
     <script>
-        const BASE_URL = 'https://api.stanvee.com';
+        const BASE_URL = 'https://api.stanveeshop.com';
         const currency = '₹';
 
         let currentUser = null;

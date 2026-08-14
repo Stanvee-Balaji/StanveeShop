@@ -1,9 +1,9 @@
 
 
 // ── BASE URL ──
-const BASE_URL = 'https://api.stanvee.com';
+const BASE_URL = 'https://api.stanveeshop.com';
 
-// const BASE_URL = 'https://api.stanvee.com';
+// const BASE_URL = 'https://api.stanveeshop.com';
 
 
 

@@ -70,11 +70,88 @@
 
         .sv-view-section-title { font-size: 12.5px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: .04em; margin: 18px 0 8px; }
 
-        .sv-item-row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid #f2f3f7; }
+        /* ---- item row (clickable) ---- */
+        .sv-item-row {
+            display: flex; gap: 10px; align-items: center; padding: 10px 10px;
+            border-bottom: 1px solid #f2f3f7; border-radius: 8px; margin-bottom: 4px;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .sv-item-row:hover { background: #f4f5ff; }
         .sv-item-row img { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #eef0f5; flex-shrink: 0; }
         .sv-item-name { font-size: 13.5px; font-weight: 600; color: #1a1d29; }
-        .sv-item-meta { font-size: 12px; color: #8b92a5; }
+        .sv-item-meta { font-size: 12px; color: #8b92a5; margin-top: 2px; }
+        .sv-item-pid {
+            display: inline-block; font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+            background: #eef0ff; color: #4338ca; border: 1px solid #c7cbff;
+            padding: 2px 7px; border-radius: 20px; margin-top: 3px; letter-spacing: .02em;
+        }
         .sv-item-price { font-size: 13.5px; font-weight: 700; color: #1a1d29; margin-left: auto; text-align: right; white-space: nowrap; }
+        .sv-item-click-hint {
+            font-size: 11px; color: #a5aab8; margin-left: 6px; white-space: nowrap;
+            display: flex; align-items: center; gap: 3px;
+        }
+
+        /* ---- product detail popup (z-index higher than order modal) ---- */
+        .sv-product-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 18, 30, 0.65);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+            overflow-y: auto;
+            z-index: 1200;
+        }
+        .sv-product-overlay.open { display: flex; }
+        .sv-product-modal {
+            background: #fff;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 620px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.4);
+            overflow: hidden;
+            animation: sv-modal-in 0.18s ease;
+        }
+        .sv-product-modal .sv-modal-body { max-height: 78vh; }
+
+        /* product detail specific */
+        .pd-header { display: flex; gap: 16px; margin-bottom: 16px; }
+        .pd-img { width: 90px; height: 90px; object-fit: cover; border-radius: 10px; border: 1px solid #eef0f5; flex-shrink: 0; }
+        .pd-title { font-size: 15px; font-weight: 700; color: #1a1d29; line-height: 1.35; }
+        .pd-sku { font-size: 12px; color: #8b92a5; margin-top: 4px; }
+
+        .pd-id-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #1a1d29; color: #fff; border-radius: 8px;
+            padding: 6px 12px; font-size: 13px; font-weight: 700;
+            font-family: 'JetBrains Mono', monospace; letter-spacing: .03em;
+            margin-bottom: 16px;
+        }
+        .pd-id-badge .pd-id-label { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9aa4b8; letter-spacing: .06em; }
+
+        .pd-pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        .pd-pill {
+            display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;
+            border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .pd-pill.price-mrp { background: #f2f3f7; color: #6b7280; text-decoration: line-through; }
+        .pd-pill.price-offer { background: #eafaf0; color: #1a7a3d; border: 1px solid #b7ecc9; font-size: 13px; }
+        .pd-pill.discount { background: #fff4e0; color: #92600a; }
+        .pd-pill.stock-out { background: #fdeced; color: #b8232f; }
+        .pd-pill.stock-in { background: #eafaf0; color: #1a7a3d; }
+        .pd-pill.category { background: #eef0ff; color: #4338ca; }
+
+        .pd-spec-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed #eef0f5; font-size: 13px; }
+        .pd-spec-row span:first-child { color: #8b92a5; font-weight: 500; }
+        .pd-spec-row span:last-child { color: #1a1d29; font-weight: 600; text-align: right; }
+
+        .pd-desc-item { padding: 6px 0; border-bottom: 1px solid #f2f3f7; font-size: 13px; }
+        .pd-desc-label { font-weight: 700; color: #3a3f4d; }
+        .pd-desc-value { color: #6b7280; margin-top: 2px; }
+
+        .pd-gallery { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+        .pd-gallery img { width: 54px; height: 54px; object-fit: cover; border-radius: 6px; border: 1px solid #eef0f5; }
 
         .sv-clickable-row { cursor: pointer; }
         .sv-clickable-row:hover { background: #f7f8fc; }
@@ -82,7 +159,7 @@
         .sv-loading-inline { text-align: center; padding: 30px; color: #9aa4b8; font-size: 13.5px; }
 
         .sv-toast {
-            position: fixed; top: 20px; right: 20px; z-index: 1100; padding: 12px 16px; border-radius: 10px;
+            position: fixed; top: 20px; right: 20px; z-index: 1300; padding: 12px 16px; border-radius: 10px;
             font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none;
         }
         .sv-toast.success { background: #eafaf0; color: #1a7a3d; border: 1px solid #b7ecc9; }
@@ -121,6 +198,16 @@
         }
         #content-loader.show { display: flex; }
         @keyframes prod-spin { to { transform: rotate(360deg); } }
+
+        /* product modal loading spinner */
+        .pd-spinner {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 12px; padding: 40px 0; color: #8b92a5; font-size: 13.5px; font-weight: 600;
+        }
+        .pd-spinner-ring {
+            width: 34px; height: 34px; border: 4px solid #e2e5f1;
+            border-top-color: #6366f1; border-radius: 50%; animation: prod-spin 0.8s linear infinite;
+        }
     </style>
 </head>
 
@@ -130,7 +217,6 @@
         <input type="checkbox" id="sb-toggle">
         <label for="sb-toggle" class="sb-overlay"></label>
 
- <!-- ---------- SIDEBAR (shared component, injected by components/layout.js) ---------- -->
         <div id="sidebar-mount"></div>
 
         <div id="main-wrap">
@@ -145,7 +231,6 @@
 
                 <div id="page-message" style="display:none;margin-bottom:16px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;"></div>
 
-                <!-- ---------- STAT CARDS ---------- -->
                 <div class="stat-cards" id="stat-cards">
                     <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value" id="stat-total">—</div></div>
                     <div class="stat-card"><div class="stat-label">Placed</div><div class="stat-value" id="stat-placed">—</div></div>
@@ -156,10 +241,8 @@
                     <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value" id="stat-paid">—</div></div>
                     <div class="stat-card"><div class="stat-label">Pending Payment</div><div class="stat-value" id="stat-pending-payment">—</div></div>
                     <div class="stat-card"><div class="stat-label">Failed Payment</div><div class="stat-value" id="stat-failed-payment">—</div></div>
-                    <!-- <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value" id="stat-revenue">—</div></div> -->
                 </div>
 
-                <!-- ---------- FILTERS ---------- -->
                 <div class="card" style="margin-bottom:18px;">
                     <form class="filter-bar" id="filter-form">
                         <div class="filter-item grow">
@@ -214,7 +297,6 @@
                     </form>
                 </div>
 
-                <!-- ---------- TABLE ---------- -->
                 <div class="card">
                     <div class="table-wrap">
                         <table>
@@ -306,8 +388,8 @@
                         <option value="CANCELLED">Cancelled</option>
                     </select>
                 </div>
-                <div class="sv-field" style="margin-bottom:14px;">
-                    <label>Tracking ID / AWB</label>
+                <div class="sv-field" style="margin-bottom:14px;" id="s-tracking-wrap">
+                    <label>Tracking ID / AWB <span class="req">*</span></label>
                     <input type="text" id="s-tracking-id" placeholder="e.g. DL987654321IN">
                 </div>
                 <div class="sv-field">
@@ -322,45 +404,51 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         PRODUCT DETAIL POPUP  (z-index 1200, above order modal)
+    ============================================================= -->
+    <div class="sv-product-overlay" id="product-modal-overlay">
+        <div class="sv-product-modal sv-modal">
+            <div class="sv-modal-header">
+                <div class="sv-modal-title">Product Details</div>
+                <button type="button" class="sv-modal-close" id="close-product-modal">✕</button>
+            </div>
+            <div class="sv-modal-body" id="product-modal-body">
+                <div class="pd-spinner">
+                    <div class="pd-spinner-ring"></div>
+                    <span>Fetching product info…</span>
+                </div>
+            </div>
+            <div class="sv-modal-footer">
+                <button type="button" class="btn btn-secondary" id="close-product-modal-2">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div class="sv-toast" id="sv-toast"></div>
 
     <script>
-        window.API_BASE = "https://api.stanvee.com";
+        window.API_BASE = "https://api.stanveeshop.com";
     </script>
     <script src="components/layout.js"></script>
     <script>
         // ------------------------------------------------------------------
-        // Auth — redirect to login immediately if no session token
+        // Auth
         // ------------------------------------------------------------------
         console.log("[orders][init] Reading adminSessionToken from localStorage…");
         window.__adminAuth = { token: localStorage.getItem("adminSessionToken") };
-        console.log("[orders][init] Token found:", window.__adminAuth.token ? window.__adminAuth.token : "(none)");
-        console.log("[orders][init] adminEmail in localStorage:", localStorage.getItem("adminEmail"));
-
-        // Same guard as dashboard.html: no token → bounce to login immediately,
-        // so we never fire an API call we know will 401.
         if (!window.__adminAuth.token) {
             console.warn("[orders][init] No token present — redirecting to index.html");
             window.location.href = "index.html";
         }
 
-
-
-        // MUST match dashboard.html's API_BASE. This page is served from a
-        // different origin than the API, and the API is deployed on Render,
-        // not localhost — using localhost:8080 here was the bug causing every
-        // call to 401 / the token to look "missing".
-        const API_BASE = "https://api.stanvee.com";
+        const API_BASE = "https://api.stanveeshop.com";
 
         function authHeaders(extra) {
-            const headers = Object.assign({ "Authorization": window.__adminAuth.token }, extra || {});
-            console.log("[orders][authHeaders] Built headers:", headers);
-            return headers;
+            return Object.assign({ "Authorization": window.__adminAuth.token }, extra || {});
         }
 
         function handleUnauthorized() {
-            console.error("[orders][handleUnauthorized] 401 received. Current token was:", window.__adminAuth.token);
-            console.error("[orders][handleUnauthorized] Clearing token and adminEmail from localStorage.");
             window.__adminAuth.token = null;
             localStorage.removeItem("adminSessionToken");
             localStorage.removeItem("adminEmail");
@@ -418,25 +506,13 @@
         async function fetchWithTimeout(url, options, timeoutMs) {
             const controller = new AbortController();
             const timer = setTimeout(function () { controller.abort(); }, timeoutMs || 30000);
-            console.log("[orders][fetch] →", (options && options.method) || "GET", url);
-            if (options && options.headers) {
-                console.log("[orders][fetch] headers:", options.headers);
-            }
-            if (options && options.body) {
-                console.log("[orders][fetch] body:", options.body);
-            }
             try {
                 const res = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
                 clearTimeout(timer);
-                console.log("[orders][fetch] ← status", res.status, "for", url);
                 return res;
             } catch (err) {
                 clearTimeout(timer);
-                if (err.name === "AbortError") {
-                    console.error("[orders][fetch] Timed out:", url);
-                    throw new Error("Request timed out: " + url);
-                }
-                console.error("[orders] Fetch failed for", url, "-", err.message);
+                if (err.name === "AbortError") throw new Error("Request timed out: " + url);
                 throw err;
             }
         }
@@ -447,16 +523,10 @@
         let state = { page: 0, size: 20, orderNumber: "", orderStatus: "", paymentStatus: "", paymentMethod: "", userId: "", fromDate: "", toDate: "" };
 
         async function loadStats() {
-            console.log("[orders][loadStats] Starting. Token at call time:", window.__adminAuth.token);
             try {
                 const res = await fetchWithTimeout(API_BASE + "/api/admin/orders/dashboard", { headers: authHeaders() }, 15000);
-                if (res.status === 401) {
-                    console.error("[orders][loadStats] 401 Unauthorized from /orders/dashboard");
-                    handleUnauthorized();
-                    return;
-                }
+                if (res.status === 401) { handleUnauthorized(); return; }
                 const s = await res.json();
-                console.log("[orders][loadStats] Response body:", s);
                 document.getElementById("stat-total").textContent = s.totalOrders ?? 0;
                 document.getElementById("stat-placed").textContent = s.placedCount ?? 0;
                 document.getElementById("stat-confirmed").textContent = s.confirmedCount ?? 0;
@@ -466,7 +536,6 @@
                 document.getElementById("stat-paid").textContent = s.paidCount ?? 0;
                 document.getElementById("stat-pending-payment").textContent = s.pendingPaymentCount ?? 0;
                 document.getElementById("stat-failed-payment").textContent = s.failedPaymentCount ?? 0;
-                // document.getElementById("stat-revenue").textContent = formatRupees(s.totalRevenue);
             } catch (err) {
                 console.error("[orders] Failed to load dashboard stats:", err);
             }
@@ -475,8 +544,6 @@
         async function loadOrders() {
             clearMessage();
             showLoader();
-            console.log("[orders][loadOrders] Starting. Current state:", state);
-            console.log("[orders][loadOrders] Token at call time:", window.__adminAuth.token);
             try {
                 const params = new URLSearchParams();
                 params.set("page", state.page);
@@ -489,41 +556,20 @@
                 if (state.fromDate) params.set("fromDate", state.fromDate);
                 if (state.toDate) params.set("toDate", state.toDate);
 
-                console.log("[orders][loadOrders] Query params:", params.toString());
-
                 const res = await fetchWithTimeout(API_BASE + "/api/admin/orders?" + params.toString(), { headers: authHeaders() }, 30000);
-
-                if (res.status === 401) {
-                    console.error("[orders][loadOrders] 401 Unauthorized from /api/admin/orders. Token sent was:", window.__adminAuth.token);
-                    // Try to read the body for more detail if possible
-                    try {
-                        const errBody = await res.clone().json();
-                        console.error("[orders][loadOrders] 401 response body:", errBody);
-                    } catch (parseErr) {
-                        console.error("[orders][loadOrders] Could not parse 401 response body:", parseErr);
-                    }
-                    hideLoader();
-                    handleUnauthorized();
-                    return;
-                }
-
+                if (res.status === 401) { hideLoader(); handleUnauthorized(); return; }
                 const body = await res.json();
-                console.log("[orders][loadOrders] Response body:", body);
-
                 if (!body.success) {
-                    console.warn("[orders][loadOrders] success=false. Message:", body.message);
                     hideLoader();
                     showMessage(body.message || "Failed to load orders.", "error");
                     document.getElementById("orders-body").innerHTML =
                         '<tr><td colspan="9" style="text-align:center;padding:24px;color:#9aa4b8;">Could not load orders.</td></tr>';
                     return;
                 }
-
                 renderTable(body.orders || [], state.page * state.size);
                 renderPagination(body);
                 hideLoader();
             } catch (err) {
-                console.error("[orders] loadOrders failed:", err);
                 hideLoader();
                 showMessage("Could not reach the server. Check your connection and try again.", "error");
                 document.getElementById("orders-body").innerHTML =
@@ -546,10 +592,10 @@
                     '<td>' + (o.totalItems != null ? o.totalItems : "—") + '</td>' +
                     '<td>' + escapeHtml(formatRupees(o.totalAmount)) + '</td>' +
                     '<td>' + statusBadge(o.paymentStatus) + '<div style="font-size:11px;color:#9aa4b8;margin-top:3px;">' + escapeHtml(o.paymentMethod || "—") + '</div></td>' +
-                    '<td>' + statusBadge(o.orderStatus) + '</td>' +
+                    '<td>' + statusBadge(o.orderStatus) + (o.trackingId ? '<div style="font-size:11px;color:#9aa4b8;margin-top:3px;">AWB: ' + escapeHtml(o.trackingId) + '</div>' : '') + '</td>' +
                     '<td style="font-size:12.5px;color:#5b6272;">' + escapeHtml(formatDate(o.createdAt)) + '</td>' +
                     '<td class="action-cell">' +
-                        '<button type="button" class="act-btn edit" title="Update Status" data-status-id="' + oid + '" data-order-number="' + escapeHtml(o.orderNumber || "") + '" data-current-status="' + escapeHtml(o.orderStatus || "") + '"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg></button>' +
+                        '<button type="button" class="act-btn edit" title="Update Status" data-status-id="' + oid + '" data-order-number="' + escapeHtml(o.orderNumber || "") + '" data-current-status="' + escapeHtml(o.orderStatus || "") + '" data-current-tracking="' + escapeHtml(o.trackingId || "") + '"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg></button>' +
                     '</td>' +
                 '</tr>';
             }).join("");
@@ -566,7 +612,8 @@
                     openStatusModal(
                         btn.getAttribute("data-status-id"),
                         btn.getAttribute("data-order-number"),
-                        btn.getAttribute("data-current-status")
+                        btn.getAttribute("data-current-status"),
+                        btn.getAttribute("data-current-tracking")
                     );
                 });
             });
@@ -590,30 +637,22 @@
         const viewBody = document.getElementById("view-modal-body");
 
         function openModal(overlay) { overlay.classList.add("open"); document.body.style.overflow = "hidden"; }
-        function closeModal(overlay) { overlay.classList.remove("open"); document.body.style.overflow = ""; }
+        function closeModal(overlay) { overlay.classList.remove("open"); if (!document.querySelector(".sv-modal-overlay.open, .sv-product-overlay.open")) document.body.style.overflow = ""; }
 
         async function openViewModal(orderId) {
             if (!orderId) return;
-            console.log("[orders][openViewModal] orderId:", orderId, "Token:", window.__adminAuth.token);
             viewBody.innerHTML = '<div class="sv-loading-inline">Loading order…</div>';
             openModal(viewOverlay);
             try {
                 const res = await fetchWithTimeout(API_BASE + "/api/admin/orders/" + encodeURIComponent(orderId), { headers: authHeaders() }, 30000);
-                if (res.status === 401) {
-                    console.error("[orders][openViewModal] 401 Unauthorized fetching order", orderId);
-                    closeModal(viewOverlay);
-                    handleUnauthorized();
-                    return;
-                }
+                if (res.status === 401) { closeModal(viewOverlay); handleUnauthorized(); return; }
                 const body = await res.json();
-                console.log("[orders][openViewModal] Response body:", body);
                 if (res.status !== 200 || !body.success) {
                     viewBody.innerHTML = '<div class="sv-loading-inline">' + escapeHtml(body.message || "Order not found.") + '</div>';
                     return;
                 }
                 renderViewModal(body.order);
             } catch (err) {
-                console.error("[orders] view failed:", err);
                 viewBody.innerHTML = '<div class="sv-loading-inline">Could not load order details.</div>';
             }
         }
@@ -633,12 +672,15 @@
             html += '<div class="sv-view-row"><span>Payment Method</span><span>' + escapeHtml(o.paymentMethod || "—") + '</span></div>';
             html += '<div class="sv-view-row"><span>Total Amount</span><span>' + escapeHtml(formatRupees(o.totalAmount)) + '</span></div>';
             html += '<div class="sv-view-row"><span>Total Items</span><span>' + (o.totalItems != null ? o.totalItems : "—") + '</span></div>';
+            if (o.trackingId) {
+                html += '<div class="sv-view-row"><span>Tracking ID / AWB</span><span>' + escapeHtml(o.trackingId) + '</span></div>';
+            }
             if (o.cancelledAt) {
                 html += '<div class="sv-view-row"><span>Cancelled At</span><span>' + escapeHtml(formatDate(o.cancelledAt)) + '</span></div>';
                 html += '<div class="sv-view-row"><span>Cancel Reason</span><span>' + escapeHtml(o.cancelReason || "—") + '</span></div>';
             }
 
-            // ---- Shipping address ----
+            // Shipping address
             html += '<div class="sv-view-section-title">Shipping Address</div>';
             if (o.address) {
                 var a = o.address;
@@ -652,7 +694,7 @@
                 html += '<div class="sv-loading-inline" style="padding:10px 0;">No address on file.</div>';
             }
 
-            // ---- Payment / transaction snapshot ----
+            // Payment
             html += '<div class="sv-view-section-title">Payment Details</div>';
             if (o.payment) {
                 var p = o.payment;
@@ -672,29 +714,181 @@
                         '</div>';
             }
 
-            // ---- Items ----
+            // ---- Items (clickable, with product ID badge) ----
             html += '<div class="sv-view-section-title">Items (' + (o.items ? o.items.length : 0) + ')</div>';
+            html += '<div style="font-size:11.5px;color:#a5aab8;margin-bottom:8px;">Click any item to view full product details</div>';
             if (o.items && o.items.length) {
                 html += o.items.map(function (it) {
-                    return '<div class="sv-item-row">' +
-                        '<img src="' + escapeHtml(it.productImage || "https://picsum.photos/seed/" + it.productId + "/80/80") + '" alt="">' +
-                        '<div>' +
-                        '<div class="sv-item-name">' + escapeHtml(it.productName || "Product") + '</div>' +
-                        '<div class="sv-item-meta">Qty: ' + it.quantity + ' × ' + escapeHtml(formatRupees(it.unitPrice)) + '</div>' +
+                    var pid = escapeHtml(it.productId || "");
+                    var imgSrc = escapeHtml(it.productImage || "https://picsum.photos/seed/" + pid + "/80/80");
+                    return '<div class="sv-item-row" data-product-id="' + pid + '" title="Click to view product details">' +
+                        '<img src="' + imgSrc + '" alt="" onerror="this.src=\'https://picsum.photos/seed/' + pid + '/80/80\'">' +
+                        '<div style="flex:1;min-width:0;">' +
+                            '<div class="sv-item-name">' + escapeHtml(it.productName || "Product") + '</div>' +
+                            '<div class="sv-item-meta">Qty: ' + escapeHtml(String(it.quantity)) + ' × ' + escapeHtml(formatRupees(it.unitPrice)) + '</div>' +
+                            (pid ? '<div><span class="sv-item-pid">ID: ' + pid + '</span></div>' : '') +
                         '</div>' +
-                        '<div class="sv-item-price">' + escapeHtml(formatRupees(it.finalPrice)) + '</div>' +
-                        '</div>';
+                        '<div style="display:flex;align-items:center;">' +
+                            '<div class="sv-item-price">' + escapeHtml(formatRupees(it.finalPrice)) + '</div>' +
+                            '<div class="sv-item-click-hint">' +
+                                '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+                                'View' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
                 }).join("");
             } else {
                 html += '<div class="sv-loading-inline" style="padding:10px 0;">No items found.</div>';
             }
 
             viewBody.innerHTML = html;
+
+            // Attach click handlers to each item row
+            viewBody.querySelectorAll(".sv-item-row[data-product-id]").forEach(function (row) {
+                row.addEventListener("click", function () {
+                    var pid = row.getAttribute("data-product-id");
+                    if (pid) openProductModal(pid);
+                });
+            });
         }
 
         document.getElementById("close-view-modal").addEventListener("click", function () { closeModal(viewOverlay); });
         document.getElementById("close-view-modal-2").addEventListener("click", function () { closeModal(viewOverlay); });
         viewOverlay.addEventListener("click", function (e) { if (e.target === viewOverlay) closeModal(viewOverlay); });
+
+        // ------------------------------------------------------------------
+        // PRODUCT DETAIL POPUP
+        // ------------------------------------------------------------------
+        const productOverlay = document.getElementById("product-modal-overlay");
+        const productBody = document.getElementById("product-modal-body");
+
+        function openProductModal(productId) {
+            productBody.innerHTML = '<div class="pd-spinner"><div class="pd-spinner-ring"></div><span>Fetching product info…</span></div>';
+            productOverlay.classList.add("open");
+            fetchProductDetails(productId);
+        }
+        function closeProductModal() {
+            productOverlay.classList.remove("open");
+        }
+
+        document.getElementById("close-product-modal").addEventListener("click", closeProductModal);
+        document.getElementById("close-product-modal-2").addEventListener("click", closeProductModal);
+        productOverlay.addEventListener("click", function (e) { if (e.target === productOverlay) closeProductModal(); });
+
+        async function fetchProductDetails(productId) {
+            console.log("[orders][fetchProductDetails] productId:", productId);
+            try {
+                const res = await fetchWithTimeout(
+                    API_BASE + "/api/admin/products/" + encodeURIComponent(productId),
+                    { headers: authHeaders() },
+                    20000
+                );
+                if (res.status === 401) { closeProductModal(); handleUnauthorized(); return; }
+                const body = await res.json();
+                console.log("[orders][fetchProductDetails] Response:", body);
+
+                // Support both { status:"success", data:{...} } and { success:true, product:{...} } shapes
+                var prod = null;
+                if (body.status === "success" && body.data) prod = body.data;
+                else if (body.success && body.product) prod = body.product;
+                else if (body.success && body.data) prod = body.data;
+
+                if (!prod) {
+                    productBody.innerHTML = '<div class="sv-loading-inline">Product details not found.</div>';
+                    return;
+                }
+                renderProductModal(prod);
+            } catch (err) {
+                console.error("[orders] fetchProductDetails failed:", err);
+                productBody.innerHTML = '<div class="sv-loading-inline">Could not load product details.</div>';
+            }
+        }
+
+        function renderProductModal(p) {
+            // Parse specs & description_items safely
+            var specs = {};
+            try { specs = typeof p.specifications === "string" ? JSON.parse(p.specifications) : (p.specifications || {}); } catch(e) {}
+            var descItems = [];
+            try { descItems = typeof p.description_items === "string" ? JSON.parse(p.description_items) : (p.description_items || []); } catch(e) {}
+
+            var mrp = parseFloat(p.mrp) || 0;
+            var offer = parseFloat(p.offer_price) || 0;
+            var discount = mrp > 0 && offer > 0 ? Math.round(((mrp - offer) / mrp) * 100) : 0;
+
+            var stockStatus = (p.stock_status || "").toLowerCase();
+            var stockInStock = stockStatus !== "out_of_stock";
+
+            var categories = Array.isArray(p.category) ? p.category.join(", ") : (p.category || "—");
+
+            var html = '';
+
+            // Header: image + name + badges
+            html += '<div class="pd-header">';
+            if (p.image) {
+                html += '<img class="pd-img" src="' + escapeHtml(p.image) + '" alt="" onerror="this.style.display=\'none\'">';
+            }
+            html += '<div style="flex:1;min-width:0;">';
+            html += '  <div class="pd-title">' + escapeHtml(p.product_name || "—") + '</div>';
+            html += '  <div class="pd-sku">SKU: ' + escapeHtml(p.sku || "—") + '</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // Highlighted product ID block
+            html += '<div style="margin-bottom:14px;">';
+            html += '  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b92a5;margin-bottom:6px;">Product Identifiers</div>';
+            html += '  <div style="display:flex;flex-wrap:wrap;gap:8px;">';
+            html += '    <div class="pd-id-badge"><span class="pd-id-label">Product ID</span>&nbsp;' + escapeHtml(p.product_id || "—") + '</div>';
+
+            if (p.product_hsn) html += '    <div class="pd-id-badge" style="background:#1a4731;"><span class="pd-id-label">HSN</span>&nbsp;' + escapeHtml(p.product_hsn) + '</div>';
+            html += '  </div>';
+            html += '</div>';
+
+            // Price + status pills
+            html += '<div class="pd-pill-row">';
+            if (offer > 0) html += '<span class="pd-pill price-offer">₹' + offer.toLocaleString("en-IN") + ' Offer Price</span>';
+            if (mrp > 0)   html += '<span class="pd-pill price-mrp">MRP ₹' + mrp.toLocaleString("en-IN") + '</span>';
+            if (discount > 0) html += '<span class="pd-pill discount">' + discount + '% off</span>';
+            html += '<span class="pd-pill ' + (stockInStock ? "stock-in" : "stock-out") + '">' + (stockInStock ? "In Stock" : "Out of Stock") + '</span>';
+            if (categories) html += '<span class="pd-pill category">' + escapeHtml(categories) + '</span>';
+            html += '</div>';
+
+            // Specs
+            if (Object.keys(specs).length > 0) {
+                html += '<div class="sv-view-section-title">Specifications</div>';
+                Object.keys(specs).forEach(function (k) {
+                    html += '<div class="pd-spec-row"><span>' + escapeHtml(k) + '</span><span>' + escapeHtml(String(specs[k])) + '</span></div>';
+                });
+            }
+
+            // Stock qty if available
+            if (p.stock_quantity != null) {
+                html += '<div class="pd-spec-row"><span>Stock Quantity</span><span>' + escapeHtml(String(p.stock_quantity)) + '</span></div>';
+            }
+
+            // Description items
+            if (descItems.length > 0) {
+                html += '<div class="sv-view-section-title">Product Features</div>';
+                html += descItems.map(function (d) {
+                    return '<div class="pd-desc-item">' +
+                        '<div class="pd-desc-label">' + escapeHtml(d.label || "") + '</div>' +
+                        '<div class="pd-desc-value">' + escapeHtml(d.value || "") + '</div>' +
+                    '</div>';
+                }).join("");
+            }
+
+            // Gallery thumbnails
+            var gallery = Array.isArray(p.gallery_images) ? p.gallery_images : [];
+            if (gallery.length > 1) {
+                html += '<div class="sv-view-section-title">Gallery</div>';
+                html += '<div class="pd-gallery">';
+                gallery.forEach(function (src) {
+                    html += '<img src="' + escapeHtml(src) + '" alt="" onerror="this.style.display=\'none\'">';
+                });
+                html += '</div>';
+            }
+
+            productBody.innerHTML = html;
+        }
 
         // ------------------------------------------------------------------
         // UPDATE STATUS MODAL
@@ -712,14 +906,21 @@
         }
         function clearStatusFormMessage() { statusFormMsg.style.display = "none"; statusFormMsg.textContent = ""; }
 
-        function openStatusModal(orderId, orderNumber, currentStatus) {
-            console.log("[orders][openStatusModal] orderId:", orderId, "orderNumber:", orderNumber, "currentStatus:", currentStatus);
+        function toggleTrackingField() {
+            const status = document.getElementById("s-order-status").value;
+            const wrap = document.getElementById("s-tracking-wrap");
+            wrap.style.display = ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"].indexOf(status) !== -1 ? "block" : "none";
+        }
+        document.getElementById("s-order-status").addEventListener("change", toggleTrackingField);
+
+        function openStatusModal(orderId, orderNumber, currentStatus, currentTracking) {
             statusOrderId = orderId;
             document.getElementById("status-order-number").textContent = orderNumber || orderId;
             document.getElementById("s-order-status").value = currentStatus || "PLACED";
-            document.getElementById("s-tracking-id").value = "";
+            document.getElementById("s-tracking-id").value = currentTracking || "";
             document.getElementById("s-remarks").value = "";
             clearStatusFormMessage();
+            toggleTrackingField();
             openModal(statusOverlay);
         }
         function closeStatusModal() { closeModal(statusOverlay); statusOrderId = null; }
@@ -731,50 +932,39 @@
         document.getElementById("submit-status-update").addEventListener("click", async function () {
             if (!statusOrderId) return;
             clearStatusFormMessage();
-
+            const newStatus = document.getElementById("s-order-status").value;
+            const trackingVal = document.getElementById("s-tracking-id").value.trim();
+            if (["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"].indexOf(newStatus) !== -1 && !trackingVal) {
+                showStatusFormMessage("Please enter the Tracking ID / AWB before marking as " + newStatus.replace(/_/g, " ") + ".", "error");
+                return;
+            }
             const payload = {
-                orderStatus: document.getElementById("s-order-status").value,
-                trackingId: document.getElementById("s-tracking-id").value.trim() || null,
+                orderStatus: newStatus,
+                trackingId: trackingVal || null,
                 remarks: document.getElementById("s-remarks").value.trim() || null
             };
-            console.log("[orders][submit-status-update] Payload:", payload, "orderId:", statusOrderId, "Token:", window.__adminAuth.token);
-
             const btn = document.getElementById("submit-status-update");
-            btn.disabled = true;
-            btn.textContent = "Updating…";
-
+            btn.disabled = true; btn.textContent = "Updating…";
             try {
                 const res = await fetchWithTimeout(API_BASE + "/api/admin/orders/" + encodeURIComponent(statusOrderId) + "/status", {
                     method: "PUT",
                     headers: authHeaders({ "Content-Type": "application/json" }),
                     body: JSON.stringify(payload)
                 }, 15000);
-
-                if (res.status === 401) {
-                    console.error("[orders][submit-status-update] 401 Unauthorized updating order", statusOrderId, "Token sent:", window.__adminAuth.token);
-                    closeStatusModal();
-                    handleUnauthorized();
-                    return;
-                }
-
+                if (res.status === 401) { closeStatusModal(); handleUnauthorized(); return; }
                 const body = await res.json();
-                console.log("[orders][submit-status-update] Response body:", body);
-
                 if (res.status === 200 && body.success) {
                     showToast("Order status updated successfully.", "success");
                     closeStatusModal();
                     loadOrders();
                     loadStats();
                 } else {
-                    console.warn("[orders][submit-status-update] Failed. Message:", body.message);
                     showStatusFormMessage(body.message || "Failed to update order status.", "error");
                 }
             } catch (err) {
-                console.error("[orders] status update failed:", err);
                 showStatusFormMessage("Could not reach the server. Check your connection and try again.", "error");
             } finally {
-                btn.disabled = false;
-                btn.textContent = "Update Status";
+                btn.disabled = false; btn.textContent = "Update Status";
             }
         });
 
@@ -791,33 +981,31 @@
             state.userId = document.getElementById("f-user-id").value.trim();
             state.fromDate = document.getElementById("f-from-date").value;
             state.toDate = document.getElementById("f-to-date").value;
-            console.log("[orders][filter-form submit] New state:", state);
             loadOrders();
         });
 
         document.getElementById("reset-filters").addEventListener("click", function () {
             document.getElementById("filter-form").reset();
             state = { page: 0, size: state.size, orderNumber: "", orderStatus: "", paymentStatus: "", paymentMethod: "", userId: "", fromDate: "", toDate: "" };
-            console.log("[orders][reset-filters] State reset:", state);
             loadOrders();
         });
 
         document.getElementById("page-size-select").addEventListener("change", function (e) {
             state.size = parseInt(e.target.value, 10) || 20;
             state.page = 0;
-            console.log("[orders][page-size-select] New size:", state.size);
             loadOrders();
         });
 
         document.getElementById("pg-prev").addEventListener("click", function () {
-            if (state.page > 0) { state.page -= 1; console.log("[orders][pg-prev] page now:", state.page); loadOrders(); }
+            if (state.page > 0) { state.page -= 1; loadOrders(); }
         });
         document.getElementById("pg-next").addEventListener("click", function () {
-            state.page += 1; console.log("[orders][pg-next] page now:", state.page); loadOrders();
+            state.page += 1; loadOrders();
         });
 
         document.addEventListener("keydown", function (e) {
             if (e.key === "Escape") {
+                if (productOverlay.classList.contains("open")) { closeProductModal(); return; }
                 closeModal(viewOverlay);
                 closeStatusModal();
             }
@@ -828,14 +1016,11 @@
         // ------------------------------------------------------------------
         function init() {
             if (!window.__adminAuth.token) return;
-            console.log("[orders][init] Kicking off loadStats() and loadOrders()…");
             loadStats();
             loadOrders();
         }
-
         init();
     </script>
 
 </body>
-
 </html>

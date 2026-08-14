@@ -195,6 +195,7 @@
         }
 
         .cart-row.row-busy { opacity: 0.55; pointer-events: none; }
+        .cart-row.row-out-of-stock { background: #fef2f2; border-radius: 8px; }
 
         .empty-cart { text-align: center; padding: 60px 0 40px; color: #9ca3af; display: none; }
         .empty-cart-icon { font-size: 56px; margin-bottom: 16px; display: block; }
@@ -960,7 +961,7 @@
 
                 <div class="form-field">
                     <label for="addr_phone">Phone Number</label>
-                    <input type="tel" id="addr_phone" placeholder="e.g. 9876543210" pattern="[0-9]{10}" maxlength="10" required />
+                    <input type="tel" id="addr_phone" placeholder="e.g. 9876543210" pattern="[6-9][0-9]{9}" maxlength="10" required />
                 </div>
 
 
@@ -1123,7 +1124,7 @@
     <!-- ══════════════════ JAVASCRIPT ══════════════════ -->
     <script>
         /* ─────────────── BASE URL ─────────────── */
-        const BASE_URL = 'https://api.stanvee.com';
+        const BASE_URL = 'https://api.stanveeshop.com';
         const WALLET_DEDUCT_URL = `${BASE_URL}/api/wallet/deduct`;
         const WALLET_CONFIRM_URL = `${BASE_URL}/api/wallet/confirm`;
         const WALLET_TYPE_SHOPPING = 'S'; // Shopping Wallet — matches walletR in header dropdown
@@ -1526,7 +1527,9 @@ function normalizeCartItem(item) {
         maxPoints: Number(item.maxPointsUtilization) || 0,
         quantity: item.quantity || 1,
         couponSelected: item.couponSelected || false,
-        finalPrice: item.finalPrice
+        finalPrice: item.finalPrice,
+        stockStatus: item.stockStatus || (item.inStock === false ? 'out_of_stock' : 'in_stock'),
+        inStock: item.inStock !== false
     };
 }
 
@@ -1593,7 +1596,7 @@ function buildCartArray() {
                     }
 
                     return `
-            <div class="cart-row">
+            <div class="cart-row${product.inStock === false ? ' row-out-of-stock' : ''}">
                 <div class="product-info">
                     <div class="product-thumb"
                          onclick="window.location.href='product_details.html?id=${product._id}'">
@@ -1603,6 +1606,7 @@ function buildCartArray() {
                     <div class="product-meta">
                         <p class="product-meta-name">${product.name}</p>
                         <p class="product-meta-category">${product.category || ''}</p>
+                        ${product.inStock === false ? `<p style="font-size:12px;font-weight:700;color:#dc2626;margin-top:2px">Out of stock — please remove to checkout</p>` : ''}
                         <div class="qty-row">
                             <span class="qty-label">Qty:</span>
                             <select class="qty-select"
@@ -1649,8 +1653,12 @@ function buildCartArray() {
             document.getElementById('walletRemaining').textContent = `${state.currency}${walletRemaining.toFixed(2)}`;
             document.getElementById('grandTotal').textContent = `${state.currency}${grandTotal.toFixed(2)}`;
 
+            const hasOutOfStock = cartArray.some(p => p.inStock === false);
             const btn = document.getElementById('placeOrderBtn');
-            if (btn) btn.textContent = 'Proceed to Checkout';
+            if (btn) {
+                btn.disabled = hasOutOfStock || cartArray.length === 0;
+                btn.textContent = hasOutOfStock ? 'Remove out-of-stock item(s) to checkout' : 'Proceed to Checkout';
+            }
         }
 
         /* ─────────────── ADDRESS ─────────────── */
@@ -1925,6 +1933,9 @@ function openOrderConfirmModal() {
     if (!state.selectedAddress) return showToast('Please select a delivery address', 'error');
     const cartArray = buildCartArray();
     if (cartArray.length === 0) return showToast('Your cart is empty', 'error');
+    if (cartArray.some(p => p.inStock === false)) {
+        return showToast('Please remove out-of-stock item(s) from your cart before checkout', 'error');
+    }
             document.getElementById('confirmItemsList').innerHTML = cartArray.map(item => `
                 <div class="confirm-item-row">
                     <div class="confirm-item-thumb">
@@ -2003,10 +2014,11 @@ function openOrderConfirmModal() {
                 showToast('Please enter a valid email address', 'error');
                 return false;
             }
-            if (!/^[0-9]{10}$/.test(phone)) {
-                showToast('Please select an address with a valid 10-digit phone number', 'error');
-                return false;
-            }
+            
+       if (!/^[6-9][0-9]{9}$/.test(phone)) {
+    showToast('Please enter a valid 10-digit Indian mobile number (must start with 6, 7, 8 or 9)', 'error');
+    return false;
+}
             return true;
         }
 
@@ -2666,6 +2678,19 @@ state.cartItems = {};
         }
 
         document.addEventListener('DOMContentLoaded', init);
+
+        // ── FIX: bfcache back/forward restore was showing a frozen,
+        // pre-payment snapshot of this page (same cart, same state) instead
+        // of re-running init() and re-fetching live cart/order status from
+        // the backend. Force a hard reload whenever this page is restored
+        // from bfcache (event.persisted) so init() runs fresh again.
+        window.addEventListener('pageshow', function (event) {
+            const navEntry = performance.getEntriesByType('navigation')[0];
+            const isBackForward = navEntry && navEntry.type === 'back_forward';
+            if (event.persisted || isBackForward) {
+                window.location.reload();
+            }
+        });
     </script>
 
     <script>

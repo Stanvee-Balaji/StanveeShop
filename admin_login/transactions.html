@@ -198,7 +198,7 @@
                     <div class="stat-card"><div class="stat-label">Cancelled</div><div class="stat-value" id="stat-cancelled">—</div></div>
                     <div class="stat-card"><div class="stat-label">Hash Mismatch</div><div class="stat-value" id="stat-hash-mismatch">—</div></div>
                     <div class="stat-card"><div class="stat-label">Errors</div><div class="stat-value" id="stat-error">—</div></div>
-                    <div class="stat-card accent"><div class="stat-label">Success Rate</div><div class="stat-value" id="stat-success-rate">—</div></div>
+                    
                     <div class="stat-card"><div class="stat-label">Total Success Amt</div><div class="stat-value" id="stat-total-amount">—</div></div>
                     <div class="stat-card"><div class="stat-label">Today's Amt</div><div class="stat-value" id="stat-today-amount">—</div></div>
                     <div class="stat-card"><div class="stat-label">Today's Txns</div><div class="stat-value" id="stat-today-count">—</div></div>
@@ -384,7 +384,7 @@
     <div class="sv-toast" id="sv-toast"></div>
 
     <script>
-        window.API_BASE = "https://api.stanvee.com";
+        window.API_BASE = "https://api.stanveeshop.com";
     </script>
     <script src="components/layout.js"></script>
    
@@ -398,7 +398,7 @@
             window.location.href = "index.html";
         }
 
-        const API_BASE = "https://api.stanvee.com";
+        const API_BASE = "https://api.stanveeshop.com";
         const BASE_PATH = "/api/admin/transactions";
 
         function authHeaders(extra) {
@@ -516,7 +516,7 @@
                 document.getElementById("stat-cancelled").textContent = s.cancelledCount ?? 0;
                 document.getElementById("stat-hash-mismatch").textContent = s.hashMismatchCount ?? 0;
                 document.getElementById("stat-error").textContent = s.errorCount ?? 0;
-                document.getElementById("stat-success-rate").textContent = (s.successRatePercent ?? 0) + "%";
+                
                 document.getElementById("stat-total-amount").textContent = formatRupees(s.totalSuccessAmount);
                 document.getElementById("stat-today-amount").textContent = formatRupees(s.todaySuccessAmount);
                 document.getElementById("stat-today-count").textContent = s.todayTransactionCount ?? 0;
@@ -546,6 +546,9 @@
                 if (state.toDate) params.set("toDate", state.toDate);
                 return API_BASE + BASE_PATH + "?" + params.toString();
             }
+
+
+            
             if (state.mode === "success") return API_BASE + BASE_PATH + "/success?" + params.toString();
             if (state.mode === "failed") return API_BASE + BASE_PATH + "/failed?" + params.toString();
             if (state.mode === "hash-mismatches") return API_BASE + BASE_PATH + "/hash-mismatches?" + params.toString();

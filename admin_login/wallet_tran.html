@@ -272,7 +272,7 @@
                         Search
                     </button>
                     <button class="btn btn-secondary" id="balance-btn" style="display:none;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <!-- <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> -->
                         Fetch Wallet Balance
                     </button>
                     <button class="btn btn-outline" id="refund-history-btn" style="display:none;">
@@ -334,7 +334,7 @@
 
             <!-- ── EMPTY / PROMPT STATE ── -->
             <div id="empty-prompt" class="card" style="text-align:center;padding:48px 24px;color:#9aa4b8;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 14px;display:block;opacity:.35;color:#6366f1"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                
                 <div style="font-size:15px;font-weight:700;color:#5b6272;margin-bottom:6px;">Enter a username to get started</div>
                 <div style="font-size:13px;">Type a Stanvee username above and press Search to load wallet transactions for that user.</div>
             </div>
@@ -426,7 +426,7 @@
         <div class="sv-modal-footer">
             <button type="button" class="btn btn-secondary" id="close-wt-modal-2">Cancel</button>
             <button type="button" class="btn btn-primary" id="confirm-wt-fetch-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <!-- <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> -->
                 Fetch Balance
             </button>
         </div>
@@ -436,7 +436,7 @@
 <div class="sv-toast" id="sv-toast"></div>
 
 <script>
-    window.API_BASE = "https://api.stanvee.com";
+    window.API_BASE = "https://api.stanveeshop.com";
 </script>
 <script src="components/layout.js"></script>
 
@@ -447,7 +447,7 @@
 window.__adminAuth = { token: localStorage.getItem("adminSessionToken") };
 if (!window.__adminAuth.token) { window.location.href = "index.html"; }
 
-const API_BASE  = "https://api.stanvee.com";
+const API_BASE  = "https://api.stanveeshop.com";
 const WALLET_BASE = "/api/admin/wallet";
 
 // Wallet type registry — single source of truth for labels
@@ -740,7 +740,6 @@ async function loadBalance() {
     // Render a placeholder pill per wallet type first, then fill in as each call resolves
     grid.innerHTML = walletTypes.map(function(wt) {
         return '<div class="balance-pill" data-wt-pill="' + escapeHtml(wt) + '">' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>' +
             escapeHtml(walletLabel(wt)) + ': <span class="balance-amt">…</span>' +
         '</div>';
     }).join("");

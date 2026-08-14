@@ -367,12 +367,10 @@
         <!-- Status filter tabs -->
         <div class="mo-filters" id="moFilters">
             <button class="mo-filter-btn active" data-status="">All</button>
-            <button class="mo-filter-btn" data-status="PLACED">Placed</button>
-            <button class="mo-filter-btn" data-status="CONFIRMED">Confirmed</button>
-            <button class="mo-filter-btn" data-status="SHIPPED">Shipped</button>
+            <button class="mo-filter-btn" data-status="INPROGRESS">In Progress</button>
             <button class="mo-filter-btn" data-status="DELIVERED">Delivered</button>
+            <button class="mo-filter-btn" data-status="PENDING_VIEW">Pending</button>
             <button class="mo-filter-btn" data-status="CANCELLED">Cancelled</button>
-            <button class="mo-filter-btn" data-status="PENDING_VIEW">Pending Payments</button>
         </div>
 
         <!-- ══════ LOADING STATE ══════ -->
@@ -418,7 +416,7 @@
     <div id="footer"></div>
 
     <script>
-        const BASE_URL = 'https://api.stanvee.com';
+        const BASE_URL = 'https://api.stanveeshop.com';
         const currency = '₹';
         const PAGE_SIZE = 10;
 
@@ -427,6 +425,11 @@
         let currentPage = 0;
         let totalPages = 1;
         let isPendingView = false; // true when "Pending Payments" tab is active
+        let groupStatuses = null; // set when a merged tab (e.g. In Progress) is active
+
+        const STATUS_GROUPS = {
+            INPROGRESS: ['PLACED', 'CONFIRMED', 'SHIPPED']
+        };
 
         function showToast(msg, type = 'success') {
             const c = document.getElementById('toastContainer');
@@ -458,10 +461,16 @@
             switch (status) {
                 case 'CANCELLED': return 'mo-status-cancelled';
                 case 'DELIVERED': return 'mo-status-delivered';
-                case 'CONFIRMED': return 'mo-status-confirmed';
-                case 'SHIPPED': return 'mo-status-shipped';
-                default: return 'mo-status-placed'; // PLACED / anything else
+                case 'PLACED':
+                case 'CONFIRMED':
+                case 'SHIPPED':
+                    return 'mo-status-placed';
+                default: return 'mo-status-placed';
             }
+        }
+
+        function statusPillLabel(status) {
+            return status;
         }
 
         function pendingStatusPillClass(status) {
@@ -499,7 +508,7 @@
                             <p class="mo-order-number">${order.orderNumber}</p>
                             <p class="mo-order-date">${formatDate(order.createdAt)}</p>
                         </div>
-                        <span class="mo-status-pill ${statusPillClass(order.orderStatus)}">${order.orderStatus}</span>
+                        <span class="mo-status-pill ${statusPillClass(order.orderStatus)}">${statusPillLabel(order.orderStatus)}</span>
                     </div>
                     <div class="mo-order-bottom">
                         <span class="mo-order-items-count">${order.totalItems} item${order.totalItems !== 1 ? 's' : ''}</span>
@@ -523,7 +532,7 @@ function viewOrder(orderNumber) {
                         </div>
                         <span class="mo-status-pill ${pendingStatusPillClass(po.status)}">${pendingStatusLabel(po.status)}</span>
                     </div>
-                    ${po.failureReason ? `<p class="mo-failure-reason">${po.failureReason}</p>` : ''}
+                    ${po.failureReason ? `<p class="mo-failure-reason">Payment Failed</p>` : ''}
                     <div class="mo-order-bottom">
                         <span class="mo-order-items-count">${po.totalItems} item${po.totalItems !== 1 ? 's' : ''}</span>
                         <span class="mo-order-amount">${currency}${(po.totalAmount ?? 0).toFixed(2)}</span>
@@ -554,7 +563,8 @@ function viewOrder(orderNumber) {
 
         function setActiveFilter(status) {
             isPendingView = (status === 'PENDING_VIEW');
-            currentStatus = isPendingView ? '' : status;
+            groupStatuses = STATUS_GROUPS[status] || null;
+            currentStatus = (isPendingView || groupStatuses) ? '' : status;
             currentPage = 0;
             document.querySelectorAll('.mo-filter-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.status === status);
@@ -622,13 +632,19 @@ function viewOrder(orderNumber) {
                 const data = await res.json();
 
                 if (res.ok && data.success) {
-                    const orders = data.orders || [];
+                    let orders = data.orders || [];
                     totalPages = data.totalPages || 1;
 
+                    if (groupStatuses) {
+                        orders = orders.filter(o => groupStatuses.includes(o.orderStatus));
+                    }
+
                     if (orders.length === 0) {
-                        document.getElementById('moEmptyMessage').textContent = currentStatus
-                            ? `You have no ${currentStatus.toLowerCase()} orders.`
-                            : "You haven't placed any orders yet.";
+                        document.getElementById('moEmptyMessage').textContent = groupStatuses
+                            ? "You have no in-progress orders."
+                            : currentStatus
+                                ? `You have no ${currentStatus.toLowerCase()} orders.`
+                                : "You haven't placed any orders yet.";
                         showState('moEmptyState');
                         return;
                     }

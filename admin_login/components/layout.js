@@ -7,7 +7,7 @@
 // ============================================================
 
 (function () {
-    const API_BASE = window.API_BASE || "https://api.stanvee.com";
+    const API_BASE = window.API_BASE || "https://api.stanveeshop.com";
 
     async function injectSidebar() {
         const mount = document.getElementById("sidebar-mount");

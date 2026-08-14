@@ -49,7 +49,7 @@
           <input type="file" id="file-input" accept=".xlsx">
         </label>
                     <div class="flex" style="justify-content:space-between;align-items:center;margin-top:18px;">
-                        <label class="checkbox-row"><input type="checkbox" id="preview-checkbox" checked> Preview before importing</label>
+                        <!-- <label class="checkbox-row"><input type="checkbox" id="preview-checkbox" checked> Preview before importing</label> -->
                         <button type="button" class="btn btn-primary" id="upload-btn"><svg class="icon" width="15" height="15" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> <span id="upload-btn-label">Upload &amp; Preview</span></button>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
             window.location.href = "index.html";
         }
 
-        const API_BASE = "https://api.stanvee.com";
+        const API_BASE = "https://api.stanveeshop.com";
         window.API_BASE = API_BASE;
 
         function authHeaders(extra) {

@@ -321,12 +321,12 @@
     </div>
 
     <script>
-        window.API_BASE = "https://api.stanvee.com";
+        window.API_BASE = "https://api.stanveeshop.com";
     </script>
     <script src="components/layout.js"></script>
     <script>
         // ================= CONFIG =================
-        const BASE_URL = "https://api.stanvee.com";
+        const BASE_URL = "https://api.stanveeshop.com";
 
         function getAdminToken() {
             return localStorage.getItem("adminSessionToken") || "";
@@ -448,7 +448,7 @@
         let currentPage = 0;
         const pageSize = 10;
         let priorityMode = false; // false = normal paginated listing (unchanged), true = new category_priority ordered view
-        const priorityModePerCategory = 100; // how many products to pull per category from the grouped endpoint
+        const priorityModePerCategory = 10; // how many products to pull per category from the grouped endpoint
 
         function openCategoryPanel(category) {
             currentCategory = category;
@@ -770,7 +770,7 @@
     </script>
 
     <script>
-        window.API_BASE = "https://api.stanvee.com";
+        window.API_BASE = "https://api.stanveeshop.com";
         if (!localStorage.getItem("adminSessionToken")) { window.location.href = "index.html"; }
     </script>
     <script src="components/layout.js"></script>

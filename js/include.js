@@ -347,8 +347,8 @@ function showToastFallback(msg, isError) {
 }
 
 const STANVEE_API_TOKEN = "abUnMar5489pidlAewUF4875brlstangwewera4i5n6";
-const STANVEE_CART_BASE = "https://api.stanvee.com/api/cart";
-const STANVEE_CATEGORIES_API = "https://api.stanvee.com/api/products/categories";
+const STANVEE_CART_BASE = "https://api.stanveeshop.com/api/cart";
+const STANVEE_CATEGORIES_API = "https://api.stanveeshop.com/api/products/categories";
 
 // ── CATEGORIES DROPDOWN (dynamic) ──
 async function fetchAndRenderCategories() {
@@ -445,7 +445,7 @@ document.addEventListener("submit", async (e) => {
     try {
         // const url = `https://stanveeservices.com/CheckLogin.aspx?token=${STANVEE_API_TOKEN}&Username=${encodeURIComponent(username)}&Password=${encodeURIComponent(password)}&action=login`;
         // const res = await fetch(url);
-const url = `https://api.stanvee.com/api/auth/login`;
+const url = `https://api.stanveeshop.com/api/auth/login`;
         const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -543,7 +543,7 @@ const url = `https://api.stanvee.com/api/auth/login`;
 
 
 // ── PRODUCT SEARCH ──
-const STANVEE_SEARCH_API = "https://api.stanvee.com/api/products/search";
+const STANVEE_SEARCH_API = "https://api.stanveeshop.com/api/products/search";
 
 let searchRequestId = 0; // tracks latest request so stale responses get ignored
 

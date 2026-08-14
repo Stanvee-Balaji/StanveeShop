@@ -1926,7 +1926,7 @@ async function handleSaveAddress(event) {
             }
         }
 /* ─────────────── BASE URL ─────────────── */
-const BASE_URL = 'https://api.stanvee.com';
+const BASE_URL = 'https://api.stanveeshop.com';
 
 /* ─────────────── CART CACHE (shared key with script.js) ─────────────── */
 const CART_CACHE_KEY = 'sv_cart_cache';
@@ -1988,7 +1988,7 @@ async function init() {
 
     // ── 3. Load products catalogue from external API ──
     try {
-        const prodRes = await fetch('https://api.stanvee.com/api/products');
+        const prodRes = await fetch('https://api.stanveeshop.com/api/products');
         const prodData = await prodRes.json();
         if (prodData.status === 'success') {
             // Normalize products into the shape cart rendering expects

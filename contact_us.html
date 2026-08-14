@@ -320,9 +320,9 @@ TOAST NOTIFICATIONS
                         <input type="text" id="cf-name" name="name" placeholder="Your Name" required>
                     </div>
 
-                    <div class="form-group">
+                 <div class="form-group">
                         <label class="form-label" for="cf-userid">User ID<span class="required-mark">*</span></label>
-                        <input type="text" id="cf-userid" name="user_id" placeholder="User ID" required>
+                        <input type="text" id="cf-userid" name="user_id" placeholder="User ID" required readonly>
                     </div>
 
                     <div class="form-group">
@@ -363,7 +363,7 @@ TOAST NOTIFICATIONS
         // CONFIG — switch BASE_URL when moving to staging/production
         // ==========================================================
         const API_CONFIG = {
-            BASE_URL: "https://api.stanvee.com", // TODO: replace with actual environment host later
+            BASE_URL: "https://api.stanveeshop.com", // TODO: replace with actual environment host later
             CONTACT_SUBMIT_ENDPOINT: "/api/contact/submit"
         };
 
@@ -412,6 +412,31 @@ TOAST NOTIFICATIONS
                 mobile: document.getElementById("cf-mobile"),
                 message: document.getElementById("cf-message")
             };
+
+            // ── AUTO-FILL USER ID + EMAIL FROM LOGGED-IN SESSION ──
+            // User ID should never be manually typed — it's tied to the
+            // logged-in account. Pull it (and email, if available) from
+            // the same localStorage session key script.js/include.js use.
+            (function prefillFromSession() {
+                const savedUser = localStorage.getItem("stanveeUser");
+                const loggedIn = localStorage.getItem("stanveeLoggedIn");
+                if (loggedIn === "true" && savedUser) {
+                    try {
+                        const user = JSON.parse(savedUser);
+                        if (user.loginid) {
+                            fields.user_id.value = user.loginid;
+                        }
+                        if (user.name && !fields.name.value) {
+                            fields.name.value = user.name;
+                        }
+                        if (user.email && !fields.email.value) {
+                            fields.email.value = user.email;
+                        }
+                    } catch (e) {
+                        console.error("[Contact Form] Failed to prefill from session:", e);
+                    }
+                }
+            })();
 
             function clearFieldErrors() {
                 Object.values(fields).forEach(el => el.classList.remove("field-error"));

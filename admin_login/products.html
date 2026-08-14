@@ -429,7 +429,7 @@
     <div class="sv-toast" id="sv-toast"></div>
 
     <script>
-        window.API_BASE = "https://api.stanvee.com";
+        window.API_BASE = "https://api.stanveeshop.com";
     </script>
     <script src="components/layout.js"></script>
     <script>
@@ -439,7 +439,7 @@
         window.__adminAuth = { token: localStorage.getItem("adminSessionToken") };
         if (!window.__adminAuth.token) { window.location.href = "index.html"; }
 
-        const API_BASE = "https://api.stanvee.com";
+        const API_BASE = "https://api.stanveeshop.com";
 
         function authHeaders(extra) {
             return Object.assign({ "Authorization": window.__adminAuth.token }, extra || {});
